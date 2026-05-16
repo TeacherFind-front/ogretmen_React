@@ -1,0 +1,170 @@
+import { apiFetch } from "./api";
+
+/**
+ * Kimlik doğrulama servisi
+ * POST /api/auth/login
+ * POST /api/auth/register
+ * GET  /api/auth/me
+ */
+
+/**
+ * Giriş yap
+ * @param {string} email
+ * @param {string} password
+ * @returns {{ token, userId, fullName, email, role }}
+ */
+export async function login(email, password) {
+  const res = await apiFetch("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Giriş başarısız.");
+  }
+
+  const data = await res.json();
+  
+  // Test amaçlı Admin yetkilendirmesi (Geliştirme aşamasında)
+  if (data.email === "emrekoc4615@gmail.com" || data.email === "admin@gmail.com") {
+    data.role = "3";
+  }
+  
+  return data;
+}
+
+/**
+ * Kayıt ol
+ * @param {{ fullName, email, password, role, phone, city }} data
+ * @returns {{ token?, userId, fullName, email, role }}
+ */
+export async function register({ fullName, email, password, role, phoneNumber, cityId, districtId, neighborhoodId }) {
+  const res = await apiFetch("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ 
+      FullName: fullName, 
+      Email: email, 
+      Password: password, 
+      Role: role, 
+      PhoneNumber: phoneNumber, 
+      CityId: cityId,
+      DistrictId: districtId,
+      NeighborhoodId: neighborhoodId
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.log("Full Backend Error:", JSON.stringify(err, null, 2));
+    console.error("Backend Kayıt Hatası Detayı:", err);
+    
+    let errorMessage = err.message || "Kayıt başarısız.";
+    if (err.errors) {
+      errorMessage = Object.entries(err.errors)
+        .map(([key, value]) => `${key}: ${value.join(', ')}`)
+        .join(' | ');
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  return res.json();
+}
+
+/**
+ * Mevcut kullanıcı bilgilerini getir (token ile)
+ * @returns {{ userId, fullName, email, role, avatarUrl }}
+ */
+export async function getMe() {
+  const res = await apiFetch("/api/auth/me");
+
+  if (!res || !res.ok) return null;
+
+  const data = await res.json();
+  
+  if (data && (data.email === "emrekoc4615@gmail.com" || data.email === "admin@gmail.com")) {
+    data.role = "3";
+  }
+  
+  return data;
+}
+
+/**
+ * Şifre değiştir (token ile)
+ * @param {string} currentPassword 
+ * @param {string} newPassword 
+ * @returns {Promise<{message: string}>}
+ */
+export async function changePassword(currentPassword, newPassword) {
+  const res = await apiFetch("/api/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Şifre değiştirme başarısız.");
+  }
+
+  return res.json();
+}
+
+export async function verifyEmail(userId, code) {
+  const res = await apiFetch("/api/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ userId, code }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Doğrulama başarısız.");
+  }
+  return res.json();
+}
+
+export async function resendVerification(email) {
+  const res = await apiFetch("/api/auth/resend-email-verification", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Kod gönderilemedi.");
+  }
+  return res.json();
+}
+
+export async function forgotPassword(email) {
+  const res = await apiFetch("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "İstek başarısız.");
+  }
+  return res.json();
+}
+
+export async function resetPassword(email, code, newPassword) {
+  const res = await apiFetch("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, code, newPassword }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Şifre sıfırlama başarısız.");
+  }
+  return res.json();
+}
+
+/**
+ * Çıkış yap
+ * Token'ı siler ve gerekirse backend'i bilgilendirir.
+ */
+export function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  // Backend'e session bitirme isteği gönderilebilir (opsiyonel)
+  window.location.href = "/login";
+}

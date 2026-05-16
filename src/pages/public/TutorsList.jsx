@@ -1,107 +1,344 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { TutorCard } from "@/components/shared/TutorCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-
-const MOCK_TUTORS = [
-  {
-    id: "1",
-    name: "Sarah Jenkins",
-    avatar: "https://i.pravatar.cc/150?u=sarah",
-    rating: 4.9,
-    reviews: 124,
-    hourlyRate: 25,
-    headline: "5 Yıllık Deneyime Sahip Sertifikalı ESL Öğretmeni",
-    bio: "Merhaba! Konuşma İngilizcesi ve iş İngilizcesi konularında uzmanım. Derslerim oldukça etkileşimli ve kişisel hedeflerinize göre uyarlanmıştır.",
-    languages: "İngilizce (Anadil), İspanyolca (B2)",
-    activeStudents: 15
-  },
-  {
-    id: "2",
-    name: "Carlos Mendoza",
-    avatar: "https://i.pravatar.cc/150?u=carlos",
-    rating: 4.8,
-    reviews: 89,
-    hourlyRate: 18,
-    headline: "Anadili İspanyolca | DELE Hazırlık Uzmanı",
-    bio: "İspanyolcayı doğal yollarla öğrenin! Öğrencilerin DELE sınavlarına hazırlanmalarına ve konuşma akıcılıklarını hızlı ve verimli bir şekilde geliştirmelerine yardımcı oluyorum.",
-    languages: "İspanyolca (Anadil), İngilizce (C1)",
-    activeStudents: 22
-  },
-  {
-    id: "3",
-    name: "Emma Watson",
-    avatar: "https://i.pravatar.cc/150?u=emma",
-    rating: 5.0,
-    reviews: 312,
-    hourlyRate: 35,
-    headline: "Üniversite Profesörü | İleri Düzey İngiliz Edebiyatı",
-    bio: "İngilizce öğrenimine titiz ancak ilgi çekici bir yaklaşım getiriyorum. Nüans, kelime bilgisi ve yazma konularında uzmanlaşmak isteyen ileri düzey öğrenciler için mükemmel.",
-    languages: "İngilizce (Anadil), Fransızca (C2)",
-    activeStudents: 8
-  }
-];
+import { getTutors } from "@/services/tutorService";
+import { getCities, getCategories } from "@/services/locationService";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Search, SlidersHorizontal, Loader2, MapPin, Book, DollarSign, SortAsc, LayoutGrid } from "lucide-react";
 
 export default function TutorsList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tutors, setTutors] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  // Filtre state'i - URL'den başlat
+  const [filters, setFilters] = useState({
+    search: searchParams.get("search") || "",
+    category: searchParams.get("category") || "",
+    cityId: searchParams.get("cityId") || "",
+    minPrice: searchParams.get("minPrice") || "",
+    maxPrice: searchParams.get("maxPrice") || "",
+    serviceType: searchParams.get("serviceType") || "",
+    sort: searchParams.get("sort") || "newest",
+    page: 1,
+    pageSize: 12,
+  });
+
+  const [cities, setCities] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    getCities().then(setCities).catch(() => {});
+    getCategories().then(setCategories).catch(() => {});
+  }, []);
+
+  // URL parametreleri değiştiğinde state'i güncelle (Geri/İleri butonu için)
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      search: searchParams.get("search") || "",
+      category: searchParams.get("category") || "",
+      cityId: searchParams.get("cityId") || "",
+      serviceType: searchParams.get("serviceType") || "",
+    }));
+  }, [searchParams]);
+
+  // Öğretmenleri yükle
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await getTutors({
+          ...filters,
+          search: filters.search || undefined,
+          category: filters.category || undefined,
+          cityId: filters.cityId || undefined,
+          minPrice: filters.minPrice || undefined,
+          maxPrice: filters.maxPrice || undefined,
+          serviceType: filters.serviceType || undefined,
+        });
+        
+        if (filters.page === 1) {
+          setTutors(result.items || []);
+        } else {
+          setTutors(prev => [...prev, ...(result.items || [])]);
+        }
+        setTotalCount(result.totalCount || 0);
+      } catch (err) {
+        setError("Öğretmenler yüklenirken bir hata oluştu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [filters]);
+
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value, page: 1 };
+    setFilters(newFilters);
+    
+    // URL'i güncelle
+    const newParams = new URLSearchParams(searchParams);
+    if (value) {
+      newParams.set(key, value);
+    } else {
+      newParams.delete(key);
+    }
+    setSearchParams(newParams);
+  };
+
+  const handleLoadMore = () => {
+    setFilters((prev) => ({ ...prev, page: prev.page + 1 }));
+  };
+
   return (
-    <div className="container mx-auto py-8 px-6 flex flex-col md:flex-row gap-8">
-      {/* Sidebar Filters */}
-      <aside className="w-full md:w-64 flex-shrink-0">
-        <div className="sticky top-24 space-y-6">
-          <div>
-            <h3 className="font-semibold mb-3">Dil</h3>
-            <select className="w-full h-10 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring">
-              <option>İngilizce</option>
-              <option>İspanyolca</option>
-              <option>Fransızca</option>
-              <option>Almanca</option>
-            </select>
+    <div className="bg-gray-50/50 min-h-screen">
+      {/* Hero Header */}
+      <div className="bg-white border-b py-10 px-6 mb-8">
+        <div className="container mx-auto max-w-7xl">
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">Eğitmenleri Keşfedin</h1>
+          <p className="text-gray-500 max-w-2xl font-medium">Hedeflerinize ulaşmanıza yardımcı olacak binlerce uzman eğitmen arasından size en uygun olanı bulun.</p>
+        </div>
+      </div>
+
+      <div className="container mx-auto max-w-7xl py-8 px-6 flex flex-col lg:flex-row gap-10">
+        {/* Mobil Filtre Butonu */}
+        <div className="lg:hidden flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+          <span className="font-bold text-gray-900">{totalCount} Eğitmen Bulundu</span>
+          <Button 
+            variant="outline" 
+            className="rounded-xl border-gray-200"
+            onClick={() => setIsMobileFilterOpen(true)}
+          >
+            <SlidersHorizontal className="w-4 h-4 mr-2" />
+            Filtrele
+          </Button>
+        </div>
+
+        {/* Sidebar Filters - Drawer on mobile */}
+        {isMobileFilterOpen && (
+          <div 
+            className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm" 
+            onClick={() => setIsMobileFilterOpen(false)}
+          />
+        )}
+        
+        <aside className={`fixed inset-y-0 left-0 z-50 w-80 bg-white transform transition-transform duration-300 overflow-y-auto lg:relative lg:translate-x-0 lg:w-72 lg:z-auto lg:bg-transparent ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="lg:sticky lg:top-28 bg-white p-6 lg:rounded-3xl lg:border border-gray-100 lg:shadow-xl space-y-8 min-h-full lg:min-h-0">
+            <div className="flex items-center justify-between pb-4 border-b">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-5 h-5 text-blue-600" />
+                <h3 className="font-bold text-gray-900 text-lg">Filtreler</h3>
+              </div>
+              <Button 
+                variant="ghost" 
+                className="lg:hidden p-2" 
+                onClick={() => setIsMobileFilterOpen(false)}
+              >
+                ✕
+              </Button>
+            </div>
+
+            {/* Arama */}
+            <div className="space-y-3">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <Search className="w-3 h-3" /> Arama
+              </label>
+              <div className="relative">
+                <Input
+                  className="pl-4 h-11 rounded-xl bg-gray-50/50 border-gray-100 focus:bg-white transition-all"
+                  placeholder="İsim veya konu..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Kategori */}
+            <div className="space-y-3">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <Book className="w-3 h-3" /> Kategori
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all"
+                value={filters.category}
+                onChange={(e) => handleFilterChange("category", e.target.value)}
+              >
+                <option value="">Tüm Kategoriler</option>
+                {categories.map((cat) => (
+                  <option key={cat.category} value={cat.category}>{cat.category}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Şehir */}
+            <div className="space-y-3">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <MapPin className="w-3 h-3" /> Konum
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all"
+                value={filters.cityId}
+                onChange={(e) => handleFilterChange("cityId", e.target.value)}
+              >
+                <option value="">Fark Etmez</option>
+                {cities.map((city) => (
+                  <option key={city.id} value={city.id}>{city.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Ders Tipi */}
+            <div className="space-y-3">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <LayoutGrid className="w-3 h-3" /> Ders Tipi
+              </label>
+              <select
+                className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all"
+                value={filters.serviceType}
+                onChange={(e) => handleFilterChange("serviceType", e.target.value)}
+              >
+                <option value="">Tümü</option>
+                <option value="1">Çevrimiçi</option>
+                <option value="2">Yüz Yüze</option>
+                <option value="3">Her İkisi</option>
+              </select>
+            </div>
+
+            {/* Fiyat Aralığı */}
+            <div className="space-y-3">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <DollarSign className="w-3 h-3" /> Fiyat Aralığı
+              </label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  placeholder="Min"
+                  className="h-11 rounded-xl bg-gray-50/50 border-gray-100"
+                  value={filters.minPrice}
+                  onChange={(e) => handleFilterChange("minPrice", e.target.value)}
+                />
+                <Input
+                  type="number"
+                  placeholder="Max"
+                  className="h-11 rounded-xl bg-gray-50/50 border-gray-100"
+                  value={filters.maxPrice}
+                  onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <Button 
+              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 font-bold"
+              onClick={() => {
+                setFilters((f) => ({ ...f, page: 1 }));
+                setIsMobileFilterOpen(false);
+              }}
+            >
+              Filtreleri Uygula
+            </Button>
           </div>
-          
-          <div>
-            <h3 className="font-semibold mb-3">Saatlik Ücret</h3>
-            <div className="flex items-center gap-2">
-              <Input type="number" placeholder="Min" defaultValue={5} />
-              <span>-</span>
-              <Input type="number" placeholder="Max" defaultValue={40} />
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 shrink min-w-0">
+          <div className="hidden lg:flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              {loading && filters.page === 1 ? (
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              ) : (
+                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm">{totalCount}</span>
+              )}
+              Eğitmen Listeleniyor
+            </h2>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <SortAsc className="w-4 h-4 text-gray-400" />
+              <select
+                className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-100 w-full md:w-auto"
+                value={filters.sort}
+                onChange={(e) => handleFilterChange("sort", e.target.value)}
+              >
+                <option value="newest">En Yeni</option>
+                <option value="price_asc">Fiyat (Düşük)</option>
+                <option value="price_desc">Fiyat (Yüksek)</option>
+                <option value="rating">En İyi Puan</option>
+              </select>
             </div>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-3">Öğretmenin Ülkesi</h3>
-            <select className="w-full h-10 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring">
-              <option>Fark Etmez</option>
-              <option>Amerika Birleşik Devletleri</option>
-              <option>Birleşik Krallık</option>
-              <option>İspanya</option>
-            </select>
-          </div>
+          {error && (
+            <div className="text-center py-20 px-6 border-2 border-dashed border-red-100 rounded-3xl bg-red-50/50">
+              <p className="font-bold text-red-600 text-lg mb-2">{error}</p>
+              <Button variant="outline" onClick={() => setFilters(f => ({...f}))}>Tekrar Dene</Button>
+            </div>
+          )}
 
-          <Button className="w-full h-10">Filtreleri Uygula</Button>
-        </div>
-      </aside>
+          {!error && (
+            <div className="space-y-6">
+              {tutors.map((tutor) => (
+                <TutorCard key={tutor.id} tutor={tutor} />
+              ))}
+              
+              {loading && (
+                <div className="space-y-6 mt-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex flex-col md:flex-row bg-white border border-gray-100 rounded-[2rem] overflow-hidden shadow-sm h-auto md:h-56">
+                      {/* Left Side Skeleton */}
+                      <div className="md:w-56 bg-gray-50/50 p-8 flex flex-col items-center justify-center border-r border-gray-100">
+                        <Skeleton width="112px" height="112px" borderRadius="50%" className="mb-4" />
+                        <Skeleton width="100px" height="20px" className="mb-2" />
+                        <Skeleton width="80px" height="16px" />
+                      </div>
+                      {/* Right Side Skeleton */}
+                      <div className="p-6 flex-1 space-y-4">
+                        <div className="flex justify-between">
+                          <Skeleton width="60%" height="24px" />
+                          <Skeleton width="24px" height="24px" borderRadius="6px" />
+                        </div>
+                        <Skeleton width="90%" height="16px" />
+                        <Skeleton width="80%" height="16px" />
+                        <div className="flex gap-2 pt-2">
+                          <Skeleton width="80px" height="24px" borderRadius="8px" />
+                          <Skeleton width="80px" height="24px" borderRadius="8px" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-      {/* Main Content */}
-      <main className="flex-1 shrink min-w-0">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">{MOCK_TUTORS.length} öğretmen müsait</h1>
-          <select className="h-10 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring">
-            <option>Sırala: Önerilen</option>
-            <option>Sırala: Fiyat (Düşükten Yükseğe)</option>
-            <option>Sırala: Fiyat (Yüksekten Düşüğe)</option>
-            <option>Sırala: Değerlendirme</option>
-          </select>
-        </div>
+              {!loading && tutors.length === 0 && (
+                <div className="text-center py-32 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-10 h-10 text-gray-200" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Sonuç Bulunamadı</h3>
+                  <p className="text-gray-500 max-w-xs mx-auto">Arama kriterlerinizi değiştirerek tekrar deneyebilirsiniz.</p>
+                </div>
+              )}
 
-        <div className="space-y-6">
-          {MOCK_TUTORS.map(tutor => (
-            <TutorCard key={tutor.id} tutor={tutor} />
-          ))}
-        </div>
-        
-        <div className="mt-8 flex justify-center">
-          <Button variant="outline">Daha Fazla Öğretmen Yükle</Button>
-        </div>
-      </main>
+              {!loading && tutors.length < totalCount && (
+                <div className="pt-10 flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="h-12 px-10 rounded-xl font-bold border-gray-200 hover:bg-white hover:border-blue-600 hover:text-blue-600 transition-all"
+                    onClick={handleLoadMore}
+                  >
+                    Daha Fazla Eğitmen Yükle
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

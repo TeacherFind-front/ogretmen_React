@@ -3,12 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import styled from "styled-components";
+import toast from "react-hot-toast";
+import { useAuth } from "@/store/AuthContext";
+import { login as authLogin } from "@/services/authService";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [data, setData] = useState({
     email: "",
@@ -47,27 +51,52 @@ export default function Login() {
     setEmailSuggestions([]);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
-      setError("Geçersiz e-posta formatı.");
+      toast.error("Geçersiz e-posta formatı.");
       return;
     }
 
     if (data.password.length < 6) {
-      setError("Şifre en az 6 karakter olmalıdır.");
+      toast.error("Şifre en az 6 karakter olmalıdır.");
       return;
     }
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const result = await authLogin(data.email, data.password);
+
+      // Global state'i güncelle
+      login(result);
+
+      toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
+
+      // Tam sayfa yenileme ile ana sayfaya yönlendir
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
+    } catch (err) {
+      const errorMessage = err.message || "";
+      
+      // Eğer hata mesajı e-posta doğrulanmadığını belirtiyorsa (Backend'den gelen mesajla eşleşmeli)
+      if (errorMessage.toLowerCase().includes("doğrula") || errorMessage.toLowerCase().includes("verify")) {
+        toast.error("E-posta adresiniz henüz doğrulanmamış. Doğrulama sayfasına yönlendiriliyorsunuz...");
+        
+        // Backend'den userId dönüyorsa onu kullan, yoksa email ile git (VerifyEmail sayfasında userId gerekebilir)
+        setTimeout(() => {
+          navigate("/verify-email", { state: { email: data.email } });
+        }, 2000);
+      } else {
+        toast.error(errorMessage || "Sunucuya bağlanılamadı veya giriş başarısız. Lütfen tekrar deneyin.");
+      }
+    } finally {
       setLoading(false);
-      localStorage.setItem("token", "dummy-login-token"); // Test için token ekle
-      navigate("/app/dashboard");
-    }, 1000);
+    }
   };
 
   return (
@@ -152,12 +181,6 @@ export default function Login() {
               <span className="span">Şifremi unuttum</span>
             </Link>
           </div>
-
-          {error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded-xl text-xs font-medium border border-red-100 animate-pulse text-center">
-              {error}
-            </div>
-          )}
 
           <button className="button-submit" disabled={loading} type="submit">
             {loading ? "Giriş Yapılıyor..." : "Giriş Yap"}

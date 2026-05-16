@@ -1,126 +1,157 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { forgotPassword, resetPassword } from "@/services/authService";
+import toast from "react-hot-toast";
+import { Mail, Lock, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [step, setStep] = useState(1); // 1: Email, 2: Code & New Pass
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [newPassword, setNewPassword] = useState("");
 
-  // Email öneri sistemi
-  const emailDomains = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com"];
-  const [emailSuggestions, setEmailSuggestions] = useState([]);
-
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-    
-    const [localPart, domainPart] = value.split("@");
-    if (value.includes("@")) {
-      if (!domainPart) {
-        setEmailSuggestions(emailDomains.map((domain) => `${localPart}@${domain}`));
-      } else {
-        const filtered = emailDomains
-          .filter((domain) => domain.startsWith(domainPart))
-          .map((domain) => `${localPart}@${domain}`);
-        setEmailSuggestions(filtered);
-      }
-    } else {
-      setEmailSuggestions([]);
-    }
-    
-    if (error) setError("");
-  };
-
-  const handleSuggestionClick = (suggestion) => {
-    setEmail(suggestion);
-    setEmailSuggestions([]);
-  };
-
-  const handleReset = (e) => {
+  const handleRequestCode = async (e) => {
     e.preventDefault();
-    setError("");
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Geçersiz e-posta formatı.");
-      return;
+    setLoading(true);
+    try {
+      await forgotPassword(email);
+      toast.success("Sıfırlama kodu e-posta adresinize gönderildi.");
+      setStep(2);
+    } catch (error) {
+      toast.error(error.message || "Bir hata oluştu.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCodeChange = (index, value) => {
+    if (isNaN(value)) return;
+    const newCode = [...code];
+    newCode[index] = value.substring(value.length - 1);
+    setCode(newCode);
+
+    if (value && index < 5) {
+      document.getElementById(`reset-code-${index + 1}`).focus();
+    }
+  };
+
+  const handleCodeKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      document.getElementById(`reset-code-${index - 1}`).focus();
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    const fullCode = code.join("");
+    if (fullCode.length !== 6) return toast.error("Kod 6 haneli olmalıdır.");
+    if (newPassword.length < 6) return toast.error("Yeni şifre en az 6 karakter olmalıdır.");
 
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await resetPassword(email, fullCode, newPassword);
+      toast.success("Şifreniz başarıyla güncellendi! Giriş yapabilirsiniz.");
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (error) {
+      toast.error(error.message || "Şifre sıfırlama başarısız.");
+    } finally {
       setLoading(false);
-      setSent(true);
-    }, 1000);
+    }
   };
 
   return (
     <div className="container mx-auto flex min-h-[calc(100vh-140px)] w-full items-center justify-center py-6 bg-muted/20 px-4">
       <StyledWrapper>
-        {sent ? (
-          <div className="form text-center">
-            <div className="flex justify-center mb-6">
-              <div className="bg-blue-50 p-4 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" width={48} height={48} viewBox="0 0 24 24" fill="none" stroke="#2d79f3" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Bağlantı Gönderildi</h2>
-            <p className="p text-gray-500 mb-8">Lütfen <b>{email}</b> adresini kontrol edin. Şifrenizi sıfırlamak için bir bağlantı gönderdik.</p>
-            <Link to="/login" className="w-full">
-              <button className="button-submit" type="button">Giriş Sayfasına Dön</button>
-            </Link>
-          </div>
-        ) : (
-          <form className="form" onSubmit={handleReset}>
+        {step === 1 ? (
+          <form className="form" onSubmit={handleRequestCode}>
             <div className="text-center mb-4">
+              <div className="flex justify-center mb-6">
+                <div className="bg-blue-50 p-4 rounded-3xl text-blue-600"><Mail size={32} /></div>
+              </div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">Şifremi Unuttum</h1>
-              <p className="text-sm text-gray-500 mt-2">Sıfırlama bağlantısı almak için e-postanızı girin</p>
+              <p className="text-sm text-gray-500 mt-2">Sıfırlama kodu almak için e-postanızı girin</p>
             </div>
 
             <div className="flex-column">
               <label>E-posta</label>
-              <div className="inputForm relative">
-                <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <div className="inputForm">
+                <Mail size={18} />
                 <input
                   placeholder="E-posta adresinizi girin"
                   className="input"
                   type="email"
                   value={email}
-                  onChange={handleInputChange}
-                  autoComplete="off"
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                
-                {emailSuggestions.length > 0 && (
-                  <ul className="suggestions-list shadow-xl border border-gray-100 bg-white absolute top-full left-0 right-0 z-50 rounded-xl mt-2 overflow-hidden">
-                    {emailSuggestions.map((suggestion, index) => (
-                      <li
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-600 transition-colors border-b border-gray-50 last:border-0"
-                      >
-                        {suggestion}
-                      </li>
-                    ))}
-                  </ul>
-                )}
               </div>
             </div>
 
-            {error && (
-              <div className="bg-red-50 text-red-500 p-3 rounded-xl text-xs font-medium border border-red-100 animate-pulse text-center">
-                {error}
-              </div>
-            )}
-
             <button className="button-submit" disabled={loading} type="submit">
-              {loading ? "İşleniyor..." : "Bağlantı Gönder"}
+              {loading ? <Loader2 className="animate-spin mx-auto" /> : "Kod Gönder"}
             </button>
             
             <p className="p">
               Şifrenizi hatırladınız mı? <Link to="/login"><span className="span">Giriş Yap</span></Link>
             </p>
+          </form>
+        ) : (
+          <form className="form" onSubmit={handleResetPassword}>
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-6">
+                <div className="bg-emerald-50 p-4 rounded-3xl text-emerald-600"><ShieldCheck size={32} /></div>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Şifreyi Sıfırla</h1>
+              <p className="text-sm text-gray-500 mt-2">E-postanıza gelen kodu ve yeni şifrenizi girin</p>
+            </div>
+
+            <div className="flex-column items-center">
+              <label className="mb-4">Doğrulama Kodu</label>
+              <div className="flex justify-center gap-2 mb-6">
+                {code.map((digit, idx) => (
+                  <OtpInput
+                    key={idx}
+                    id={`reset-code-${idx}`}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleCodeChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleCodeKeyDown(idx, e)}
+                    autoFocus={idx === 0}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-column">
+              <label>Yeni Şifre</label>
+              <div className="inputForm">
+                <Lock size={18} />
+                <input
+                  placeholder="Yeni Şifreniz"
+                  className="input"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button className="button-submit" disabled={loading} type="submit">
+              {loading ? <Loader2 className="animate-spin mx-auto" /> : "Şifreyi Güncelle"}
+            </button>
+            
+            <button 
+              type="button" 
+              onClick={() => setStep(1)} 
+              className="text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors"
+            >
+              E-postayı Değiştir
+            </button>
           </form>
         )}
       </StyledWrapper>
@@ -231,6 +262,26 @@ const StyledWrapper = styled.div`
 
   .span:hover {
     text-decoration: underline;
+  }
+`;
+
+const OtpInput = styled.input`
+  width: 45px;
+  height: 55px;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  background: #f8fafc;
+  transition: all 0.2s;
+  outline: none;
+
+  &:focus {
+    border-color: #2d79f3;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
   }
 `;
 

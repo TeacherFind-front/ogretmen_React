@@ -1,58 +1,478 @@
-import { Card, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import {
+  Loader2,
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
+  Save,
+  Monitor,
+  Home,
+  Globe,
+  Trash2,
+  Clock,
+} from "lucide-react";
+import { getMyProfile, updateAvailability } from "@/services/tutorService";
+import toast from "react-hot-toast";
+
+const DAYS = [
+  "Pazartesi",
+  "Salı",
+  "Çarşamba",
+  "Perşembe",
+  "Cuma",
+  "Cumartesi",
+  "Pazar",
+];
+const SLOTS = ["Sabah", "Öğle", "Öğleden Sonra", "Akşam"];
 
 export default function TutorAvailability() {
-  const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+  const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [availability, setAvailability] = useState({});
+  const [status, setStatus] = useState({ type: null, message: "" });
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getMyProfile();
+        if (data) {
+          // Backend dictionary format: { "Day-Slot": "type" }
+          // If availability comes as an array, we might need to convert it,
+          // but based on current code it's expected as an object.
+          setAvailability(data.availability || {});
+        }
+      } catch (err) {
+        console.error("Load error", err);
+        toast.error("Profil verileri yüklenemedi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleSlotClick = (day, slot) => {
+    const key = `${day}-${slot}`;
+    const current = availability[key];
+    let next = null;
+
+    // Cycle: null -> online -> inperson -> both -> null
+    if (!current) next = "online";
+    else if (current === "online") next = "inperson";
+    else if (current === "inperson") next = "both";
+    else next = null;
+
+    setAvailability((prev) => ({
+      ...prev,
+      [key]: next,
+    }));
+  };
+
+  const clearAll = () => {
+    if (window.confirm("Tüm takvimi temizlemek istediğinize emin misiniz?")) {
+      setAvailability({});
+    }
+  };
+
+  const handleSave = async () => {
+    setSaveLoading(true);
+    setStatus({ type: null, message: "" });
+    try {
+      await updateAvailability(availability);
+      setStatus({
+        type: "success",
+        message: "Müsaitlik takviminiz başarıyla güncellendi!",
+      });
+      toast.success("Müsaitlik güncellendi.");
+      setTimeout(() => setStatus({ type: null, message: "" }), 3000);
+    } catch (err) {
+      setStatus({
+        type: "error",
+        message: err.message || "Kaydedilirken bir hata oluştu.",
+      });
+      toast.error("Hata: " + err.message);
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-6">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+        <p className="text-gray-400 font-black uppercase tracking-widest text-xs">
+          Takvim Yükleniyor
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Uygunluk Durumu</h1>
-        <Button>Değişiklikleri Kaydet</Button>
-      </div>
-      
-      <p className="text-muted-foreground">
-        Haftalık yinelenen programınızı belirleyin. Öğrenciler sadece bu saatler arasında ders alabilecektir.
-      </p>
+    <Container className="animate-in fade-in duration-700">
+      <HeaderCard>
+        <div className="title-area">
+          <div className="icon-box">
+            <Calendar size={32} />
+          </div>
+          <div>
+            <h1>Müsaitlik Takvimi</h1>
+            <p>Ders verebileceğiniz gün ve saat dilimlerini seçin.</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <ClearButton onClick={clearAll} type="button">
+            <Trash2 size={18} /> Temizle
+          </ClearButton>
+          <SaveButton onClick={handleSave} disabled={saveLoading}>
+            {saveLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Save size={20} /> Değişiklikleri Kaydet
+              </>
+            )}
+          </SaveButton>
+        </div>
+      </HeaderCard>
 
-      <div className="grid gap-4 mt-6">
-        {days.map((day) => (
-          <Card key={day}>
-            <CardContent className="p-6 flex flex-col md:flex-row items-start md:items-center gap-6">
-              <div className="w-32 flex items-center gap-3">
-                <input type="checkbox" className="w-4 h-4 rounded text-primary" defaultChecked={day !== "Pazar"} />
-                <span className="font-semibold">{day}</span>
-              </div>
-              
-              {day !== "Pazar" ? (
-                <div className="flex-1 flex flex-col gap-3">
-                  <div className="flex items-center gap-3">
-                    <select className="border rounded-md px-3 py-1.5 text-sm bg-transparent">
-                      <option>09:00</option>
-                      <option>10:00</option>
-                      <option>11:00</option>
-                    </select>
-                    <span>ile</span>
-                    <select className="border rounded-md px-3 py-1.5 text-sm bg-transparent">
-                      <option>12:00</option>
-                      <option>13:00</option>
-                      <option selected>17:00</option>
-                    </select>
-                    <button className="text-destructive text-sm font-medium ml-2">Kaldır</button>
-                  </div>
-                  <Button variant="ghost" size="sm" className="w-max hidden md:flex text-primary">
-                    + Saat Dilimi Ekle
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex-1 text-muted-foreground text-sm italic">
-                  Müsait Değil (İzin Günü)
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+      {status.message && (
+        <AlertBox $type={status.type}>
+          {status.type === "success" ? (
+            <CheckCircle2 size={20} />
+          ) : (
+            <AlertCircle size={20} />
+          )}
+          <span>{status.message}</span>
+        </AlertBox>
+      )}
+
+      <GridCard>
+        <div className="legend">
+          <div className="legend-item">
+            <div className="box online"></div> <span>Online</span>
+          </div>
+          <div className="legend-item">
+            <div className="box inperson"></div> <span>Yüz Yüze</span>
+          </div>
+          <div className="legend-item">
+            <div className="box both"></div> <span>Her İkisi</span>
+          </div>
+          <div className="legend-item">
+            <div className="box empty"></div> <span>Müsait Değil</span>
+          </div>
+          <p className="hint text-blue-600 font-black flex items-center gap-2">
+            <Clock size={14} /> Kutucuklara tıklayarak durumu
+            değiştirebilirsiniz.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <Table>
+            <thead>
+              <tr>
+                <th></th>
+                {DAYS.map((d) => (
+                  <th key={d}>{d}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SLOTS.map((slot) => (
+                <tr key={slot}>
+                  <td className="slot-label">
+                    <div className="slot-pill">{slot}</div>
+                  </td>
+                  {DAYS.map((day) => {
+                    const type = availability[`${day}-${slot}`];
+                    return (
+                      <td key={`${day}-${slot}`}>
+                        <Cell
+                          className={type || "empty"}
+                          onClick={() => handleSlotClick(day, slot)}
+                          title={`${day} ${slot}: ${type || "Müsait Değil"}`}
+                        >
+                          {type === "online" && (
+                            <Monitor
+                              size={20}
+                              className="animate-in zoom-in duration-300"
+                            />
+                          )}
+                          {type === "inperson" && (
+                            <Home
+                              size={20}
+                              className="animate-in zoom-in duration-300"
+                            />
+                          )}
+                          {type === "both" && (
+                            <Globe
+                              size={20}
+                              className="animate-in zoom-in duration-300"
+                            />
+                          )}
+                        </Cell>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      </GridCard>
+    </Container>
   );
 }
+
+const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 100px;
+`;
+
+const HeaderCard = styled.div`
+  background: white;
+  padding: 40px;
+  border-radius: 2.5rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+
+  .title-area {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+
+    .icon-box {
+      width: 64px;
+      height: 64px;
+      background: #f0f7ff;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2d79f3;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 950;
+      color: #0f172a;
+      margin: 0;
+      letter-spacing: -1px;
+    }
+    p {
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 6px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 30px;
+  }
+`;
+
+const GridCard = styled.div`
+  background: white;
+  padding: 45px;
+  border-radius: 3rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.08);
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-bottom: 45px;
+    align-items: center;
+    padding: 20px 30px;
+    background: #f8fafc;
+    border-radius: 24px;
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      .box {
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        &.online {
+          background: #3b82f6;
+        }
+        &.inperson {
+          background: #10b981;
+        }
+        &.both {
+          background: #8b5cf6;
+        }
+        &.empty {
+          background: white;
+          border: 2px solid #e2e8f0;
+        }
+      }
+    }
+
+    .hint {
+      margin-left: auto;
+      font-size: 13px;
+      text-transform: none;
+    }
+  }
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 12px;
+
+  th {
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 950;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding-bottom: 20px;
+  }
+
+  .slot-label {
+    padding-right: 20px;
+
+    .slot-pill {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 950;
+      padding: 12px 20px;
+      border-radius: 14px;
+      white-space: nowrap;
+      text-align: center;
+    }
+  }
+`;
+
+const Cell = styled.div`
+  width: 100%;
+  height: 80px;
+  min-width: 80px;
+  background: white;
+  border: 2px solid #f1f5f9;
+  border-radius: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: white;
+
+  &:hover {
+    transform: scale(1.08);
+    border-color: #cbd5e1;
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+
+  &.empty {
+    background: white;
+    &:hover {
+      background: #f8fafc;
+    }
+  }
+
+  &.online {
+    background: #3b82f6;
+    border-color: #2563eb;
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+  }
+  &.inperson {
+    background: #10b981;
+    border-color: #059669;
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+  }
+  &.both {
+    background: #8b5cf6;
+    border-color: #7c3aed;
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+  }
+`;
+
+const SaveButton = styled.button`
+  background: #2d79f3;
+  color: white;
+  padding: 18px 40px;
+  border-radius: 22px;
+  font-weight: 950;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s;
+  box-shadow: 0 15px 30px rgba(45, 121, 243, 0.25);
+  font-size: 16px;
+  &:hover {
+    background: #1e40af;
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(45, 121, 243, 0.3);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const ClearButton = styled.button`
+  background: white;
+  color: #ef4444;
+  padding: 18px 30px;
+  border-radius: 22px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid #fee2e2;
+  transition: all 0.2s;
+  font-size: 16px;
+  &:hover {
+    background: #fef2f2;
+    border-color: #ef4444;
+  }
+`;
+
+const AlertBox = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 30px;
+  border-radius: 24px;
+  margin-bottom: 30px;
+  font-weight: 800;
+  font-size: 15px;
+  ${(props) =>
+    props.$type === "success"
+      ? `
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #10b98140;
+  `
+      : `
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #ef444440;
+  `}
+`;
