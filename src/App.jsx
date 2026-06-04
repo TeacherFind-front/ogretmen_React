@@ -12,7 +12,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import Home from "./pages/public/Home";
 import TutorsList from "./pages/public/TutorsList";
 import TutorDetail from "./pages/public/TutorDetail";
-import Login from "./pages/public/Login";
+import Login from "./pages/public/login";
 import Register from "./pages/public/Register";
 import VerifyEmail from "./pages/public/VerifyEmail";
 import ForgotPassword from "./pages/public/ForgotPassword";
