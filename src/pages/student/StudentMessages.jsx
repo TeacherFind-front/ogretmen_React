@@ -160,83 +160,88 @@ export default function StudentMessages() {
   }
 
   return (
-    <div className="bg-white rounded-[2.5rem] border border-gray-100 flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl">
+    <div className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] border border-gray-100 dark:border-slate-800 flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl">
       
-      {/* Sidebar - Conversations list */}
-      <div className="w-96 border-r flex flex-col hidden md:flex bg-gray-50/30">
-        <div className="p-6 border-b bg-white/50 backdrop-blur-md">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
+      {/* Sidebar */}
+      <div className="w-96 border-r dark:border-slate-800 flex flex-col bg-gray-50/50 dark:bg-[#0f172a]/40 shrink-0">
+        <div className="p-6 border-b dark:border-slate-800 bg-white dark:bg-[#1e293b]">
+          <div className="relative group">
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+             <input 
+              type="text" 
               placeholder="Mesajlarda ara..." 
-              className="w-full pl-12 pr-4 py-3 bg-gray-100 border-none rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-blue-500/20 transition-all"
-            />
+              className="w-full h-12 bg-gray-100 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 text-sm font-bold text-gray-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" 
+             />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {conversations.map((conv) => (
+        
+        <div className="flex-1 overflow-y-auto py-4 space-y-1">
+          {conversations.map(conv => (
             <ConversationCard 
               key={conv.conversationId} 
-              $active={selectedConv?.conversationId === conv.conversationId}
+              $active={selectedConv?.otherUserId === conv.otherUserId}
               onClick={() => setSelectedConv(conv)}
             >
               <div className="relative">
-                <Avatar>{conv.otherUserName?.charAt(0) || "U"}</Avatar>
-                <OnlineStatus $online={true} />
+                 <Avatar>
+                   {conv.otherUserName?.charAt(0)}
+                 </Avatar>
+                 <OnlineStatus />
               </div>
-              <div className="flex-1 overflow-hidden">
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-black text-sm text-gray-900">{conv.otherUserName || "Eğitmen"}</h4>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                    {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' }) : ""}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                   <p className="text-xs text-gray-500 truncate font-medium">{conv.lastMessage}</p>
-                   {conv.unreadCount > 0 && <UnreadBadge>{conv.unreadCount}</UnreadBadge>}
-                </div>
+              <div className="flex-1 min-w-0">
+                 <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold text-gray-900 dark:text-slate-100 text-sm truncate">{conv.otherUserName}</h4>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">
+                       {new Date(conv.lastMessageAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                    </span>
+                 </div>
+                 <p className="text-xs text-gray-500 font-medium truncate leading-none">{conv.lastMessage}</p>
               </div>
+              {conv.unreadCount > 0 && (
+                <UnreadBadge>{conv.unreadCount}</UnreadBadge>
+              )}
             </ConversationCard>
           ))}
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white">
+      {/* Chat Area */}
+      <div className="flex-1 flex flex-col bg-white dark:bg-[#1e293b]">
         {selectedConv ? (
           <>
             {/* Chat Header */}
-            <div className="h-20 border-b flex items-center px-8 justify-between shrink-0 bg-white/80 backdrop-blur-md sticky top-0 z-20">
-              <div className="flex items-center gap-4">
-                <Avatar $large>{selectedConv.otherUserName?.charAt(0) || "U"}</Avatar>
-                <div>
-                  <h3 className="font-black text-gray-900 text-lg leading-tight">{selectedConv.otherUserName}</h3>
-                  <p className="text-[11px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Çevrimiçi
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                 <button className="p-3 hover:bg-gray-50 rounded-2xl text-gray-400 transition-all"><MoreVertical size={20} /></button>
-                 <button className="rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100 font-bold px-6 py-3 text-white text-sm">Ders Ayırt</button>
-              </div>
+            <div className="h-20 border-b dark:border-slate-800 px-8 flex items-center justify-between bg-white dark:bg-[#1e293b] shrink-0">
+               <div className="flex items-center gap-4">
+                  <Avatar $small>
+                    {selectedConv.otherUserName?.charAt(0)}
+                  </Avatar>
+                  <div>
+                     <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName}</h3>
+                     <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                        <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Çevrimiçi</span>
+                     </div>
+                  </div>
+               </div>
+               <button className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-slate-100 flex items-center justify-center transition-all"><MoreVertical size={20} /></button>
             </div>
 
-            {/* Messages list */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-[#f8fafc]">
-              {messages.map((m) => (
-                <MessageWrapper key={m.id} $isMine={m.senderId === user?.userId}>
-                   {m.senderId !== user?.userId && <Avatar $small className="mt-auto">{selectedConv.otherUserName?.charAt(0)}</Avatar>}
-                   <div className="flex flex-col max-w-[70%]">
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-gray-50/30 dark:bg-[#0f172a]/50">
+              {messages.map((m, i) => (
+                <MessageWrapper key={m.id || i} $isMine={m.senderId === user?.userId}>
+                   <div className="flex flex-col gap-1 max-w-[70%]">
                       <MessageBubble $isMine={m.senderId === user?.userId}>
-                        <p>{m.content}</p>
-                        <div className="flex items-center justify-end gap-1 mt-1 opacity-60 text-[9px] font-black uppercase tracking-widest">
-                           {new Date(m.sentAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
-                           {m.senderId === user?.userId && (
-                             m.isRead ? <CheckCheck size={12} className="text-white" /> : <Check size={12} className="text-white/70" />
-                           )}
-                        </div>
+                        {m.content}
                       </MessageBubble>
+                      <div className={`flex items-center gap-2 px-2 ${m.senderId === user?.userId ? 'justify-end' : 'justify-start'}`}>
+                         <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase">
+                           {new Date(m.sentAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                         </span>
+                         {m.senderId === user?.userId && (
+                           <span className="text-blue-500"><CheckCheck size={12} /></span>
+                         )}
+                      </div>
                    </div>
                 </MessageWrapper>
               ))}
@@ -244,19 +249,19 @@ export default function StudentMessages() {
             </div>
 
             {/* Input Area */}
-            <div className="p-6 border-t bg-white shrink-0">
-              <form onSubmit={handleSend} className="flex items-center gap-4 bg-gray-50 p-2 pl-6 rounded-[2rem] border border-gray-100 focus-within:border-blue-200 focus-within:bg-white focus-within:shadow-xl transition-all">
+            <div className="p-6 border-t dark:border-slate-800 bg-white dark:bg-[#1e293b] shrink-0">
+              <form onSubmit={handleSend} className="flex items-center gap-4 bg-gray-50 dark:bg-slate-800 p-2 pl-6 rounded-[2rem] border border-gray-100 dark:border-slate-700 focus-within:border-blue-200 dark:focus-within:border-blue-500/50 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:shadow-xl transition-all">
                 <button type="button" className="text-gray-400 hover:text-blue-600 transition-colors"><Paperclip size={20} /></button>
                 <input 
                   placeholder="Mesajınızı buraya yazın..." 
-                  className="flex-1 h-12 bg-transparent border-none focus:ring-0 font-bold text-gray-700" 
+                  className="flex-1 h-12 bg-transparent border-none focus:ring-0 font-bold text-gray-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500" 
                   value={newMsg}
                   onChange={(e) => setNewMsg(e.target.value)}
                 />
                 <button 
                   type="submit" 
                   disabled={!newMsg.trim()}
-                  className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-30 disabled:shadow-none transition-all"
+                  className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700 disabled:opacity-30 disabled:shadow-none transition-all"
                 >
                   <Send size={18} />
                 </button>
@@ -264,12 +269,12 @@ export default function StudentMessages() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/30">
-             <div className="w-24 h-24 bg-blue-50 rounded-[2.5rem] flex items-center justify-center text-blue-200 mb-6 animate-bounce duration-[3000ms]">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/30 dark:bg-[#0f172a]/20">
+             <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2.5rem] flex items-center justify-center text-blue-200 dark:text-blue-500/40 mb-6 animate-bounce duration-[3000ms]">
                 <Send size={40} />
              </div>
-             <h2 className="text-2xl font-black text-gray-900 mb-2">Canlı Sohbet</h2>
-             <p className="text-gray-400 font-medium max-w-sm">Eğitmenlerinizle iletişime geçmek için soldaki menüden bir konuşma seçin.</p>
+             <h2 className="text-2xl font-black text-gray-900 dark:text-slate-100 mb-2">Canlı Sohbet</h2>
+             <p className="text-gray-400 dark:text-slate-500 font-medium max-w-sm">Eğitmenlerinizle iletişime geçmek için soldaki menüden bir konuşma seçin.</p>
           </div>
         )}
       </div>
@@ -291,9 +296,23 @@ const ConversationCard = styled.div`
     background: white;
     box-shadow: 0 10px 20px rgba(0,0,0,0.04);
     border: 1px solid #f1f5f9;
+
+    .dark & {
+      background: #1e293b;
+      border-color: #334155;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
   ` : `
-    &:hover { background: rgba(255,255,255,0.5); }
+    &:hover { 
+      background: rgba(255,255,255,0.5); 
+      .dark & { background: rgba(255,255,255,0.05); }
+    }
   `}
+
+  .dark & {
+    h4 { color: #f1f5f9 !important; }
+    p { color: #94a3b8 !important; }
+  }
 `;
 
 const Avatar = styled.div`
@@ -320,6 +339,10 @@ const OnlineStatus = styled.div`
   background: #22c55e;
   border: 3px solid white;
   border-radius: 50%;
+
+  .dark & {
+    border-color: #0f172a;
+  }
 `;
 
 const UnreadBadge = styled.div`
@@ -356,5 +379,17 @@ const MessageBubble = styled.div`
     border-bottom-left-radius: 4px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.02);
     border: 1px solid #f1f5f9;
+
+    .dark & {
+      background: #1e293b;
+      color: #f1f5f9;
+      border-color: #334155;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
   `}
+
+  .dark & {
+    background-color: #0f172a;
+    border-color: #334155;
+  }
 `;

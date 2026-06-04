@@ -12,6 +12,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
 
 export default function PublicLayout() {
   const navigate = useNavigate();
@@ -27,22 +28,23 @@ export default function PublicLayout() {
     if (!user) return "/login";
     const role = user.role?.toString().toLowerCase();
     if (role === "2" || role === "tutor") return "/tutor/dashboard";
-    if (role === "3" || role === "admin") return "/admin/dashboard";
+    if (role === "3" || role === "admin" || role === "4" || role === "superadmin") return "/admin/dashboard";
     return "/student/dashboard";
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fcfdff] text-[#0f172a]">
+    <div className="flex min-h-screen flex-col bg-[#fcfdff] text-[#0f172a] dark:bg-[#0f172a] dark:text-slate-100 transition-colors duration-300">
       {/* Premium Navbar */}
-      <nav className="sticky top-0 z-[100] w-full border-b border-gray-100 bg-white/70 backdrop-blur-2xl">
+      <nav className="sticky top-0 z-[100] w-full border-b border-gray-100 dark:border-[#1e293b] bg-white/70 dark:bg-[#0f172a]/80 backdrop-blur-2xl transition-colors duration-300">
         <div className="container mx-auto h-20 flex items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2 no-underline group">
             <div className="flex items-center gap-2">
               <img src="/logo.svg" alt="A-Muallem" className="h-8 w-auto" onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "https://img.icons8.com/color/48/education.png";
+                if (e.target.src !== "https://img.icons8.com/color/48/education.png") {
+                  e.target.src = "https://img.icons8.com/color/48/education.png";
+                }
               }} />
-              <span className="text-2xl font-bold text-[#1a2b3b] tracking-tight">A-Muallem</span>
+              <span className="text-2xl font-bold text-[#1a2b3b] dark:text-white tracking-tight">A-Muallem</span>
             </div>
           </Link>
 
@@ -50,11 +52,14 @@ export default function PublicLayout() {
           <div className="hidden md:flex items-center gap-8">
             <DesktopNavLink to="/">Ana Sayfa</DesktopNavLink>
             <DesktopNavLink to="/tutors">Ders Ara</DesktopNavLink>
+            <DesktopNavLink to="/sss">S.S.S</DesktopNavLink>
             <Link to="/register?role=tutor" className="no-underline">
               <button className="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all border border-blue-100 shadow-sm">
                 Öğretmen Ol
               </button>
             </Link>
+            
+            <ThemeSwitch />
 
             <div className="flex items-center gap-4 ml-4">
               {!isLoading &&
@@ -72,7 +77,7 @@ export default function PublicLayout() {
                 ) : (
                   <Link
                     to="/login"
-                    className="text-sm font-bold text-gray-700 hover:text-blue-600 no-underline transition-colors px-4 py-2"
+                    className="text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 no-underline transition-colors px-4 py-2"
                   >
                     Giriş / Kayıt
                   </Link>
@@ -81,12 +86,15 @@ export default function PublicLayout() {
           </div>
 
           {/* Mobile Toggle */}
-          <button
-            className="md:hidden p-2 text-gray-900"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
+          <div className="md:hidden flex items-center gap-3">
+            <ThemeSwitch />
+            <button
+              className="p-2 text-gray-900 dark:text-gray-100"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Sidebar & Overlay */}
@@ -162,7 +170,7 @@ export default function PublicLayout() {
                 ))}
             </div>
 
-            <div className="p-8 bg-gray-50/50 border-t">
+            <div className="p-8 bg-gray-50/50 dark:bg-[#0b1120] border-t dark:border-[#1e293b]">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
                 Sosyal Medya
               </p>
@@ -188,7 +196,7 @@ export default function PublicLayout() {
       </main>
 
       {/* Premium Footer */}
-      <footer className="bg-white border-t border-gray-100 pt-24 pb-12 overflow-hidden relative">
+      <footer className="bg-white dark:bg-[#0b1120] border-t border-gray-100 dark:border-[#1e293b] pt-24 pb-12 overflow-hidden relative transition-colors duration-300">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[1px] bg-gradient-to-r from-transparent via-blue-200 to-transparent"></div>
 
         <div className="container mx-auto px-6">
@@ -245,7 +253,7 @@ export default function PublicLayout() {
                 <input
                   type="email"
                   placeholder="E-posta adresiniz"
-                  className="bg-gray-50 border-none rounded-xl px-4 py-3 text-sm flex-1 outline-none focus:ring-2 ring-blue-100"
+                  className="bg-gray-50 dark:bg-[#1e293b] border-none rounded-xl px-4 py-3 text-sm flex-1 outline-none focus:ring-2 ring-blue-100 dark:ring-blue-900 dark:text-white"
                 />
                 <button className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 transition-colors">
                   <ChevronRight size={20} />
@@ -254,7 +262,7 @@ export default function PublicLayout() {
             </div>
           </div>
 
-          <div className="pt-12 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="pt-12 border-t border-gray-50 dark:border-[#1e293b] flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-sm text-gray-400 font-bold tracking-wide uppercase">
               © 2026 ÖĞRENMENİN ÇİLİNGİRLERİ TEKNOLOJİ A.Ş.
             </p>
@@ -279,6 +287,7 @@ const LogoText = styled.span`
   font-size: ${(props) => (props.$small ? "20px" : "26px")};
   font-weight: 900;
   color: #0f172a;
+  .dark & { color: white; }
   letter-spacing: -0.04em;
   span {
     color: #2d79f3;
@@ -291,6 +300,7 @@ const DesktopNavLink = styled(Link)`
   color: #475569;
   text-decoration: none;
   transition: all 0.2s;
+  .dark & { color: #cbd5e1; }
   &:hover {
     color: #2d79f3;
   }
@@ -317,7 +327,7 @@ const JoinButton = styled.div`
 const DashboardButton = styled.div`
   background: #f8fafc;
   color: #0f172a;
-  padding: 12px 24px;
+  padding: 7px 14px;
   border-radius: 16px;
   font-weight: 800;
   font-size: 14px;
@@ -326,9 +336,11 @@ const DashboardButton = styled.div`
   gap: 8px;
   border: 1px solid #f1f5f9;
   transition: all 0.2s;
+  .dark & { background: #1e293b; color: white; border-color: #334155; }
   &:hover {
     background: #f1f5f9;
     border-color: #e2e8f0;
+    .dark & { background: #334155; }
   }
 `;
 
@@ -363,6 +375,7 @@ const MobileMenu = styled.div`
   bottom: 0;
   width: 300px;
   background: white;
+  .dark & { background: #0f172a; border-right: 1px solid #1e293b; }
   z-index: 1001;
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
 
@@ -388,10 +401,12 @@ const MobileNavLink = styled(Link)`
   background: ${(props) => (props.$highlight ? "#f3f7ff" : "transparent")};
   text-decoration: none;
   transition: all 0.2s;
+  .dark & { color: ${(props) => (props.$highlight ? "#3b82f6" : "#cbd5e1")}; background: ${(props) => (props.$highlight ? "#1e3a8a" : "transparent")}; }
 
   &:hover {
     background: #f8fafc;
     color: #2d79f3;
+    .dark & { background: #1e293b; }
   }
 `;
 
@@ -399,6 +414,7 @@ const FooterTitle = styled.h4`
   font-size: 13px;
   font-weight: 900;
   color: #0f172a;
+  .dark & { color: white; }
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 24px;
@@ -409,6 +425,7 @@ const FooterLink = styled(Link)`
   font-size: 15px;
   font-weight: 600;
   color: #64748b;
+  .dark & { color: #94a3b8; }
   text-decoration: none;
   margin-bottom: 14px;
   transition: all 0.2s;
@@ -424,6 +441,7 @@ const SocialLink = styled.a`
   border-radius: 14px;
   background: #f8fafc;
   color: #64748b;
+  .dark & { background: #1e293b; color: #94a3b8; }
   display: flex;
   align-items: center;
   justify-content: center;

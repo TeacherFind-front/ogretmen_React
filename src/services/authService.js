@@ -21,15 +21,13 @@ export async function login(email, password) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Giriş başarısız.");
+    const errorObj = new Error(err.message || "Giriş başarısız.");
+    errorObj.userId = err.userId || err.UserId;
+    errorObj.requiresVerification = err.requiresVerification || err.RequiresVerification;
+    throw errorObj;
   }
 
   const data = await res.json();
-  
-  // Test amaçlı Admin yetkilendirmesi (Geliştirme aşamasında)
-  if (data.email === "emrekoc4615@gmail.com" || data.email === "admin@gmail.com") {
-    data.role = "3";
-  }
   
   return data;
 }
@@ -83,10 +81,6 @@ export async function getMe() {
 
   const data = await res.json();
   
-  if (data && (data.email === "emrekoc4615@gmail.com" || data.email === "admin@gmail.com")) {
-    data.role = "3";
-  }
-  
   return data;
 }
 
@@ -110,7 +104,7 @@ export async function changePassword(currentPassword, newPassword) {
   return res.json();
 }
 
-export async function verifyEmail(userId, code) {
+export async function verifyEmail(email, code, userId) {
   const res = await apiFetch("/api/auth/verify-email", {
     method: "POST",
     body: JSON.stringify({ userId, code }),

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Star, MessageCircle, Heart, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toggleFavorite } from "@/services/favoriteService";
+import BASE_URL, { getImageUrl } from "@/services/api";
 
 /**
  * TutorCard - Backend TutorListItemDto alanlarını kullanır:
@@ -52,11 +53,13 @@ export function TutorCard({ tutor }) {
   };
 
   // Backend'den gelen alanlar için fallback değerleri
-  const name = tutor.teacherName || tutor.name || "İsimsiz";
+  // Backend'den gelen alanlar için kapsamlı fallback mekanizması
+  const name = tutor.teacherName || tutor.name || tutor.teacherListing?.teacherName || tutor.fullName || "Eğitmen";
   
   // Önce isMain olan fotoğrafı bul, yoksa ilk fotoğrafı al, o da yoksa avatarUrl'e bak
   const mainPhoto = tutor.photos?.find(p => p.isMain)?.photoUrl || tutor.photos?.[0]?.photoUrl;
-  const avatar = mainPhoto || tutor.avatarUrl || tutor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`;
+
+  const avatar = getImageUrl(mainPhoto) || getImageUrl(tutor.avatarUrl) || getImageUrl(tutor.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`;
   
   const headline = tutor.title || tutor.headline || "";
   const description = tutor.description || tutor.bio || "";
@@ -71,19 +74,19 @@ export function TutorCard({ tutor }) {
   }[tutor.serviceType] || tutor.serviceType || "";
 
   return (
-    <Card className="flex flex-col md:flex-row overflow-hidden border-gray-100 hover:shadow-2xl hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-100 transition-all duration-300 group rounded-[2rem] bg-white">
+    <Card className="flex flex-col md:flex-row overflow-hidden border-gray-100 dark:border-[#334155] hover:shadow-2xl hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-100 dark:hover:border-blue-500 transition-all duration-300 group rounded-[2rem] bg-white dark:bg-[#1e293b]">
       {/* Sol Panel - Avatar & Fiyat */}
-      <div className="md:w-56 bg-gray-50/50 group-hover:bg-blue-50/30 transition-colors p-8 flex flex-col items-center justify-center border-r border-gray-100">
+      <div className="md:w-56 bg-gray-50/50 dark:bg-[#0f172a] group-hover:bg-blue-50/30 dark:group-hover:bg-[#0b1120] transition-colors p-8 flex flex-col items-center justify-center border-r border-gray-100 dark:border-[#334155]">
         <div className="relative">
           <img
             src={avatar}
             alt={name}
-            className="w-28 h-28 rounded-full object-cover shadow-md mb-5 border-4 border-white group-hover:scale-105 transition-transform duration-300"
+            className="w-28 h-28 rounded-full object-cover shadow-md mb-5 border-4 border-white dark:border-[#1e293b] group-hover:scale-105 transition-transform duration-300"
             onError={(e) => { e.target.src = `https://i.pravatar.cc/150?u=${tutor.id}`; }}
           />
-          <span className="absolute bottom-4 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
+          <span className="absolute bottom-4 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-[#1e293b] rounded-full" />
         </div>
-        <h3 className="font-black text-xl text-center mb-1 text-gray-900">{name}</h3>
+        <h3 className="font-black text-xl text-center mb-1 text-gray-900 dark:text-white">{name}</h3>
         <p className="text-sm font-bold flex items-center gap-1 mb-2 text-yellow-500">
           <Star className="w-4 h-4 fill-yellow-500" />
           {rating.toFixed ? rating.toFixed(1) : rating}
@@ -134,7 +137,7 @@ export function TutorCard({ tutor }) {
           </Link>
           <Button 
             variant="outline" 
-            className="flex-1 h-12 rounded-xl font-bold border-gray-200 hover:bg-gray-50"
+            className="flex-1 h-12 rounded-xl font-bold border-gray-200 dark:border-[#475569] hover:bg-gray-50 dark:hover:bg-[#334155] dark:text-gray-200"
             onClick={handleMessage}
           >
             <MessageCircle className="w-4 h-4 mr-2" /> Mesaj Gönder

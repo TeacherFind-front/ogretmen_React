@@ -50,9 +50,10 @@ export async function getNeighborhoods(districtId) {
  * Yanıttan veriyi ayıkla (Dizi veya $values sarmallı dizi)
  */
 function extractData(json) {
+  if (!json) return null;
   if (Array.isArray(json)) return json;
-  if (json && json.$values && Array.isArray(json.$values)) return json.$values;
-  if (json && json.data && Array.isArray(json.data)) return json.data;
+  if (json.$values && Array.isArray(json.$values)) return json.$values;
+  if (json.data) return extractData(json.data);
   return null;
 }
 

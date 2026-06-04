@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import BASE_URL, { getImageUrl } from "@/services/api";
 
 export default function TutorLessons() {
   const [showForm, setShowForm] = useState(false);
@@ -43,6 +44,7 @@ export default function TutorLessons() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("list");
+  const [currentLessonRates, setCurrentLessonRates] = useState([]);
 
   const [myCourses, setMyCourses] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -54,7 +56,6 @@ export default function TutorLessons() {
     subCategory: "",
     subjectId: "",
     price: "",
-    headline: "",
     description: "",
     serviceType: 1,
     lessonDuration: 60,
@@ -91,13 +92,13 @@ export default function TutorLessons() {
 
   const handleAddClick = () => {
     setEditingCourse(null);
+    setCurrentLessonRates([]);
     setFormData({
       title: "",
       category: categories[0]?.category || "",
       subCategory: "",
       subjectId: "",
       price: "",
-      headline: "",
       description: "",
       serviceType: 1,
       lessonDuration: 60,
@@ -107,14 +108,28 @@ export default function TutorLessons() {
 
   const handleEditClick = (course) => {
     setEditingCourse(course);
+    let displayDescription = course.description || "";
+    let rates = [];
+    if (course.description) {
+      const match = course.description.match(/---LESSON_RATES_JSON---([\s\S]*?)---END_LESSON_RATES_JSON---/);
+      if (match && match[1]) {
+        try {
+          rates = JSON.parse(match[1].trim());
+          displayDescription = course.description.replace(/---LESSON_RATES_JSON---[\s\S]*?---END_LESSON_RATES_JSON---/, "").trim();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    setCurrentLessonRates(rates);
+
     setFormData({
       title: course.title,
       category: course.category,
       subCategory: course.subCategory,
       subjectId: course.subjectId,
       price: course.price,
-      headline: course.headline || "",
-      description: course.description,
+      description: displayDescription,
       serviceType:
         course.serviceType === "Online" || course.serviceType === 1
           ? 1
@@ -147,8 +162,14 @@ export default function TutorLessons() {
         return alert("Fiyat 300-5000 TL arasında ve 50'nin katı olmalıdır.");
       }
 
+      let finalDescription = formData.description.trim();
+      if (currentLessonRates && currentLessonRates.length > 0) {
+        finalDescription += `\n\n---LESSON_RATES_JSON---\n${JSON.stringify(currentLessonRates)}\n---END_LESSON_RATES_JSON---`;
+      }
+
       const payload = {
         ...formData,
+        description: finalDescription,
         subjectId: formData.subjectId ? parseInt(formData.subjectId) : null,
         price: p,
         lessonDuration: parseInt(formData.lessonDuration),
@@ -176,7 +197,7 @@ export default function TutorLessons() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-6">
         <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
-        <p className="text-gray-400 font-black uppercase tracking-widest text-xs">
+        <p className="text-gray-400 dark:text-slate-500 font-black uppercase tracking-widest text-xs">
           İlanlarınız Hazırlanıyor
         </p>
       </div>
@@ -185,12 +206,12 @@ export default function TutorLessons() {
 
   return (
     <Container className="animate-in fade-in duration-700">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 bg-white dark:bg-[#1e293b] p-6 rounded-[2rem] border border-gray-100 dark:border-slate-800 shadow-sm">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
             İlan Yönetimi
           </h1>
-          <p className="text-gray-500 font-medium mt-2 text-lg max-w-xl">
+          <p className="text-gray-500 dark:text-slate-400 font-medium mt-1 text-sm max-w-xl">
             Verdiğiniz her bir branş için özel tanıtım bilgileri ve
             ücretlendirme yaparak profilinizi güçlendirin.
           </p>
@@ -198,24 +219,24 @@ export default function TutorLessons() {
         <div className="flex flex-col sm:flex-row items-center gap-4">
           {!showForm && (
             <>
-              <div className="flex items-center bg-gray-100 p-1 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="flex items-center bg-gray-100 dark:bg-slate-800 p-1 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-2.5 rounded-xl transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                  className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"}`}
                   title="Izgara Görünümü"
                 >
-                  <LayoutGrid size={20} />
+                  <LayoutGrid size={18} />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-2.5 rounded-xl transition-all ${viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                  className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"}`}
                   title="Liste Görünümü"
                 >
-                  <List size={20} />
+                  <List size={18} />
                 </button>
               </div>
               <AddButton onClick={handleAddClick}>
-                <Plus className="w-6 h-6" /> Yeni İlan Oluştur
+                <Plus className="w-5 h-5" /> Yeni İlan
               </AddButton>
             </>
           )}
@@ -223,12 +244,12 @@ export default function TutorLessons() {
       </header>
 
       {showForm ? (
-        <Card className="mb-12 overflow-hidden border-none shadow-2xl shadow-blue-900/5 rounded-[2.5rem]">
+        <Card className="mb-10 overflow-hidden border-none shadow-2xl shadow-blue-900/5 rounded-[2rem]">
           <form onSubmit={handleSubmit}>
-            <div className="p-10">
-              <div className="flex items-center gap-4 mb-10">
-                <div className="w-2 h-10 bg-blue-600 rounded-full"></div>
-                <h3 className="text-2xl font-black text-gray-900">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-1.5 h-8 bg-blue-600 rounded-full"></div>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">
                   {editingCourse
                     ? "İlan Detaylarını Güncelle"
                     : "Yeni İlan Oluştur"}
@@ -310,7 +331,7 @@ export default function TutorLessons() {
                   </FormGroup>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                <div className="grid grid-cols-2 gap-6 bg-slate-50 dark:bg-slate-800/30 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
                   <FormGroup>
                     <label>
                       <GraduationCap className="w-4 h-4 inline mr-2 text-blue-600" />{" "}
@@ -320,7 +341,7 @@ export default function TutorLessons() {
                       value={profile?.university || "Profilde belirtilmemiş"}
                       readOnly
                       disabled
-                      className="bg-white"
+                      className="bg-white dark:bg-slate-800/50"
                     />
                   </FormGroup>
                   <FormGroup>
@@ -329,7 +350,7 @@ export default function TutorLessons() {
                       value={profile?.department || "Profilde belirtilmemiş"}
                       readOnly
                       disabled
-                      className="bg-white"
+                      className="bg-white dark:bg-slate-800/50"
                     />
                   </FormGroup>
                 </div>
@@ -399,19 +420,6 @@ export default function TutorLessons() {
                 </div>
 
                 <FormGroup className="md:col-span-2">
-                  <label>Spot Cümle (Headline)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Örn: 10 yıllık tecrübe ile %100 başarı odaklı eğitim..."
-                    value={formData.headline}
-                    onChange={(e) =>
-                      setFormData({ ...formData, headline: e.target.value })
-                    }
-                  />
-                </FormGroup>
-
-                <FormGroup className="md:col-span-2">
                   <label>Detaylı Açıklama</label>
                   <textarea
                     rows="6"
@@ -448,7 +456,7 @@ export default function TutorLessons() {
           </form>
         </Card>
       ) : viewMode === "list" ? (
-        <Card className="border-none shadow-2xl shadow-gray-900/5 bg-white rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-2xl shadow-gray-900/5 bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden">
           <TableContainer>
             <table>
               <thead>
@@ -466,15 +474,15 @@ export default function TutorLessons() {
                   <tr>
                     <td colSpan="6" className="text-center py-32">
                       <div className="flex flex-col items-center">
-                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-                          <BookOpen className="w-10 h-10 text-gray-200" />
+                        <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                          <BookOpen className="w-10 h-10 text-gray-200 dark:text-slate-700" />
                         </div>
-                        <p className="text-gray-400 font-bold">
+                        <p className="text-gray-400 dark:text-slate-500 font-bold">
                           Henüz yayınlanmış bir ilanınız bulunmuyor.
                         </p>
                         <Button
                           variant="link"
-                          className="text-blue-600 font-black mt-2"
+                          className="text-blue-600 dark:text-blue-400 font-black mt-2"
                           onClick={handleAddClick}
                         >
                           İlk ilanını oluştur →
@@ -490,36 +498,47 @@ export default function TutorLessons() {
                       style={{ animationDelay: `${i * 100}ms` }}
                     >
                       <td>
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 font-black">
-                            {course.title.charAt(0)}
-                          </div>
+                        <div className="flex items-center gap-3">
+                          {course.photos && course.photos.length > 0 ? (
+                            <img
+                              src={getImageUrl(course.photos.find(p => p.isMain)?.photoUrl || course.photos[0].photoUrl)}
+                              alt={course.title}
+                              className="w-10 h-10 object-cover rounded-xl border border-gray-100 dark:border-slate-800"
+                            />
+                          ) : profile?.profileImageUrl || profile?.avatarUrl ? (
+                            <img
+                              src={getImageUrl(profile.profileImageUrl || profile.avatarUrl)}
+                              alt={profile?.fullName || ""}
+                              className="w-10 h-10 object-cover rounded-xl border border-gray-100 dark:border-slate-800"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-sm">
+                              {course.title.charAt(0)}
+                            </div>
+                          )}
                           <div className="flex flex-col">
-                            <span className="font-black text-gray-900 text-lg">
+                            <span className="font-black text-gray-900 dark:text-white text-base">
                               {course.title}
-                            </span>
-                            <span className="text-xs text-gray-400 font-bold mt-0.5 line-clamp-1">
-                              {course.headline}
                             </span>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div className="flex flex-col">
-                          <span className="text-sm font-black text-gray-700">
+                          <span className="text-xs font-black text-gray-700 dark:text-slate-300">
                             {course.category}
                           </span>
-                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                          <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">
                             {course.subCategory}
                           </span>
                         </div>
                       </td>
                       <td>
                         <div className="flex flex-col">
-                          <span className="font-black text-blue-600 text-lg">
+                          <span className="font-black text-blue-600 dark:text-blue-400 text-base">
                             ₺{course.price}
                           </span>
-                          <span className="text-[10px] text-gray-400 font-bold">
+                          <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold">
                             {course.lessonDuration} DK / DERS
                           </span>
                         </div>
@@ -530,7 +549,7 @@ export default function TutorLessons() {
                             <Star className="w-3.5 h-3.5 fill-yellow-500" />
                             {course.rating || "0.0"}
                           </div>
-                          <span className="text-[10px] text-gray-400 font-bold uppercase">
+                          <span className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase">
                             {course.reviewCount || 0} YORUM
                           </span>
                         </div>
@@ -583,11 +602,11 @@ export default function TutorLessons() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {myCourses.length === 0 ? (
-            <div className="col-span-full py-32 bg-white rounded-[3rem] border-2 border-dashed border-gray-100 flex flex-col items-center">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-gray-200">
+            <div className="col-span-full py-32 bg-white dark:bg-[#1e293b] rounded-[3rem] border-2 border-dashed border-gray-100 dark:border-slate-800 flex flex-col items-center">
+              <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 text-gray-200 dark:text-slate-700">
                 <BookOpen size={40} />
               </div>
-              <p className="text-gray-400 font-bold">
+              <p className="text-gray-400 dark:text-slate-500 font-bold">
                 Henüz yayınlanmış bir ilanınız bulunmuyor.
               </p>
             </div>
@@ -644,7 +663,6 @@ export default function TutorLessons() {
                     <Tag size={12} /> {course.category}
                   </div>
                   <h3>{course.title}</h3>
-                  <p className="headline">{course.headline}</p>
 
                   <div className="stats">
                     <div className="stat-item">
@@ -679,6 +697,12 @@ const Card = styled.div`
   border-radius: 32px;
   border: 1px solid #f1f5f9;
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: none;
+  }
 `;
 
 const FormGroup = styled.div`
@@ -693,6 +717,10 @@ const FormGroup = styled.div`
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-left: 4px;
+
+    .dark & {
+      color: #94a3b8;
+    }
   }
 
   input,
@@ -707,16 +735,34 @@ const FormGroup = styled.div`
     color: #1e293b;
     width: 100%;
     transition: all 0.2s;
+
+    .dark & {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+
     &:focus {
       outline: none;
       border-color: #2d79f3;
       background: white;
       box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+
+      .dark & {
+        background: #0f172a;
+        border-color: #2d79f3;
+        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+      }
     }
     &:disabled {
       background: #f1f5f9;
       color: #94a3b8;
       cursor: not-allowed;
+
+      .dark & {
+        background: #1e293b;
+        color: #475569;
+      }
     }
   }
 `;
@@ -771,6 +817,15 @@ const CancelButton = styled.button`
   &:hover {
     background: #f1f5f9;
     color: #1e293b;
+
+    .dark & {
+      background: #334155;
+      color: #f1f5f9;
+    }
+  }
+
+  .dark & {
+    color: #94a3b8;
   }
 `;
 
@@ -786,11 +841,21 @@ const IconButton = styled.button`
   transition: all 0.2s;
   border: 1px solid transparent;
 
+  .dark & {
+    background: ${(props) => (props.$danger ? "#450a0a" : "#1e293b")};
+    color: ${(props) => (props.$danger ? "#f87171" : "#94a3b8")};
+  }
+
   &:hover {
     background: ${(props) => (props.$danger ? "#fee2e2" : "#f1f5f9")};
     color: ${(props) => (props.$danger ? "#dc2626" : "#2d79f3")};
     transform: scale(1.1);
     border-color: ${(props) => (props.$danger ? "#fecaca" : "#e2e8f0")};
+
+    .dark & {
+      background: ${(props) => (props.$danger ? "#7f1d1d" : "#334155")};
+      color: ${(props) => (props.$danger ? "#fca5a5" : "#f1f5f9")};
+    }
   }
 `;
 
@@ -798,7 +863,7 @@ const StatusBadge = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 12px 12px;
   border-radius: 10px;
   font-size: 11px;
   font-weight: 800;
@@ -808,13 +873,25 @@ const StatusBadge = styled.div`
   ${(props) => {
     switch (props.$status) {
       case "Active":
-        return `background: #dcfce7; color: #166534;`;
+        return `
+          background: #dcfce7; color: #166534;
+          .dark & { background: #064e3b40; color: #34d399; }
+        `;
       case "PendingApproval":
-        return `background: #fef9c3; color: #854d0e;`;
+        return `
+          background: #fef9c3; color: #854d0e;
+          .dark & { background: #713f1240; color: #fde047; }
+        `;
       case "Rejected":
-        return `background: #fef2f2; color: #991b1b;`;
+        return `
+          background: #fef2f2; color: #991b1b;
+          .dark & { background: #450a0a40; color: #f87171; }
+        `;
       default:
-        return `background: #f1f5f9; color: #475569;`;
+        return `
+          background: #f1f5f9; color: #475569;
+          .dark & { background: #334155; color: #94a3b8; }
+        `;
     }
   }}
 `;
@@ -836,12 +913,20 @@ const TableContainer = styled.div`
       text-transform: uppercase;
       letter-spacing: 0.1em;
       border-bottom: 1px solid #f1f5f9;
+
+      .dark & {
+        border-color: #334155;
+      }
     }
 
     td {
       padding: 24px;
       border-bottom: 1px solid #f8fafc;
       vertical-align: middle;
+
+      .dark & {
+        border-color: #334155/30;
+      }
     }
 
     tr:last-child td {
@@ -850,6 +935,9 @@ const TableContainer = styled.div`
 
     tr:hover td {
       background: #fcfdfe;
+      .dark & {
+        background: #0f172a50;
+      }
     }
   }
 `;
@@ -869,6 +957,17 @@ const ListingGridCard = styled.div`
     transform: translateY(-5px);
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
     border-color: #e2e8f0;
+
+    .dark & {
+      border-color: #475569;
+      box-shadow: none;
+    }
+  }
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: none;
   }
 
   .card-header {
@@ -905,18 +1004,10 @@ const ListingGridCard = styled.div`
       color: #1e293b;
       margin-bottom: 8px;
       line-height: 1.3;
-    }
 
-    .headline {
-      font-size: 13px;
-      color: #64748b;
-      font-weight: 600;
-      margin-bottom: 20px;
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      .dark & {
+        color: #f1f5f9;
+      }
     }
 
     .stats {
@@ -925,6 +1016,10 @@ const ListingGridCard = styled.div`
       padding-top: 16px;
       border-top: 1px solid #f8fafc;
 
+      .dark & {
+        border-color: #334155;
+      }
+
       .stat-item {
         display: flex;
         align-items: center;
@@ -932,6 +1027,10 @@ const ListingGridCard = styled.div`
         font-size: 12px;
         font-weight: 800;
         color: #475569;
+
+        .dark & {
+          color: #94a3b8;
+        }
       }
     }
   }

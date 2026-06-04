@@ -45,12 +45,12 @@ export default function TutorChangePassword() {
       <header className="mb-8">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm font-bold text-blue-600 mb-4 flex items-center gap-1 hover:underline"
+          className="text-sm font-bold text-blue-600 dark:text-blue-400 mb-4 flex items-center gap-1 hover:underline"
         >
           ← Profilime Dön
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Güvenlik Ayarları</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Güvenlik Ayarları</h1>
+        <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
           Hesap güvenliğinizi korumak için periyodik olarak şifrenizi
           yenilemenizi öneririz.
         </p>
@@ -60,13 +60,13 @@ export default function TutorChangePassword() {
         <div className="lg:col-span-2">
           <Card>
             <form onSubmit={handleSubmit} className="p-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-6 flex items-center gap-2">
                 <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
                 Şifre Güncelleme
               </h3>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-100 dark:border-red-900/30">
                   {error}
                 </div>
               )}
@@ -122,7 +122,7 @@ export default function TutorChangePassword() {
                   </FormGroup>
                 </div>
 
-                <div className="pt-6 border-t border-gray-100 flex justify-end">
+                <div className="pt-6 border-t border-gray-100 dark:border-slate-800 flex justify-end">
                   <SubmitButton type="submit" disabled={loading}>
                     {loading ? "Güncelleniyor..." : "Şifreyi Güncelle"}
                   </SubmitButton>
@@ -150,8 +150,8 @@ export default function TutorChangePassword() {
               </li>
             </ul>
             <div className="mt-6 pt-6 border-t border-blue-100">
-              <p className="text-xs text-blue-600 font-medium">
-                Son şifre değişikliği: 3 ay önce
+              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                Son şifre değişikliği: Henüz yapılmadı
               </p>
             </div>
           </InfoCard>
@@ -171,6 +171,12 @@ const Card = styled.div`
   border-radius: 24px;
   border: 1px solid #f1f5f9;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  }
 `;
 
 const InfoCard = styled.div`
@@ -179,11 +185,17 @@ const InfoCard = styled.div`
   border-radius: 24px;
   border: 1px solid #dbeafe;
 
+  .dark & {
+    background: #1e3a8a20;
+    border-color: #1e3a8a40;
+  }
+
   h4 {
     font-weight: 800;
     color: #1e40af;
     margin-bottom: 16px;
     font-size: 15px;
+    .dark & { color: #60a5fa; }
   }
 
   ul {
@@ -199,6 +211,7 @@ const InfoCard = styled.div`
       line-height: 1.6;
       position: relative;
       padding-left: 14px;
+      .dark & { color: #94a3b8; }
 
       &::before {
         content: "•";
@@ -221,6 +234,7 @@ const FormGroup = styled.div`
     font-weight: 700;
     color: #4b5563;
     margin-left: 4px;
+    .dark & { color: #94a3b8; }
   }
 
   input {
@@ -231,11 +245,19 @@ const FormGroup = styled.div`
     font-size: 14px;
     width: 100%;
     transition: all 0.2s;
+
+    .dark & {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+
     &:focus {
       outline: none;
       border-color: #2d79f3;
       background: white;
       box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+      .dark & { background: #0f172a; border-color: #3b82f6; }
     }
   }
 `;

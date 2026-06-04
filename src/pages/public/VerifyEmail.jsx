@@ -4,6 +4,8 @@ import styled from "styled-components";
 import { Mail, ArrowRight, RefreshCcw, Loader2 } from "lucide-react";
 import { verifyEmail, resendVerification } from "@/services/authService";
 import toast from "react-hot-toast";
+import { useAuth } from "@/store/AuthContext";
+
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -16,13 +18,18 @@ const VerifyEmail = () => {
   const [userId, setUserId] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
+  const { login: authLoginContext } = useAuth();
+  const [password, setPassword] = useState("");
+
   useEffect(() => {
     // Kayıt sayfasından gelen bilgileri al
     const stateEmail = location.state?.email;
     const stateUserId = location.state?.userId;
+    const statePassword = location.state?.password;
     
     if (stateEmail) setEmail(stateEmail);
     if (stateUserId) setUserId(stateUserId);
+    if (statePassword) setPassword(statePassword);
     
     // Eğer userId yoksa (direkt URL'den girilmişse) login'e atabiliriz
     // Ama belki kullanıcı login olduktan sonra buraya gelmiştir
@@ -53,18 +60,51 @@ const VerifyEmail = () => {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pastedData) {
+      const newCode = [...code];
+      for (let i = 0; i < pastedData.length; i++) {
+        if (i < 6) newCode[i] = pastedData[i];
+      }
+      setCode(newCode);
+      const nextFocusIndex = pastedData.length < 6 ? pastedData.length : 5;
+      document.getElementById(`code-${nextFocusIndex}`).focus();
+    }
+  };
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     const fullCode = code.join("");
     if (fullCode.length !== 6) return toast.error("Lütfen 6 haneli kodu giriniz.");
 
+    if (!userId) {
+      toast.error("Kullanıcı kimliği (UserId) bulunamadı. Lütfen tekrar giriş yapın.");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
     setLoading(true);
     try {
-      await verifyEmail(userId, fullCode);
+      console.log("Verifying with payload:", { email, fullCode, userId });
+      await verifyEmail(email, fullCode, userId);
       toast.success("E-posta adresiniz başarıyla doğrulandı!");
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      
+      if (password) {
+        toast.loading("Giriş yapılıyor...", { id: "autoLogin" });
+        const { login: performLogin } = await import("@/services/authService");
+        const result = await performLogin(email, password);
+        authLoginContext(result);
+        toast.success("Giriş başarılı! Yönlendiriliyorsunuz...", { id: "autoLogin" });
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
+      } else {
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      }
     } catch (error) {
       toast.error(error.message || "Doğrulama kodu hatalı veya süresi dolmuş.");
     } finally {
@@ -114,6 +154,7 @@ const VerifyEmail = () => {
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
+                onPaste={handlePaste}
                 autoFocus={idx === 0}
               />
             ))}
@@ -149,93 +190,131 @@ const PageWrapper = styled.div`
   justify-content: center;
   background: #f8fafc;
   padding: 20px;
+
+  .dark & {
+    background: #0f172a;
+  }
 `;
 
 const Container = styled.div`
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
   background: white;
-  padding: 48px;
-  border-radius: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+  padding: 36px;
+  border-radius: 28px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
   text-align: center;
+  border: 1px solid #f1f5f9;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  }
 `;
 
 const IconWrapper = styled.div`
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   background: #eff6ff;
   color: #3b82f6;
-  border-radius: 24px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 32px;
+  margin: 0 auto 24px;
+
+  .dark & {
+    background: #1e3a5f;
+    color: #60a5fa;
+  }
 `;
 
 const Title = styled.h1`
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 800;
   color: #0f172a;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+
+  .dark & {
+    color: #f1f5f9;
+  }
 `;
 
 const Description = styled.p`
   color: #64748b;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.6;
-  margin-bottom: 40px;
-  strong { color: #0f172a; }
+  margin-bottom: 28px;
+
+  strong {
+    color: #0f172a;
+    .dark & { color: #e2e8f0; }
+  }
+
+  .dark & {
+    color: #94a3b8;
+  }
 `;
 
 const CodeGrid = styled.div`
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 40px;
+  gap: 8px;
+  margin-bottom: 28px;
   width: 100%;
 `;
 
 const CodeInput = styled.input`
-  width: 50px;
-  height: 60px;
+  width: 44px;
+  height: 52px;
   border: 2px solid #e2e8f0;
-  border-radius: 16px;
+  border-radius: 12px;
   text-align: center;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
   color: #0f172a;
   background: #f8fafc;
   transition: all 0.2s;
   outline: none;
 
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+
   &:focus {
     border-color: #3b82f6;
     background: white;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+
+    .dark & {
+      background: #1e293b;
+    }
   }
 
   @media (max-width: 480px) {
-    width: 40px;
-    height: 50px;
-    font-size: 20px;
+    width: 36px;
+    height: 44px;
+    font-size: 18px;
   }
 `;
 
 const SubmitButton = styled.button`
   width: 100%;
-  height: 60px;
+  height: 52px;
   background: #3b82f6;
   color: white;
-  border-radius: 18px;
+  border-radius: 14px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: all 0.2s;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 
   &:hover {
     background: #2563eb;
@@ -253,8 +332,12 @@ const ResendSection = styled.div`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13px;
   color: #64748b;
+
+  .dark & {
+    color: #94a3b8;
+  }
 
   button {
     color: #3b82f6;
@@ -268,3 +351,4 @@ const ResendSection = styled.div`
 `;
 
 export default VerifyEmail;
+

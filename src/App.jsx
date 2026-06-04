@@ -30,6 +30,7 @@ import StudentFavorites from "./pages/student/StudentFavorites";
 import TutorDashboard from "./pages/tutor/TutorDashboard";
 import TutorAvailability from "./pages/tutor/TutorAvailability";
 import TutorProfile from "./pages/tutor/TutorProfile";
+import TutorSocialMedia from "./pages/tutor/TutorSocialMedia";
 import TutorLessons from "./pages/tutor/TutorLessons";
 import TutorMessages from "./pages/tutor/TutorMessages";
 import TutorChangePassword from "./pages/tutor/TutorChangePassword";
@@ -86,6 +87,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <TutorDashboard /> },
       { path: "availability", element: <TutorAvailability /> },
       { path: "profile", element: <TutorProfile /> },
+      { path: "social-media", element: <TutorSocialMedia /> },
       { path: "lessons", element: <TutorLessons /> },
       { path: "messages", element: <TutorMessages /> },
       { path: "create-listing", element: <CreateListing /> },
@@ -95,7 +97,7 @@ const router = createBrowserRouter([
   {
     path: "/admin",
     element: (
-      <ProtectedRoute allowedRoles={["3", "admin"]}>
+      <ProtectedRoute allowedRoles={["3", "admin", "4", "superadmin"]}>
         <AdminLayout />
       </ProtectedRoute>
     ),

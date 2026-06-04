@@ -19,7 +19,7 @@ export default function StudentFavorites() {
     setLoading(true);
     try {
       const data = await getMyFavorites();
-      setFavorites(data);
+      setFavorites(data?.$values || data || []);
     } catch (error) {
       console.error("Favorites fetch failed", error);
     } finally {
@@ -65,9 +65,10 @@ export default function StudentFavorites() {
         </div>
       ) : (
         <div className="grid gap-6">
-          {favorites.map((tutor) => (
-            <TutorCard key={tutor.id} tutor={tutor} />
-          ))}
+          {favorites.map((item) => {
+            const tutor = item.tutor || item.teacherListing || item;
+            return <TutorCard key={item.id} tutor={tutor} />;
+          })}
         </div>
       )}
     </div>

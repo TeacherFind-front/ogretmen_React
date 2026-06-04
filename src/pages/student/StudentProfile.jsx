@@ -6,6 +6,7 @@ import { getStudentProfile, updateStudentProfile, uploadStudentAvatar } from "@/
 import { getCities } from "@/services/locationService";
 import toast from "react-hot-toast";
 import { Skeleton } from "@/components/ui/Skeleton";
+import BASE_URL, { getImageUrl } from "@/services/api";
 
 export default function StudentProfile() {
   const [loading, setLoading] = useState(true);
@@ -24,8 +25,7 @@ export default function StudentProfile() {
     avatarUrl: null
   });
 
-  const loadProfileData = async () => {
-    try {
+  const loadProfileData = async () => {    try {
       const [data, citiesData] = await Promise.all([
         getStudentProfile(),
         getCities()
@@ -39,7 +39,7 @@ export default function StudentProfile() {
           cityId: data.cityId || "",
           cityName: data.cityName || "",
           bio: data.bio || "",
-          avatarUrl: data.profileImageUrl || data.avatarUrl
+          avatarUrl: getImageUrl(data.profileImageUrl)
         });
       }
     } catch (err) {
@@ -82,7 +82,7 @@ export default function StudentProfile() {
     setUploadLoading(true);
     try {
       const result = await uploadStudentAvatar(file);
-      setProfile(prev => ({ ...prev, avatarUrl: result.profileImageUrl }));
+      setProfile(prev => ({ ...prev, avatarUrl: getImageUrl(result.profileImageUrl) }));
       setStatus({ type: "success", message: "Profil resmi güncellendi!" });
       toast.success("Profil resmi güncellendi.");
       // Verileri yenileyelim
@@ -143,8 +143,8 @@ export default function StudentProfile() {
   return (
     <Container>
       <header className="mb-12">
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight">Profil Ayarları</h1>
-        <p className="text-gray-500 font-medium mt-2">Kişisel bilgilerinizi ve öğrenme tercihlerinizi yönetin.</p>
+        <h1 className="text-4xl font-black text-gray-900 dark:text-slate-100 tracking-tight">Profil Ayarları</h1>
+        <p className="text-gray-500 dark:text-slate-400 font-medium mt-2">Kişisel bilgilerinizi ve öğrenme tercihlerinizi yönetin.</p>
       </header>
 
       {status.message && (
@@ -177,14 +177,14 @@ export default function StudentProfile() {
                   <Camera size={18} />
                 </button>
               </div>
-              <h2 className="text-2xl font-black text-gray-900">{profile.fullName}</h2>
-              <span className="text-sm font-bold text-blue-600 bg-blue-50 px-4 py-1 rounded-full mt-3">Öğrenci Hesabı</span>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-slate-100">{profile.fullName}</h2>
+              <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-1 rounded-full mt-3">Öğrenci Hesabı</span>
             </div>
           </Card>
 
           <Card>
             <div className="p-8">
-              <h3 className="font-black text-gray-900 mb-6 flex items-center gap-2">
+              <h3 className="font-black text-gray-900 dark:text-slate-100 mb-6 flex items-center gap-2">
                 <Settings size={20} className="text-gray-400" /> Hızlı Erişim
               </h3>
               <div className="space-y-3">
@@ -256,7 +256,7 @@ export default function StudentProfile() {
                 </div>
               </section>
 
-              <div className="flex justify-end pt-8 border-t border-gray-50">
+              <div className="flex justify-end pt-8 border-t border-gray-50 dark:border-slate-800">
                 <SaveButton type="submit" disabled={saveLoading}>
                   {saveLoading ? <Loader2 className="animate-spin mr-2" size={20} /> : <Save size={20} className="mr-2" />}
                   Değişiklikleri Kaydet
@@ -281,6 +281,12 @@ const Card = styled.div`
   border: 1px solid #f1f5f9;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const AvatarWrapper = styled.div`
@@ -306,6 +312,10 @@ const SectionTitle = styled.h3`
   align-items: center;
   gap: 12px;
 
+  .dark & {
+    color: #f1f5f9;
+  }
+
   .line {
     width: 6px;
     height: 24px;
@@ -325,9 +335,10 @@ const FormGroup = styled.div`
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-left: 4px;
+    .dark & { color: #94a3b8; }
   }
 
-  input, textarea {
+  input, textarea, select {
     padding: 16px 20px;
     border-radius: 20px;
     border: 2px solid #f1f5f9;
@@ -337,8 +348,26 @@ const FormGroup = styled.div`
     color: #1e293b;
     width: 100%;
     transition: all 0.2s;
-    &:focus { outline: none; border-color: #2d79f3; background: white; box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05); }
-    &:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+    
+    .dark & {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+
+    &:focus { 
+      outline: none; 
+      border-color: #2d79f3; 
+      background: white; 
+      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+      .dark & { background: #0f172a; border-color: #3b82f6; }
+    }
+    &:disabled { 
+      background: #f1f5f9; 
+      color: #94a3b8; 
+      cursor: not-allowed;
+      .dark & { background: #1e293b; color: #475569; }
+    }
   }
 `;
 
@@ -356,6 +385,12 @@ const MenuLink = styled(Link)`
   text-decoration: none;
   transition: all 0.2s;
 
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+
   .icon { font-size: 20px; }
 
   &:hover {
@@ -363,6 +398,7 @@ const MenuLink = styled(Link)`
     color: #2d79f3;
     background: #f3f7ff;
     transform: translateX(4px);
+    .dark & { background: #1e3a8a30; border-color: #3b82f6; color: #3b82f6; }
   }
 `;
 

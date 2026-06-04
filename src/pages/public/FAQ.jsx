@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, MessageCircle, HelpCircle, BookOpen, Users } from "lucide-react";
+import { ChevronDown, MessageCircle, HelpCircle, BookOpen, Users, ArrowRight } from "lucide-react";
 
 const FAQ_DATA = [
   {
@@ -60,23 +60,34 @@ const FAQ_DATA = [
 
 function FaqAccordionItem({ question, answer, isOpen, onClick }) {
   return (
-    <div className={`border rounded-xl transition-all duration-300 overflow-hidden ${isOpen ? 'border-primary shadow-md bg-white' : 'border-gray-200 bg-gray-50/50 hover:border-primary/50 hover:bg-white'}`}>
+    <div className={`group border rounded-2xl transition-all duration-300 overflow-hidden ${
+      isOpen 
+        ? 'border-primary/30 bg-primary/5 shadow-lg shadow-primary/5 dark:bg-primary/10' 
+        : 'border-gray-100 bg-white hover:border-primary/20 hover:bg-gray-50/50 dark:bg-slate-900/50 dark:border-slate-800 dark:hover:border-primary/30'
+    }`}>
       <button
-        className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
+        className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
         onClick={onClick}
       >
-        <span className={`font-semibold text-lg transition-colors duration-200 ${isOpen ? 'text-primary' : 'text-gray-800'}`}>
+        <span className={`font-bold text-lg md:text-xl transition-colors duration-200 ${
+          isOpen ? 'text-primary' : 'text-gray-800 dark:text-slate-100 group-hover:text-primary'
+        }`}>
           {question}
         </span>
-        <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300 ${isOpen ? 'bg-primary/10 text-primary rotate-180' : 'bg-gray-100 text-gray-500'}`}>
+        <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-500 ${
+          isOpen ? 'bg-primary text-white rotate-180' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 group-hover:bg-primary/10 group-hover:text-primary'
+        }`}>
           <ChevronDown className="w-5 h-5" />
         </div>
       </button>
       
       <div 
-        className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
+        className={`transition-all duration-500 ease-in-out overflow-hidden ${
+          isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
       >
-        <div className="p-5 pt-0 text-gray-600 leading-relaxed">
+        <div className="p-6 pt-0 text-gray-600 dark:text-slate-400 leading-relaxed text-base md:text-lg">
+          <div className="h-px w-full bg-gray-100 dark:bg-slate-800 mb-6"></div>
           {answer}
         </div>
       </div>
@@ -97,29 +108,31 @@ export default function FAQ() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-16 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#fcfdff] dark:bg-[#0f172a] py-24 px-6 relative overflow-hidden transition-colors duration-500">
       
       {/* Background Decorations */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent -z-10"></div>
-      <div className="absolute top-20 right-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-0 left-20 w-80 h-80 bg-green-400/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] dark:bg-primary/10"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-400/5 rounded-full blur-[120px] dark:bg-blue-400/10"></div>
+      </div>
 
-      <div className="container mx-auto max-w-4xl">
+      <div className="container mx-auto max-w-5xl relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
-          <span className="inline-block py-1.5 px-4 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-4">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest mb-6 border border-primary/20">
+            <HelpCircle size={14} />
             Destek Merkezi
-          </span>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-            Sıkça Sorulan Sorular
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-8 tracking-tight">
+            Size Nasıl <span className="text-primary">Yardımcı</span> Olabiliriz?
           </h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Aklınıza takılan soruların cevaplarını burada bulabilirsiniz. Bulamazsanız, bizimle iletişime geçmekten çekinmeyin.
+          <p className="text-xl text-gray-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Aklınıza takılan tüm soruların cevaplarını kategorize edilmiş şekilde aşağıda bulabilirsiniz.
           </p>
         </div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <div className="flex flex-wrap justify-center gap-4 mb-16">
           {FAQ_DATA.map((category, idx) => {
             const Icon = category.icon;
             const isActive = activeCategory === idx;
@@ -127,46 +140,48 @@ export default function FAQ() {
               <button
                 key={idx}
                 onClick={() => setActiveCategory(idx)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-200 ${
+                className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-base transition-all duration-300 ${
                   isActive 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/25 scale-105' 
-                    : 'bg-white text-gray-600 shadow-sm border border-gray-200 hover:border-primary/50 hover:text-primary'
+                    ? 'bg-primary text-white shadow-2xl shadow-primary/30 scale-105' 
+                    : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:border-primary/50 hover:text-primary dark:hover:text-white'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-primary'}`} />
+                <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-400 dark:text-slate-500 group-hover:text-primary'}`} />
                 {category.category}
               </button>
             )
           })}
         </div>
 
-        {/* FAQ Items */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100">
-          <div className="space-y-4">
-            {FAQ_DATA[activeCategory].items.map((item, idx) => (
-              <FaqAccordionItem 
-                key={idx}
-                question={item.q}
-                answer={item.a}
-                isOpen={!!openItems[`${activeCategory}-${idx}`]}
-                onClick={() => toggleItem(activeCategory, idx)}
-              />
-            ))}
-          </div>
+        {/* FAQ Items Container */}
+        <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
+          {FAQ_DATA[activeCategory].items.map((item, idx) => (
+            <FaqAccordionItem 
+              key={`${activeCategory}-${idx}`}
+              question={item.q}
+              answer={item.a}
+              isOpen={!!openItems[`${activeCategory}-${idx}`]}
+              onClick={() => toggleItem(activeCategory, idx)}
+            />
+          ))}
         </div>
 
         {/* Contact CTA */}
-        <div className="mt-16 text-center bg-primary/5 rounded-3xl p-8 border border-primary/10">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-primary">
-            <MessageCircle className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Sorunuzun cevabını bulamadınız mı?</h2>
-          <p className="text-gray-600 mb-6">
-            Destek ekibimiz size yardımcı olmak için her zaman hazır. Bize ulaşarak aklınızdaki tüm soruları sorabilirsiniz.
-          </p>
-          <button className="bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all hover:-translate-y-0.5">
-            Bize Ulaşın
-          </button>
+        <div className="mt-24 text-center relative overflow-hidden group">
+            <div className="absolute inset-0 bg-primary/5 dark:bg-primary/10 rounded-[40px] border border-primary/10 dark:border-primary/20 transition-transform duration-500 group-hover:scale-[1.02]"></div>
+            <div className="relative p-12 md:p-16">
+                <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/10 text-primary border border-primary/10">
+                    <MessageCircle className="w-10 h-10" />
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-4">Hala sorularınız mı var?</h2>
+                <p className="text-lg text-gray-600 dark:text-slate-400 mb-10 max-w-xl mx-auto">
+                    Destek ekibimiz size yardımcı olmak için burada. Haftanın her günü 09:00 - 22:00 saatleri arasında bize ulaşabilirsiniz.
+                </p>
+                <button className="inline-flex items-center gap-3 bg-primary hover:bg-primary/90 text-white font-black py-4 px-10 rounded-2xl shadow-xl shadow-primary/25 transition-all hover:-translate-y-1 active:scale-95 group/btn">
+                    Müşteri Temsilcisine Bağlan
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover/btn:translate-x-1" />
+                </button>
+            </div>
         </div>
 
       </div>

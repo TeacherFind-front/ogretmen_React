@@ -2,23 +2,34 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import {
-  Loader2,
+  User,
+  Mail,
   Camera,
+  MapPin,
+  Calendar,
+  Save,
+  Loader2,
+  Lock,
   CheckCircle2,
   AlertCircle,
-  Save,
   Trash2,
   Plus,
   Link as LinkIcon,
   Award,
   FileUp,
+  Share2,
+  Phone
 } from "lucide-react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+import { FaInstagram, FaFacebook, FaLinkedin } from "react-icons/fa";
 import {
   getMyProfile,
   updateMyProfile,
   uploadAvatar,
   uploadCertificate,
 } from "@/services/tutorService";
+import BASE_URL, { getImageUrl } from "@/services/api";
 import { getUniversities, getDepartments } from "@/services/educationService";
 
 export default function TutorProfile() {
@@ -42,6 +53,8 @@ export default function TutorProfile() {
     experience: "",
     avatarUrl: null,
     certificates: [], // { name, organization, year, fileUrl, link }
+    socialLinks: { whatsapp: "", instagram: "", facebook: "", linkedin: "" },
+    isPremium: false,
   });
 
   const [universities, setUniversities] = useState([]);
@@ -64,8 +77,10 @@ export default function TutorProfile() {
             headline: data.headline || "",
             teachingStyle: data.teachingStyle || "",
             experience: data.experience || "",
-            avatarUrl: data.avatarUrl,
+            avatarUrl: getImageUrl(data.profileImageUrl),
             certificates: data.certificates || [],
+            socialLinks: data.socialLinks || { whatsapp: "", instagram: "", facebook: "", linkedin: "" },
+            isPremium: data.isPremium || false,
           });
 
           // If profile has university, load departments
@@ -102,7 +117,7 @@ export default function TutorProfile() {
     setUploadLoading(true);
     try {
       const result = await uploadAvatar(file);
-      setProfile((prev) => ({ ...prev, avatarUrl: result.avatarUrl }));
+      setProfile((prev) => ({ ...prev, avatarUrl: getImageUrl(result.profileImageUrl) }));
       setStatus({ type: "success", message: "Profil resmi güncellendi!" });
     } catch (err) {
       setStatus({
@@ -133,6 +148,7 @@ export default function TutorProfile() {
         departmentId: profile.departmentId || null,
         university: profile.university,
         department: profile.department,
+        socialLinks: profile.socialLinks,
       };
 
       await updateMyProfile(updateData);
@@ -167,12 +183,12 @@ export default function TutorProfile() {
 
   return (
     <Container>
-      <header className="mb-10 flex justify-between items-end">
+      <header className="mb-6 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
             Profil Yönetimi
           </h1>
-          <p className="text-gray-500 font-medium mt-2">
+          <p className="text-gray-500 dark:text-slate-400 font-medium mt-1 text-sm">
             Kişisel bilgilerinizi ve uzmanlık detaylarınızı buradan güncelleyebilirsiniz.
           </p>
         </div>
@@ -189,23 +205,23 @@ export default function TutorProfile() {
         </AlertBox>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-1 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1 space-y-6">
           <Card>
-            <div className="flex flex-col items-center p-10 text-center relative overflow-hidden">
+            <div className="flex flex-col items-center p-6 text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
               <div className="relative mb-6">
                 <AvatarWrapper $loading={uploadLoading}>
                   {uploadLoading ? (
-                    <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                   ) : profile.avatarUrl ? (
                     <img
                       src={profile.avatarUrl}
                       alt={profile.fullName}
-                      className="w-full h-full object-cover rounded-[2.5rem]"
+                      className="w-full h-full object-cover rounded-[2rem]"
                     />
                   ) : (
-                    <span className="text-4xl font-black text-blue-600">
+                    <span className="text-3xl font-black text-blue-600">
                       {profile.fullName.charAt(0)}
                     </span>
                   )}
@@ -221,14 +237,14 @@ export default function TutorProfile() {
 
                 <button
                   onClick={() => fileInputRef.current.click()}
-                  className="absolute -bottom-2 -right-2 p-3 bg-blue-600 rounded-2xl text-white shadow-xl border-4 border-white hover:bg-blue-700 transition-all hover:scale-110"
+                  className="absolute -bottom-1 -right-1 p-2 bg-blue-600 rounded-xl text-white shadow-lg border-2 border-white hover:bg-blue-700 transition-all hover:scale-110"
                   disabled={uploadLoading}
                 >
-                  <Camera size={18} />
+                  <Camera size={14} />
                 </button>
               </div>
-              <h2 className="text-2xl font-black text-gray-900">{profile.fullName}</h2>
-              <p className="text-blue-600 font-bold text-sm mt-1 uppercase tracking-widest">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white">{profile.fullName}</h2>
+              <p className="text-blue-600 dark:text-blue-400 font-bold text-sm mt-1 uppercase tracking-widest">
                 Doğrulanmış Eğitmen
               </p>
             </div>
@@ -237,13 +253,13 @@ export default function TutorProfile() {
 
         <div className="lg:col-span-2">
           <Card>
-            <form onSubmit={handleSave} className="p-10">
-              <section className="mb-12">
-                <h3 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
-                  <div className="w-1.5 h-7 bg-blue-600 rounded-full"></div>
+            <form onSubmit={handleSave} className="p-6">
+              <section className="mb-10">
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
                   Genel Bilgiler
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormGroup>
                     <label>Tam Adınız</label>
                     <input
@@ -347,40 +363,71 @@ export default function TutorProfile() {
               </section>
 
               <section className="mb-12">
-                <h3 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
+                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-8 flex items-center gap-3">
                   <div className="w-1.5 h-7 bg-blue-600 rounded-full"></div>
                   Hakkımda & Uzmanlık
                 </h3>
                 <div className="space-y-8">
                   <FormGroup>
                     <label>Biyografi</label>
-                    <textarea
-                      rows={5}
-                      value={profile.bio}
-                      onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                      placeholder="Öğrencilerinize kendinizden bahsedin..."
-                    />
+                    <div className="quill-wrapper">
+                      <ReactQuill
+                        theme="snow"
+                        value={profile.bio}
+                        onChange={(value) => setProfile({ ...profile, bio: value })}
+                        placeholder="Öğrencilerinize kendinizden bahsedin..."
+                        modules={{
+                          toolbar: [
+                            [{ 'header': [1, 2, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                            ['link'],
+                            ['clean']
+                          ],
+                        }}
+                      />
+                    </div>
                   </FormGroup>
                   <FormGroup>
                     <label>Eğitim Metodu / Stil</label>
-                    <textarea
-                      rows={3}
-                      value={profile.teachingStyle}
-                      onChange={(e) => setProfile({ ...profile, teachingStyle: e.target.value })}
-                      placeholder="Derslerinizi nasıl işlersiniz?"
-                    />
+                    <div className="quill-wrapper">
+                      <ReactQuill
+                        theme="snow"
+                        value={profile.teachingStyle}
+                        onChange={(value) => setProfile({ ...profile, teachingStyle: value })}
+                        placeholder="Derslerinizi nasıl işlersiniz?"
+                        modules={{
+                          toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                            ['clean']
+                          ],
+                        }}
+                      />
+                    </div>
                   </FormGroup>
                   <FormGroup>
                     <label>Deneyim (Yıl bazında detay)</label>
-                    <textarea
-                      rows={3}
-                      value={profile.experience}
-                      onChange={(e) => setProfile({ ...profile, experience: e.target.value })}
-                      placeholder="Kaç yıldır bu alandasınız? Hangi kurumlarda çalıştınız?"
-                    />
+                    <div className="quill-wrapper">
+                      <ReactQuill
+                        theme="snow"
+                        value={profile.experience}
+                        onChange={(value) => setProfile({ ...profile, experience: value })}
+                        placeholder="Kaç yıldır bu alandasınız? Hangi kurumlarda çalıştınız?"
+                        modules={{
+                          toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                            ['clean']
+                          ],
+                        }}
+                      />
+                    </div>
                   </FormGroup>
                 </div>
               </section>
+
+
 
               <div className="flex justify-end pt-8 border-t border-gray-50">
                 <SaveButton type="submit" disabled={saveLoading}>
@@ -413,6 +460,12 @@ const Card = styled.div`
   border: 1px solid #f1f5f9;
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: none;
+  }
 `;
 
 const AvatarWrapper = styled.div`
@@ -426,6 +479,12 @@ const AvatarWrapper = styled.div`
   border: 4px solid #f1f5f9;
   transition: all 0.3s;
   overflow: hidden;
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  
   ${(props) =>
     props.$loading &&
     `
@@ -443,6 +502,11 @@ const StatusBadge = styled.span`
   color: ${(props) => (props.$active ? "#166534" : "#64748b")};
   text-transform: uppercase;
   letter-spacing: 0.05em;
+
+  .dark & {
+    background: ${(props) => (props.$active ? "#064e3b40" : "#334155")};
+    color: ${(props) => (props.$active ? "#34d399" : "#94a3b8")};
+  }
 `;
 
 const FormGroup = styled.div`
@@ -457,6 +521,10 @@ const FormGroup = styled.div`
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-left: 4px;
+
+    .dark & {
+      color: #94a3b8;
+    }
   }
 
   input,
@@ -471,16 +539,112 @@ const FormGroup = styled.div`
     color: #1e293b;
     width: 100%;
     transition: all 0.2s;
+
+    .dark & {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+
     &:focus {
       outline: none;
       border-color: #2d79f3;
       background: white;
       box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+
+      .dark & {
+        background: #0f172a;
+        border-color: #2d79f3;
+        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+      }
     }
     &:disabled {
       background: #f1f5f9;
       color: #94a3b8;
       cursor: not-allowed;
+
+      .dark & {
+        background: #1e293b;
+        color: #475569;
+      }
+    }
+  }
+
+  .quill-wrapper {
+    .quill {
+      background: #f8fafc;
+      border-radius: 18px;
+      border: 2px solid #f1f5f9;
+      overflow: hidden;
+      transition: all 0.2s;
+
+      .dark & {
+        background: #0f172a;
+        border-color: #334155;
+      }
+
+      &:focus-within {
+        border-color: #2d79f3;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+
+        .dark & {
+          background: #0f172a;
+          box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+        }
+      }
+    }
+
+    .ql-toolbar.ql-snow {
+      border: none;
+      border-bottom: 2px solid #f1f5f9;
+      background: #f1f5f9;
+      padding: 12px;
+      font-family: inherit;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+
+      .dark & {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      .ql-picker-label {
+        color: #1e293b;
+        .dark & { color: #f1f5f9; }
+      }
+      .ql-stroke {
+        stroke: #475569;
+        .dark & { stroke: #cbd5e1; }
+      }
+      .ql-fill {
+        fill: #475569;
+        .dark & { fill: #cbd5e1; }
+      }
+    }
+
+    .ql-container.ql-snow {
+      border: none;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+
+      .dark & {
+        color: #f1f5f9;
+      }
+    }
+
+    .ql-editor {
+      min-height: 150px;
+      padding: 16px 20px;
+      font-size: 15px;
+
+      &.ql-blank::before {
+        font-style: normal;
+        color: #94a3b8;
+        font-weight: 500;
+      }
     }
   }
 `;

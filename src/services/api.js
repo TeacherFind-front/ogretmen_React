@@ -5,6 +5,17 @@
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5288";
 
+export const getImageUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  
+  // Clean double slashes
+  const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+  const path = url.startsWith('/') ? url : `/${url}`;
+  
+  return `${baseUrl}${path}`;
+};
+
 /**
  * Token'lı veya token'sız fetch wrapper.
  * 401 gelirse localStorage temizleyip login'e yönlendirir.

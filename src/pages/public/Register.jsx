@@ -38,7 +38,8 @@ const Register = () => {
     email: "",
     password: "",
     phoneNumber: "",
-    cityId: ""
+    cityId: "",
+    gender: ""
   });
 
   const [cities, setCities] = useState([]);
@@ -88,23 +89,19 @@ const Register = () => {
         phoneNumber: formData.phoneNumber,
         cityId: formData.cityId || null,
         districtId: role === 'tutor' ? (formData.districtId || null) : null,
-        neighborhoodId: role === 'tutor' ? (formData.neighborhoodId || null) : null
+        neighborhoodId: role === 'tutor' ? (formData.neighborhoodId || null) : null,
+        gender: formData.gender || null
       };
 
       console.log("Giden Kayıt Verisi:", payload);
 
       const res = await register(payload);
 
-      toast.success("Kayıt başarılı! Lütfen e-postanıza gelen kodu girin.");
+      toast.success("Kayıt başarılı! Giriş yapabilirsiniz.");
       
-      // Email doğrulama sayfasına yönlendir ve bilgileri taşı
+      // Email doğrulama atlandığı için doğrudan giriş sayfasına yönlendir
       setTimeout(() => {
-        navigate("/verify-email", { 
-          state: { 
-            email: formData.email,
-            userId: res.userId // Backend'den dönen userId
-          } 
-        });
+        navigate("/login");
       }, 1000);
     } catch (error) {
       toast.error("Kayıt olurken bir hata oluştu: " + error.message);
@@ -115,8 +112,8 @@ const Register = () => {
 
   const renderStep0 = () => (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-2">Hoş Geldiniz</h2>
-      <p className="text-center text-gray-500 mb-10">Devam etmek için size uygun olan rolü seçin</p>
+      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white text-center mb-2">Hoş Geldiniz</h2>
+      <p className="text-center text-gray-500 dark:text-gray-400 mb-10">Devam etmek için size uygun olan rolü seçin</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <RoleCard $active={role === 'student'} onClick={() => { setRole('student'); setStep(1); }}>
           <div className="icon-box"><GraduationCap /></div>
@@ -189,10 +186,20 @@ const Register = () => {
               </InputGroup>
             </div>
           )}
-          <InputGroup>
-            <label>Şifre</label>
-            <input id="password" type="password" value={formData.password} onChange={handleInputChange} placeholder="********" required />
-          </InputGroup>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputGroup>
+              <label>Cinsiyet</label>
+              <select id="gender" value={formData.gender} onChange={handleInputChange} required>
+                <option value="">Cinsiyet Seçin</option>
+                <option value="female">Kadın</option>
+                <option value="male">Erkek</option>
+              </select>
+            </InputGroup>
+            <InputGroup>
+              <label>Şifre</label>
+              <input id="password" type="password" value={formData.password} onChange={handleInputChange} placeholder="********" required />
+            </InputGroup>
+          </div>
         </div>
         <div className="footer">
           <button type="submit" disabled={loading} className="next-btn primary">
@@ -222,6 +229,7 @@ const Register = () => {
 const PageBackground = styled.div`
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  .dark & { background: linear-gradient(135deg, #0f172a 0%, #020617 100%); }
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,6 +241,7 @@ const MainContainer = styled.div`
   width: 100%;
   max-width: 600px;
   background: white;
+  .dark & { background: #1e293b; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
   border-radius: 32px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
   padding: 48px;
@@ -242,6 +251,10 @@ const MainContainer = styled.div`
 const RoleCard = styled.div`
   background: ${props => props.$active ? '#eff6ff' : '#ffffff'};
   border: 2px solid ${props => props.$active ? '#3b82f6' : '#f1f5f9'};
+  .dark & { 
+    background: ${props => props.$active ? '#1e3a8a' : '#0f172a'};
+    border-color: ${props => props.$active ? '#3b82f6' : '#334155'};
+  }
   border-radius: 24px;
   padding: 32px;
   cursor: pointer;
@@ -253,6 +266,7 @@ const RoleCard = styled.div`
     transform: translateY(-4px);
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
     border-color: ${props => props.$active ? '#3b82f6' : '#cbd5e1'};
+    .dark & { border-color: ${props => props.$active ? '#3b82f6' : '#475569'}; }
   }
 
   .icon-box {
@@ -260,6 +274,10 @@ const RoleCard = styled.div`
     height: 64px;
     background: ${props => props.$active ? '#3b82f6' : '#f8fafc'};
     color: ${props => props.$active ? 'white' : '#64748b'};
+    .dark & {
+      background: ${props => props.$active ? '#3b82f6' : '#1e293b'};
+      color: ${props => props.$active ? 'white' : '#94a3b8'};
+    }
     border-radius: 18px;
     display: flex;
     align-items: center;
@@ -272,12 +290,14 @@ const RoleCard = styled.div`
     font-size: 18px;
     font-weight: 700;
     color: #1e293b;
+    .dark & { color: white; }
     margin-bottom: 8px;
   }
 
   p {
     font-size: 14px;
     color: #64748b;
+    .dark & { color: #94a3b8; }
     line-height: 1.5;
   }
 
@@ -301,21 +321,24 @@ const StepWrapper = styled.div`
       align-items: center;
       gap: 6px;
       color: #64748b;
+      .dark & { color: #94a3b8; }
       font-size: 14px;
       font-weight: 600;
       margin-bottom: 16px;
-      &:hover { color: #1e293b; }
+      &:hover { color: #1e293b; .dark & { color: white; } }
     }
 
     h2 {
       font-size: 26px;
       font-weight: 800;
       color: #0f172a;
+      .dark & { color: white; }
       margin-bottom: 8px;
     }
 
     p {
       color: #64748b;
+      .dark & { color: #94a3b8; }
       font-size: 15px;
     }
   }
@@ -356,6 +379,7 @@ const InputGroup = styled.div`
     font-size: 14px;
     font-weight: 600;
     color: #475569;
+    .dark & { color: #cbd5e1; }
   }
 
   input, select {
@@ -364,12 +388,28 @@ const InputGroup = styled.div`
     border-radius: 14px;
     font-size: 15px;
     background: #f8fafc;
+    color: #0f172a;
+    .dark & { 
+      background: #0f172a; 
+      border-color: #334155; 
+      color: white; 
+    }
     transition: all 0.2s;
     &:focus {
       outline: none;
       border-color: #3b82f6;
       background: white;
+      .dark & { background: #020617; }
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+  }
+  
+  select option {
+    background: white;
+    color: #0f172a;
+    .dark & {
+      background: #0f172a;
+      color: white;
     }
   }
 `;
@@ -386,6 +426,9 @@ const Dot = styled.div`
   height: 8px;
   border-radius: 4px;
   background: ${props => props.$active ? '#3b82f6' : props.$completed ? '#94a3b8' : '#e2e8f0'};
+  .dark & {
+    background: ${props => props.$active ? '#3b82f6' : props.$completed ? '#64748b' : '#334155'};
+  }
   transition: all 0.3s ease;
 `;
 

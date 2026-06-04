@@ -48,7 +48,8 @@ const ForgotPassword = () => {
     e.preventDefault();
     const fullCode = code.join("");
     if (fullCode.length !== 6) return toast.error("Kod 6 haneli olmalıdır.");
-    if (newPassword.length < 6) return toast.error("Yeni şifre en az 6 karakter olmalıdır.");
+    if (newPassword.length < 6)
+      return toast.error("Yeni şifre en az 6 karakter olmalıdır.");
 
     setLoading(true);
     try {
@@ -63,16 +64,22 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="container mx-auto flex min-h-[calc(100vh-140px)] w-full items-center justify-center py-6 bg-muted/20 px-4">
+    <div className="container mx-auto flex min-h-[calc(100vh-140px)] w-full items-center justify-center py-6 bg-transparent px-4">
       <StyledWrapper>
         {step === 1 ? (
           <form className="form" onSubmit={handleRequestCode}>
             <div className="text-center mb-4">
               <div className="flex justify-center mb-6">
-                <div className="bg-blue-50 p-4 rounded-3xl text-blue-600"><Mail size={32} /></div>
+                <div className="bg-blue-50 p-4 rounded-3xl text-blue-600">
+                  <Mail size={32} />
+                </div>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Şifremi Unuttum</h1>
-              <p className="text-sm text-gray-500 mt-2">Sıfırlama kodu almak için e-postanızı girin</p>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Şifremi Unuttum
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
+                Sıfırlama kodu almak için e-postanızı girin
+              </p>
             </div>
 
             <div className="flex-column">
@@ -91,25 +98,38 @@ const ForgotPassword = () => {
             </div>
 
             <button className="button-submit" disabled={loading} type="submit">
-              {loading ? <Loader2 className="animate-spin mx-auto" /> : "Kod Gönder"}
+              {loading ? (
+                <Loader2 className="animate-spin mx-auto" />
+              ) : (
+                "Kod Gönder"
+              )}
             </button>
-            
+
             <p className="p">
-              Şifrenizi hatırladınız mı? <Link to="/login"><span className="span">Giriş Yap</span></Link>
+              Şifrenizi hatırladınız mı?{" "}
+              <Link to="/login">
+                <span className="span">Giriş Yap</span>
+              </Link>
             </p>
           </form>
         ) : (
           <form className="form" onSubmit={handleResetPassword}>
             <div className="text-center mb-4">
               <div className="flex justify-center mb-6">
-                <div className="bg-emerald-50 p-4 rounded-3xl text-emerald-600"><ShieldCheck size={32} /></div>
+                <div className="bg-emerald-50 p-4 rounded-3xl text-emerald-600">
+                  <ShieldCheck size={32} />
+                </div>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Şifreyi Sıfırla</h1>
-              <p className="text-sm text-gray-500 mt-2">E-postanıza gelen kodu ve yeni şifrenizi girin</p>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Şifreyi Sıfırla
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
+                E-postanıza gelen kodu ve yeni şifrenizi girin
+              </p>
             </div>
 
             <div className="flex-column items-center">
-              <label className="mb-4">Doğrulama Kodu</label>
+              <label className="mb-4 dark:text-slate-200">Doğrulama Kodu</label>
               <div className="flex justify-center gap-2 mb-6">
                 {code.map((digit, idx) => (
                   <OtpInput
@@ -142,12 +162,16 @@ const ForgotPassword = () => {
             </div>
 
             <button className="button-submit" disabled={loading} type="submit">
-              {loading ? <Loader2 className="animate-spin mx-auto" /> : "Şifreyi Güncelle"}
+              {loading ? (
+                <Loader2 className="animate-spin mx-auto" />
+              ) : (
+                "Şifreyi Güncelle"
+              )}
             </button>
-            
-            <button 
-              type="button" 
-              onClick={() => setStep(1)} 
+
+            <button
+              type="button"
+              onClick={() => setStep(1)}
               className="text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors"
             >
               E-postayı Değiştir
@@ -175,8 +199,20 @@ const StyledWrapper = styled.div`
     max-width: 480px;
     border-radius: 28px;
     border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05), 0 10px 20px -5px rgba(0, 0, 0, 0.02);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+
+    .dark & {
+      background-color: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    }
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
   }
 
   .flex-column > label {
@@ -185,6 +221,10 @@ const StyledWrapper = styled.div`
     font-size: 14px;
     margin-bottom: 6px;
     display: block;
+
+    .dark & {
+      color: #e2e8f0;
+    }
   }
 
   .inputForm {
@@ -196,6 +236,11 @@ const StyledWrapper = styled.div`
     padding: 0 16px;
     transition: all 0.2s ease;
     background-color: #f9fafb;
+
+    .dark & {
+      background-color: #0f172a;
+      border-color: #334155;
+    }
   }
 
   .inputForm svg {
@@ -208,6 +253,11 @@ const StyledWrapper = styled.div`
     border-color: #2d79f3;
     background-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+
+    .dark & {
+      background-color: #0f172a;
+      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+    }
   }
 
   .inputForm:focus-within svg {
@@ -223,6 +273,10 @@ const StyledWrapper = styled.div`
     color: #111827;
     width: 100%;
     padding: 0 4px;
+
+    .dark & {
+      color: #f1f5f9;
+    }
   }
 
   .button-submit {
@@ -238,6 +292,13 @@ const StyledWrapper = styled.div`
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    .dark & {
+      background-color: #2d79f3;
+      &:hover {
+        background-color: #1e40af;
+      }
+    }
   }
 
   .button-submit:hover {
@@ -251,6 +312,10 @@ const StyledWrapper = styled.div`
     color: #4b5563;
     font-size: 14px;
     margin-top: 16px;
+
+    .dark & {
+      color: #94a3b8;
+    }
   }
 
   .span {
@@ -282,6 +347,16 @@ const OtpInput = styled.input`
     border-color: #2d79f3;
     background: white;
     box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+
+    .dark & {
+      background: #0f172a;
+    }
+  }
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
   }
 `;
 

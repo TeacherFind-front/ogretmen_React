@@ -161,7 +161,7 @@ export default function TutorAvailability() {
           <div className="legend-item">
             <div className="box empty"></div> <span>Müsait Değil</span>
           </div>
-          <p className="hint text-blue-600 font-black flex items-center gap-2">
+          <p className="hint text-blue-600 dark:text-blue-400 font-black flex items-center gap-2">
             <Clock size={14} /> Kutucuklara tıklayarak durumu
             değiştirebilirsiniz.
           </p>
@@ -232,14 +232,20 @@ const Container = styled.div`
 
 const HeaderCard = styled.div`
   background: white;
-  padding: 40px;
-  border-radius: 2.5rem;
+  padding: 24px 32px;
+  border-radius: 1.5rem;
   border: 1px solid #f1f5f9;
-  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: none;
+  }
 
   .title-area {
     display: flex;
@@ -247,28 +253,37 @@ const HeaderCard = styled.div`
     gap: 25px;
 
     .icon-box {
-      width: 64px;
-      height: 64px;
+      width: 48px;
+      height: 48px;
       background: #f0f7ff;
-      border-radius: 20px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #2d79f3;
+
+      svg { width: 24px; height: 24px; }
+
+      .dark & {
+        background: #1e3a8a30;
+        color: #60a5fa;
+      }
     }
 
     h1 {
-      font-size: 32px;
+      font-size: 24px;
       font-weight: 950;
       color: #0f172a;
       margin: 0;
-      letter-spacing: -1px;
+      letter-spacing: -0.5px;
+      .dark & { color: #f1f5f9; }
     }
     p {
       color: #64748b;
       font-weight: 600;
-      margin-top: 6px;
-      font-size: 16px;
+      margin-top: 4px;
+      font-size: 14px;
+      .dark & { color: #94a3b8; }
     }
   }
 
@@ -282,20 +297,28 @@ const HeaderCard = styled.div`
 
 const GridCard = styled.div`
   background: white;
-  padding: 45px;
-  border-radius: 3rem;
+  padding: 32px;
+  border-radius: 2rem;
   border: 1px solid #f1f5f9;
-  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: none;
+  }
 
   .legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 30px;
-    margin-bottom: 45px;
+    gap: 20px;
+    margin-bottom: 32px;
     align-items: center;
-    padding: 20px 30px;
+    padding: 14px 24px;
     background: #f8fafc;
-    border-radius: 24px;
+    border-radius: 16px;
+
+    .dark & { background: #0f172a50; }
 
     .legend-item {
       display: flex;
@@ -306,6 +329,7 @@ const GridCard = styled.div`
       color: #334155;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      .dark & { color: #f1f5f9; }
 
       .box {
         width: 24px;
@@ -323,6 +347,7 @@ const GridCard = styled.div`
         &.empty {
           background: white;
           border: 2px solid #e2e8f0;
+          .dark & { background: #0f172a; border-color: #334155; }
         }
       }
     }
@@ -338,48 +363,51 @@ const GridCard = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: separate;
-  border-spacing: 12px;
+  border-spacing: 8px;
 
   th {
-    padding: 10px;
+    padding: 8px;
     text-align: center;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 950;
     color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
-    padding-bottom: 20px;
+    letter-spacing: 0.1em;
+    padding-bottom: 16px;
   }
 
   .slot-label {
-    padding-right: 20px;
+    padding-right: 16px;
 
     .slot-pill {
       background: #f1f5f9;
       color: #475569;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 950;
-      padding: 12px 20px;
-      border-radius: 14px;
+      padding: 8px 16px;
+      border-radius: 12px;
       white-space: nowrap;
       text-align: center;
+      .dark & { background: #334155; color: #f1f5f9; }
     }
   }
 `;
 
 const Cell = styled.div`
   width: 100%;
-  height: 80px;
-  min-width: 80px;
+  height: 56px;
+  min-width: 56px;
   background: white;
   border: 2px solid #f1f5f9;
-  border-radius: 22px;
+  border-radius: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   color: white;
+
+  .dark & { border-color: #334155; }
 
   &:hover {
     transform: scale(1.08);
@@ -390,8 +418,10 @@ const Cell = styled.div`
 
   &.empty {
     background: white;
+    .dark & { background: #0f172a; }
     &:hover {
       background: #f8fafc;
+      .dark & { background: #1e293b; }
     }
   }
 
@@ -415,15 +445,15 @@ const Cell = styled.div`
 const SaveButton = styled.button`
   background: #2d79f3;
   color: white;
-  padding: 18px 40px;
-  border-radius: 22px;
+  padding: 12px 24px;
+  border-radius: 14px;
   font-weight: 950;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   transition: all 0.3s;
-  box-shadow: 0 15px 30px rgba(45, 121, 243, 0.25);
-  font-size: 16px;
+  box-shadow: 0 10px 20px rgba(45, 121, 243, 0.2);
+  font-size: 14px;
   &:hover {
     background: #1e40af;
     transform: translateY(-3px);
@@ -439,18 +469,25 @@ const SaveButton = styled.button`
 const ClearButton = styled.button`
   background: white;
   color: #ef4444;
-  padding: 18px 30px;
-  border-radius: 22px;
+  padding: 12px 20px;
+  border-radius: 14px;
   font-weight: 900;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   border: 2px solid #fee2e2;
   transition: all 0.2s;
-  font-size: 16px;
+  font-size: 14px;
+
+  .dark & {
+    background: #450a0a20;
+    border-color: #450a0a;
+  }
+
   &:hover {
     background: #fef2f2;
     border-color: #ef4444;
+    .dark & { background: #450a0a40; }
   }
 `;
 

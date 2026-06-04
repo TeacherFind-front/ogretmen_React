@@ -18,9 +18,10 @@ import {
   Trash2,
   Globe,
   Home,
-  Monitor,
   GraduationCap,
 } from "lucide-react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import {
   getCategories,
   getCities,
@@ -52,6 +53,7 @@ const CreateListing = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    youtubeVideoUrl: "",
     categoryId: "",
     category: "",
     subCategory: "",
@@ -155,9 +157,12 @@ const CreateListing = () => {
       // Ensure price is multiple of 50
       const normalizedPrice = Math.round(p / 50) * 50;
 
+      let finalDescription = formData.description.trim();
+
       const listingData = {
         title: formData.title.trim(),
-        description: formData.description.trim(),
+        description: finalDescription,
+        youtubeVideoUrl: formData.youtubeVideoUrl?.trim() || null,
         subjectId: formData.subjectId ? parseInt(formData.subjectId) : null,
         cityId: formData.cityId || null,
         districtId: formData.districtId || null,
@@ -327,13 +332,33 @@ const CreateListing = () => {
 
         <InputGroup>
           <label>İlan Açıklaması</label>
-          <textarea
-            id="description"
-            rows="5"
-            value={formData.description}
+          <div className="quill-wrapper">
+            <ReactQuill
+              theme="snow"
+              value={formData.description}
+              onChange={(value) => setFormData({ ...formData, description: value })}
+              placeholder="Ders işleyiş tarzınız, tecrübeniz ve öğrencilere katacaklarınızdan bahsedin..."
+              modules={{
+                toolbar: [
+                  [{ 'header': [1, 2, false] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{'list': 'ordered'}, {'list': 'bullet'}],
+                  ['link'],
+                  ['clean']
+                ],
+              }}
+            />
+          </div>
+        </InputGroup>
+
+        <InputGroup>
+          <label>YouTube Tanıtım Videosu Linki (Opsiyonel)</label>
+          <input
+            id="youtubeVideoUrl"
+            type="url"
+            value={formData.youtubeVideoUrl}
             onChange={handleInputChange}
-            placeholder="Ders işleyiş tarzınız, tecrübeniz ve öğrencilere katacaklarınızdan bahsedin..."
-            required
+            placeholder="Örn: https://www.youtube.com/watch?v=..."
           />
         </InputGroup>
 
@@ -1031,6 +1056,85 @@ const InputGroup = styled.div`
     &:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+  }
+
+  .quill-wrapper {
+    width: 100%;
+    .quill {
+      background: #f8fafc;
+      border-radius: 18px;
+      border: 2px solid #f1f5f9;
+      overflow: hidden;
+      transition: all 0.2s;
+
+      .dark & {
+        background: #0f172a;
+        border-color: #334155;
+      }
+
+      &:focus-within {
+        border-color: #2d79f3;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+
+        .dark & {
+          background: #0f172a;
+          box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+        }
+      }
+    }
+
+    .ql-toolbar.ql-snow {
+      border: none;
+      border-bottom: 2px solid #f1f5f9;
+      background: #f1f5f9;
+      padding: 12px;
+      font-family: inherit;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+
+      .dark & {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      .ql-picker-label {
+        color: #1e293b;
+        .dark & { color: #f1f5f9; }
+      }
+      .ql-stroke {
+        stroke: #475569;
+        .dark & { stroke: #cbd5e1; }
+      }
+      .ql-fill {
+        fill: #475569;
+        .dark & { fill: #cbd5e1; }
+      }
+    }
+
+    .ql-container.ql-snow {
+      border: none;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+
+      .dark & {
+        color: #f1f5f9;
+      }
+    }
+
+    .ql-editor {
+      min-height: 150px;
+      padding: 16px 20px;
+      font-size: 15px;
+
+      &.ql-blank::before {
+        font-style: normal;
+        color: #94a3b8;
+        font-weight: 500;
+      }
     }
   }
 `;

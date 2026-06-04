@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 import { Bell, MessageCircle, BookOpen, CheckCircle, Info, X, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getNotifications, markAsRead } from "@/services/notificationService";
+import { getNotifications, markAsRead, markAllAsRead } from "@/services/notificationService";
 import { startChatConnection } from "@/services/chatService";
 
 export default function NotificationDropdown() {
@@ -57,6 +57,16 @@ export default function NotificationDropdown() {
     if (notif.link) navigate(notif.link);
   };
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Tümü okundu işaretlenemedi", err);
+    }
+  };
+
   const getIcon = (type) => {
     switch (type) {
       case "message": return <MessageCircle size={16} />;
@@ -81,8 +91,15 @@ export default function NotificationDropdown() {
       {isOpen && (
         <Dropdown>
           <Header>
-            <h3 className="font-black text-gray-900">Bildirimler</h3>
-            {unreadCount > 0 && <span className="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">Yeni</span>}
+            <div className="flex items-center gap-2">
+              <h3 className="font-black text-gray-900">Bildirimler</h3>
+              {unreadCount > 0 && <span className="text-[9px] font-black bg-blue-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-sm">Yeni</span>}
+            </div>
+            {notifications.length > 0 && (
+              <ClearAllButton onClick={handleMarkAllAsRead}>
+                Hepsini Temizle
+              </ClearAllButton>
+            )}
           </Header>
           
           <List>
@@ -147,12 +164,30 @@ const BellButton = styled.button`
     color: #1e293b;
     border-color: #e2e8f0;
     transform: translateY(-1px);
+
+    .dark & {
+      background: #334155;
+      color: #f1f5f9;
+      border-color: #475569;
+    }
+  }
+
+  .dark & {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
   }
 
   ${props => props.$hasUnread && `
     color: #2d79f3;
     background: #f3f7ff;
     border-color: #2d79f330;
+
+    .dark & {
+      background: #1e3a8a30;
+      color: #60a5fa;
+      border-color: #3b82f640;
+    }
   `}
 `;
 
@@ -172,6 +207,10 @@ const Badge = styled.span`
   border-radius: 6px;
   border: 2px solid white;
   padding: 0 4px;
+
+  .dark & {
+    border-color: #1e293b;
+  }
 `;
 
 const Dropdown = styled.div`
@@ -186,6 +225,12 @@ const Dropdown = styled.div`
   z-index: 1000;
   overflow: hidden;
   animation: ${slideDown} 0.2s ease-out;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
+  }
 `;
 
 const Header = styled.div`
@@ -194,6 +239,11 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  .dark & {
+    border-color: #334155;
+    h3 { color: #f1f5f9 !important; }
+  }
 `;
 
 const List = styled.div`
@@ -212,6 +262,14 @@ const Item = styled.div`
   transition: all 0.2s;
   position: relative;
   background: ${props => props.$isRead ? 'white' : '#f8faff'};
+
+  .dark & {
+    background: ${props => props.$isRead ? '#1e293b' : '#1e3a8a20'};
+    &:hover { background: #334155; }
+    border-color: #334155 !important;
+    span.font-black { color: #f1f5f9 !important; }
+    p { color: #94a3b8 !important; }
+  }
 
   &:hover {
     background: #f1f5f9;
@@ -278,8 +336,41 @@ const Footer = styled.button`
   border: none;
   border-top: 1px solid #f1f5f9;
 
+  .dark & {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
+    &:hover { color: #3b82f6; background: #334155; }
+  }
+
   &:hover {
     color: #2d79f3;
     background: #f1f5f9;
+  }
+`;
+
+const ClearAllButton = styled.button`
+  font-size: 11px;
+  font-weight: 800;
+  color: #2d79f3;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: #f3f7ff;
+  border: none;
+
+  &:hover {
+    background: #2d79f3;
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .dark & {
+    background: #1e3a8a30;
+    color: #60a5fa;
+    &:hover {
+      background: #3b82f6;
+      color: white;
+    }
   }
 `;

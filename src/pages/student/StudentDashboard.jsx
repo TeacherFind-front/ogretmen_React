@@ -43,10 +43,10 @@ export default function StudentDashboard() {
           getMyFavorites()
         ]);
         setStats(statsData);
-        setBookings(bookingsData);
-        setFavorites(favoritesData || []);
-      } catch (err) {
-        console.error("Dashboard load error", err);
+        setBookings(bookingsData?.$values || bookingsData || []);
+        setFavorites(favoritesData?.$values || favoritesData || []);
+      } catch (error) {
+        console.error("Dashboard load error", error);
         // api.js 401 durumunda zaten login'e yönlendiriyor.
         // Diğer hatalar için mesaj gösterelim.
         toast.error("Dashboard verileri yüklenemedi.");
@@ -160,10 +160,10 @@ export default function StudentDashboard() {
 
       <div className="grid gap-10 lg:grid-cols-7">
         {/* Next Lessons List */}
-        <Card className="lg:col-span-4 border-none shadow-2xl shadow-blue-900/5 bg-white rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="p-8 border-b border-gray-50 bg-gray-50/30">
+        <Card className="lg:col-span-4 border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="p-8 border-b border-gray-50 dark:border-slate-700 bg-gray-50/30 dark:bg-slate-800/30">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-xl font-black text-gray-900 flex items-center gap-3">
+              <CardTitle className="text-xl font-black text-gray-900 dark:text-slate-100 flex items-center gap-3">
                 <Zap className="w-6 h-6 text-blue-600 fill-blue-600" /> Platform Duyuruları
               </CardTitle>
             </div>
@@ -181,10 +181,10 @@ export default function StudentDashboard() {
         </Card>
 
         {/* Favori Hocalarım Section */}
-        <Card className="lg:col-span-3 border-none shadow-2xl shadow-red-900/5 bg-white rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="p-8 border-b border-gray-50">
+        <Card className="lg:col-span-3 border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="p-8 border-b border-gray-50 dark:border-slate-700">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-xl font-black text-gray-900 flex items-center gap-3">
+              <CardTitle className="text-xl font-black text-gray-900 dark:text-slate-100 flex items-center gap-3">
                 <Heart className="w-6 h-6 text-red-500 fill-red-500" /> Favori Hocalarım
               </CardTitle>
               <Button
@@ -204,26 +204,31 @@ export default function StudentDashboard() {
                 <Button variant="link" className="text-blue-600 font-bold text-xs mt-2" onClick={() => navigate("/tutors")}>Hemen Keşfet →</Button>
               </div>
             ) : (
-              favorites.slice(0, 3).map((tutor) => (
-                <div 
-                  key={tutor.id} 
-                  className="flex items-center justify-between p-4 border border-gray-50 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group"
-                  onClick={() => navigate(`/tutors/${tutor.id}`)}
-                >
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src={tutor.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.teacherName)}&background=2d79f3&color=fff`} 
-                      className="w-12 h-12 rounded-xl object-cover"
-                      alt={tutor.teacherName}
-                    />
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-sm">{tutor.teacherName}</h4>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{tutor.subject}</p>
+              favorites.slice(0, 3).map((item) => {
+                const tutor = item.tutor || item.teacherListing || item;
+                // Backend'den gelen alanlar için kapsamlı fallback mekanizması
+  const name = tutor.teacherName || tutor.name || tutor.teacherListing?.teacherName || tutor.fullName || "Eğitmen";
+                return (
+                  <div 
+                    key={item.id} 
+                    className="flex items-center justify-between p-4 border border-gray-50 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group"
+                    onClick={() => navigate(`/tutors/${tutor.id}`)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={tutor.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`} 
+                        className="w-12 h-12 rounded-xl object-cover"
+                        alt={name}
+                      />
+                      <div>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm group-hover:text-blue-600 transition-colors">{name}</h4>
+                        <p className="text-[10px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest">{tutor.subject || tutor.category || "Genel"}</p>
+                      </div>
                     </div>
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                   </div>
-                  <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-                </div>
-              ))
+                );
+              })
             )}
             {favorites.length > 3 && (
               <Button 
@@ -242,20 +247,20 @@ export default function StudentDashboard() {
 }
 
 const StatCard = ({ title, value, sub, icon, trend, color }) => (
-  <Card className="border-none shadow-xl shadow-gray-900/5 bg-white rounded-[2rem] overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+  <Card className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2rem] overflow-hidden group hover:-translate-y-1 transition-all duration-300">
     <CardContent className="p-8">
       <div className="flex justify-between items-start mb-6">
-        <div className="p-4 rounded-2xl bg-gray-50 group-hover:bg-blue-50 transition-colors">
+        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-700/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-colors">
           {icon}
         </div>
-        <Badge className="bg-gray-100 hover:bg-gray-100 text-gray-500 border-none px-3 py-1 rounded-lg text-[10px] font-black">
+        <Badge className="bg-gray-100 dark:bg-slate-700 hover:bg-gray-100 text-gray-500 dark:text-slate-300 border-none px-3 py-1 rounded-lg text-[10px] font-black">
           {trend}
         </Badge>
       </div>
       <div>
-        <div className="text-4xl font-black text-gray-900 mb-2">{value}</div>
-        <div className="text-sm font-bold text-gray-900">{title}</div>
-        <div className="text-xs text-gray-400 font-medium mt-1">{sub}</div>
+        <div className="text-4xl font-black text-gray-900 dark:text-slate-100 mb-2">{value}</div>
+        <div className="text-sm font-bold text-gray-900 dark:text-slate-100">{title}</div>
+        <div className="text-xs text-gray-400 dark:text-slate-400 font-medium mt-1">{sub}</div>
       </div>
     </CardContent>
   </Card>

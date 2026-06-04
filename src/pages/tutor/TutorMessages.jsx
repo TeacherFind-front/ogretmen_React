@@ -135,15 +135,15 @@ export default function TutorMessages() {
   return (
     <Container>
       <header className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Mesajlarım</h1>
-        <p className="text-gray-500 text-sm mt-1">Öğrencilerinle olan iletişimi anlık olarak takip et.</p>
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-slate-100 tracking-tight">Mesajlarım</h1>
+        <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Öğrencilerinle olan iletişimi anlık olarak takip et.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[750px]">
         {/* Mesaj Listesi */}
         <div className="md:col-span-1">
           <Card className="h-full flex flex-col shadow-sm">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b dark:border-slate-700">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <SearchInput placeholder="Öğrenci ara..." />
@@ -162,13 +162,13 @@ export default function TutorMessages() {
                     <Avatar>{conv.otherUserName?.charAt(0) || "U"}</Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-gray-900 truncate">{conv.otherUserName || "Kullanıcı"}</span>
-                        <span className="text-[10px] text-gray-400 font-medium">
+                        <span className="font-bold text-gray-900 dark:text-white truncate">{conv.otherUserName || "Kullanıcı"}</span>
+                        <span className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">
                           {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' }) : ""}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500 truncate">{conv.lastMessage}</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400 truncate">{conv.lastMessage}</span>
                         {conv.unreadCount > 0 && <UnreadBadge>{conv.unreadCount}</UnreadBadge>}
                       </div>
                     </div>
@@ -184,11 +184,11 @@ export default function TutorMessages() {
           <Card className="h-full flex flex-col shadow-lg border-blue-50">
             {selectedConv ? (
               <>
-                <div className="p-5 border-b flex items-center justify-between bg-white z-10">
+                <div className="p-5 border-b dark:border-slate-700 flex items-center justify-between bg-white dark:bg-[#1e293b] z-10">
                   <div className="flex items-center gap-4">
                     <Avatar $large>{selectedConv.otherUserName?.charAt(0) || "U"}</Avatar>
                     <div>
-                      <h3 className="font-bold text-gray-900">{selectedConv.otherUserName || "Kullanıcı"}</h3>
+                      <h3 className="font-bold text-gray-900 dark:text-white">{selectedConv.otherUserName || "Kullanıcı"}</h3>
                       <span className="text-[11px] text-green-500 font-bold flex items-center gap-1">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Çevrimiçi
                       </span>
@@ -199,7 +199,7 @@ export default function TutorMessages() {
                   </button>
                 </div>
 
-                <div className="flex-1 bg-[#f8fafc] p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <div className="flex-1 bg-[#f8fafc] dark:bg-[#0f172a] p-6 overflow-y-auto custom-scrollbar space-y-4">
                   {msgLoading && messages.length === 0 ? (
                     <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-blue-400" /></div>
                   ) : (
@@ -220,7 +220,7 @@ export default function TutorMessages() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 border-t bg-white">
+                <div className="p-4 border-t dark:border-slate-700 bg-white dark:bg-[#1e293b]">
                   <form onSubmit={handleSend} className="flex gap-3">
                     <InputWrapper>
                       <input 
@@ -238,11 +238,11 @@ export default function TutorMessages() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-400 p-10 text-center">
-                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                  <Send className="w-10 h-10 opacity-20" />
+                <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                  <Send className="w-10 h-10 opacity-20 dark:text-slate-500" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-1">Henüz Seçim Yapılmadı</h3>
-                <p className="text-sm max-w-xs">Mesajlaşmaya başlamak için sol taraftan bir öğrenci seçin.</p>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Henüz Seçim Yapılmadı</h3>
+                <p className="text-sm dark:text-slate-400 max-w-xs">Mesajlaşmaya başlamak için sol taraftan bir öğrenci seçin.</p>
               </div>
             )}
           </Card>
@@ -259,7 +259,20 @@ const SearchInput = styled.input`
   border: 1.5px solid #e2e8f0;
   background: #f8fafc;
   font-size: 14px;
-  &:focus { outline: none; border-color: #2d79f3; background: white; }
+  transition: all 0.2s;
+  
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  &:focus { 
+    outline: none; 
+    border-color: #2d79f3; 
+    background: white; 
+    .dark & { background: #0f172a; border-color: #3b82f6; }
+  }
 `;
 
 const ConversationItem = styled.div`
@@ -272,8 +285,16 @@ const ConversationItem = styled.div`
   background: ${props => props.$active ? '#eff6ff' : 'transparent'};
   border-left: 4px solid ${props => props.$active ? '#2d79f3' : 'transparent'};
   
+  .dark & {
+    background: ${props => props.$active ? '#1e3a8a30' : 'transparent'};
+    border-left-color: ${props => props.$active ? '#3b82f6' : 'transparent'};
+    span { color: #f1f5f9 !important; }
+    p { color: #94a3b8 !important; }
+  }
+
   &:hover {
     background: #f8fafc;
+    .dark & { background: #33415540; }
   }
 `;
 
@@ -323,6 +344,12 @@ const MessageBubble = styled.div`
   box-shadow: ${props => props.$isMine ? '0 4px 12px rgba(45, 121, 243, 0.15)' : '0 2px 5px rgba(0,0,0,0.03)'};
   border-bottom-${props => props.$isMine ? 'right' : 'left'}-radius: 4px;
   
+  .dark & {
+    background: ${props => props.$isMine ? '#2563eb' : '#1e293b'};
+    color: #f1f5f9;
+    border: ${props => props.$isMine ? 'none' : '1px solid #334155'};
+  }
+
   .time {
     font-size: 10px;
     margin-top: 6px;
@@ -338,6 +365,12 @@ const InputWrapper = styled.div`
   padding: 2px 18px;
   display: flex;
   align-items: center;
+  transition: all 0.2s;
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+  }
   
   input {
     width: 100%;
@@ -346,6 +379,7 @@ const InputWrapper = styled.div`
     border: none;
     font-size: 14px;
     color: #1e293b;
+    .dark & { color: #f1f5f9; }
     &:focus { outline: none; }
   }
 `;
@@ -378,6 +412,10 @@ const SendButton = styled.button`
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
+  .dark & {
+    h3 { color: #f1f5f9 !important; }
+    p { color: #94a3b8 !important; }
+  }
 `;
 
 const Card = styled.div`
@@ -386,4 +424,10 @@ const Card = styled.div`
   border: 1px solid #f1f5f9;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  }
 `;

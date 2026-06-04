@@ -89,18 +89,18 @@ export default function AdminDashboard() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Yönetim Paneli</h1>
-          <p className="text-slate-500 font-medium">Hoş geldiniz, platformun genel performansını buradan takip edebilirsiniz.</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Yönetim Paneli</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Hoş geldiniz, platformun genel performansını buradan takip edebilirsiniz.</p>
         </div>
         <div className="flex gap-3">
           <Button 
             variant="outline" 
-            className="rounded-xl border-slate-200 font-bold flex items-center gap-2"
+            className="rounded-xl border-slate-200 dark:border-slate-700 dark:text-slate-200 font-bold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800"
             onClick={handleExport}
           >
             <Download size={18} /> Rapor İndir
           </Button>
-          <Button className="rounded-xl bg-slate-900 hover:bg-black text-white font-bold flex items-center gap-2 px-6">
+          <Button className="rounded-xl bg-slate-900 dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 text-white font-bold flex items-center gap-2 px-6">
             <Activity size={18} /> Canlı İzle
           </Button>
         </div>
@@ -109,18 +109,18 @@ export default function AdminDashboard() {
       {/* Grid Stats */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {mainStats.map((stat, i) => (
-          <Card key={i} className="border-none shadow-sm bg-white rounded-3xl overflow-hidden hover:shadow-xl transition-all border border-slate-100/50">
+          <Card key={i} className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-3xl overflow-hidden hover:shadow-xl dark:hover:shadow-none transition-all border border-slate-100/50 dark:border-slate-800/50">
             <CardContent className="p-7">
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color}`}>
+                <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} dark:bg-opacity-10`}>
                   <stat.icon size={24} />
                 </div>
-                <Badge className={`${stat.trend.includes('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'} border-none font-bold text-[10px]`}>
+                <Badge className={`${stat.trend.includes('+') ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400'} border-none font-bold text-[10px]`}>
                   {stat.trend}
                 </Badge>
               </div>
-              <div className="text-3xl font-black text-slate-900 mb-1">{stat.value}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stat.title}</div>
+              <div className="text-3xl font-black text-slate-900 dark:text-white mb-1">{stat.value}</div>
+              <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{stat.title}</div>
             </CardContent>
           </Card>
         ))}
@@ -128,12 +128,12 @@ export default function AdminDashboard() {
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Activity Chart */}
-        <Card className="lg:col-span-2 border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="p-8 border-b border-slate-50 flex flex-row items-center justify-between">
-            <CardTitle className="text-xl font-black text-slate-900">Platform Trafiği</CardTitle>
+        <Card className="lg:col-span-2 border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden transition-colors">
+          <CardHeader className="p-8 border-b border-slate-50 dark:border-slate-800 flex flex-row items-center justify-between">
+            <CardTitle className="text-xl font-black text-slate-900 dark:text-white">Platform Trafiği</CardTitle>
             <div className="flex gap-2">
               {['Haftalık', 'Aylık'].map(t => (
-                <button key={t} className={`px-4 py-1.5 rounded-lg text-xs font-bold ${t === 'Aylık' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>{t}</button>
+                <button key={t} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${t === 'Aylık' ? 'bg-slate-900 dark:bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{t}</button>
               ))}
             </div>
           </CardHeader>
@@ -148,14 +148,14 @@ export default function AdminDashboard() {
                     <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
                       <div className="relative w-full">
                         <div 
-                          className={`w-full rounded-t-lg transition-all duration-500 group-hover:bg-blue-600 ${i % 2 === 0 ? 'bg-slate-100' : 'bg-blue-500'}`} 
+                          className={`w-full rounded-t-lg transition-all duration-500 group-hover:bg-blue-600 ${i % 2 === 0 ? 'bg-slate-100 dark:bg-slate-800' : 'bg-blue-500'}`} 
                           style={{ height: `${Math.max(height, 5)}%` }}
                         ></div>
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-blue-600 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
                           {val} Kayıt
                         </div>
                       </div>
-                      <span className="text-[8px] font-bold text-slate-300 hidden md:block">
+                      <span className="text-[8px] font-bold text-slate-300 dark:text-slate-600 hidden md:block">
                         {typeof item === 'object' ? item.date.split('-')[2] : i+1}
                       </span>
                     </div>

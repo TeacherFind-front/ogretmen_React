@@ -12,8 +12,10 @@ import {
   Bell, 
   Search,
   ChevronRight,
-  Shield
+  Shield,
+  Home
 } from "lucide-react";
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import { useAuth } from "@/store/AuthContext";
 
 export default function AdminLayout() {
@@ -30,7 +32,7 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc]">
+    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] transition-colors">
       {/* Premium Sidebar */}
       <aside className="w-80 bg-[#0f172a] text-slate-300 hidden lg:flex flex-col border-r border-white/5">
         <div className="p-8">
@@ -100,32 +102,32 @@ export default function AdminLayout() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 bg-white border-b border-slate-100 hidden lg:flex items-center px-10 sticky top-0 z-30">
-           <div className="relative w-96">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input 
-                type="text" 
-                placeholder="Kullanıcı, ilan veya işlem ara..." 
-                className="w-full h-11 bg-slate-50 border-none rounded-xl pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-              />
-           </div>
-           <div className="ml-auto flex items-center gap-6">
-              <button className="relative w-11 h-11 flex items-center justify-center text-slate-400 hover:text-slate-900 bg-slate-50 rounded-xl transition-all group">
-                 <Bell size={20} />
-                 <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white group-hover:scale-110 transition-transform"></span>
+         <header className="h-20 bg-white dark:bg-[#1e293b] border-b border-slate-100 dark:border-slate-800 hidden lg:flex items-center px-10 sticky top-0 z-30 transition-colors">
+            <div className="flex-1"></div>
+           <div className="ml-auto flex items-center gap-4">
+              <ThemeSwitch />
+              <Link
+                to="/"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <Home size={14} /> Ana Sayfa
+              </Link>
+              <button className="relative w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all group">
+                 <Bell size={18} />
+                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1e293b] group-hover:scale-110 transition-transform"></span>
               </button>
-              <div className="h-8 w-[1px] bg-slate-100"></div>
+              <div className="h-8 w-[1px] bg-slate-100 dark:bg-slate-800"></div>
               <div className="flex items-center gap-3">
                  <div className="text-right">
-                    <p className="text-sm font-black text-slate-900 leading-none">Admin User</p>
-                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Süper Yetkili</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-slate-100 leading-none">Admin User</p>
+                    <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-1">Süper Yetkili</p>
                  </div>
-                 <div className="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black shadow-lg shadow-slate-900/20">A</div>
+                 <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-slate-200 dark:shadow-none transition-all">A</div>
               </div>
            </div>
         </header>
 
-        <main className="flex-1 p-6 lg:p-10 pt-24 lg:pt-10 overflow-y-auto">
+        <main className="flex-1 p-10 bg-[#f8fafc] dark:bg-[#0f172a] transition-colors">
            <div className="max-w-7xl mx-auto">
               <Outlet />
            </div>
@@ -139,17 +141,17 @@ const AdminSideLink = styled(Link)`
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
+  padding: 7px 14px;
   font-size: 14px;
   font-weight: 700;
-  color: #64748b;
+  color: #94a3b8;
   text-decoration: none;
   border-radius: 14px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: rgba(255, 255, 255, 0.05);
     color: #f8fafc;
     transform: translateX(4px);
   }
@@ -161,11 +163,13 @@ const AdminSideLink = styled(Link)`
     
     svg {
       color: white;
+      opacity: 1;
     }
   }
 
   svg {
-    transition: color 0.3s;
+    transition: all 0.3s;
+    opacity: 0.7;
   }
 `;
 

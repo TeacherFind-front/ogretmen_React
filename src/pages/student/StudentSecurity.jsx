@@ -36,14 +36,14 @@ export default function StudentSecurity() {
   return (
     <Container>
       <header className="mb-10">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Güvenlik Ayarları</h1>
-        <p className="text-gray-500 font-medium mt-2">Hesabınızın güvenliğini yönetin ve şifrenizi güncelleyin.</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-slate-100 tracking-tight">Güvenlik Ayarları</h1>
+        <p className="text-gray-500 dark:text-slate-400 font-medium mt-2">Hesabınızın güvenliğini yönetin ve şifrenizi güncelleyin.</p>
       </header>
 
       <div className="max-w-2xl">
         <Card>
-          <div className="p-8 border-b border-gray-50 bg-gray-50/30">
-            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3">
+          <div className="p-8 border-b border-gray-50 dark:border-slate-700 bg-gray-50/30 dark:bg-slate-800/30">
+            <h3 className="text-lg font-black text-gray-900 dark:text-slate-100 flex items-center gap-3">
               <Shield className="w-6 h-6 text-blue-600" /> Şifre Değiştir
             </h3>
           </div>
@@ -106,13 +106,13 @@ export default function StudentSecurity() {
           </form>
         </Card>
 
-        <div className="mt-10 p-6 bg-blue-50 rounded-3xl border border-blue-100 flex items-start gap-4">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
+        <div className="mt-10 p-6 bg-blue-50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 flex items-start gap-4 transition-colors">
+          <div className="w-10 h-10 bg-white dark:bg-[#1e293b] rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800">
             <Shield size={20} />
           </div>
           <div>
-            <p className="font-black text-blue-900 text-sm mb-1">Güvenlik İpucu</p>
-            <p className="text-xs text-blue-700 font-bold leading-relaxed">
+            <p className="font-black text-blue-900 dark:text-blue-100 text-sm mb-1">Güvenlik İpucu</p>
+            <p className="text-xs text-blue-700 dark:text-blue-300/70 font-bold leading-relaxed">
               Güçlü bir şifre en az 8 karakterden oluşmalı; büyük harf, küçük harf, rakam ve sembol içermelidir. 
               Şifrenizi kimseyle paylaşmayın.
             </p>
@@ -134,6 +134,12 @@ const Card = styled.div`
   border: 1px solid #f1f5f9;
   box-shadow: 0 10px 30px rgba(0,0,0,0.04);
   overflow: hidden;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
 `;
 
 const FormGroup = styled.div`
@@ -148,6 +154,7 @@ const FormGroup = styled.div`
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-left: 4px;
+    .dark & { color: #94a3b8; }
   }
 
   input {
@@ -159,7 +166,19 @@ const FormGroup = styled.div`
     font-weight: 600;
     width: 100%;
     transition: all 0.2s;
-    &:focus { outline: none; border-color: #2d79f3; background: white; }
+
+    .dark & {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+
+    &:focus { 
+      outline: none; 
+      border-color: #2d79f3; 
+      background: white;
+      .dark & { background: #0f172a; border-color: #3b82f6; }
+    }
   }
 `;
 
@@ -173,6 +192,12 @@ const SubmitButton = styled.button`
   display: flex;
   align-items: center;
   transition: all 0.2s;
+  
+  .dark & {
+    background: #2d79f3;
+    &:hover { background: #1e40af; }
+  }
+
   &:hover { background: #000; transform: translateY(-1px); }
   &:disabled { opacity: 0.7; cursor: not-allowed; }
 `;

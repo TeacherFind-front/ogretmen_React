@@ -1,8 +1,21 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { Menu, X, LayoutDashboard, Calendar, BookOpen, Users, User, MessageCircle, Shield, LogOut } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Calendar,
+  BookOpen,
+  Users,
+  User,
+  MessageCircle,
+  Shield,
+  LogOut,
+  Home,
+} from "lucide-react";
 import NotificationDropdown from "@/components/shared/NotificationDropdown";
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import { useAuth } from "@/store/AuthContext";
 
 export default function TutorLayout() {
@@ -16,27 +29,34 @@ export default function TutorLayout() {
     { to: "/tutor/availability", label: "Müsaitlik Ayarları", icon: "⏰" },
     { to: "/tutor/lessons", label: "Derslerim", icon: "📚" },
     { to: "/tutor/profile", label: "Profilim", icon: "👤" },
+    { to: "/tutor/social-media", label: "Sosyal Medya", icon: "🔗" },
     { to: "/tutor/messages", label: "Mesajlar", icon: "💬" },
     { to: "/tutor/change-password", label: "Güvenlik", icon: "🛡️" },
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#f9fafb]">
+    <div className="flex min-h-screen bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300">
       {/* Desktop Sidebar */}
-      <aside className="w-72 border-r bg-white hidden md:block shadow-sm">
-        <div className="flex h-20 items-center px-8">
+      <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
+        <div className="flex h-14 items-center px-6">
           <LogoWrapper $small>
             <span className="logo-icon">🔑</span>
-            <span className="logo-text">Öğrenmenin <span>Çilingirleri</span></span>
+            <span className="logo-text">
+              Öğrenmenin <span>Çilingirleri</span>
+            </span>
           </LogoWrapper>
         </div>
-        <nav className="px-4 py-6 space-y-2">
-          {navLinks.map(link => (
-            <SideLink key={link.to} to={link.to} $active={location.pathname === link.to}>
+        <nav className="px-3 py-4 space-y-1">
+          {navLinks.map((link) => (
+            <SideLink
+              key={link.to}
+              to={link.to}
+              $active={location.pathname === link.to}
+            >
               <span className="icon">{link.icon}</span> {link.label}
             </SideLink>
           ))}
-          <div className="pt-6 mt-6 border-t border-gray-100">
+          <div className="pt-4 mt-4 border-t border-gray-100 dark:border-slate-800">
             <LogoutButton onClick={logout}>
               <span className="icon">🚪</span> Çıkış Yap
             </LogoutButton>
@@ -45,24 +65,37 @@ export default function TutorLayout() {
       </aside>
 
       {/* Mobile Sidebar & Overlay */}
-      <MobileOverlay $isOpen={isMenuOpen} onClick={() => setIsMenuOpen(false)} />
+      <MobileOverlay
+        $isOpen={isMenuOpen}
+        onClick={() => setIsMenuOpen(false)}
+      />
       <MobileSidebar $isOpen={isMenuOpen}>
-        <div className="flex h-20 items-center px-8 border-b justify-between">
+        <div className="flex h-14 items-center px-6 border-b justify-between">
           <LogoWrapper $small>
             <span className="logo-icon">🔑</span>
-            <span className="logo-text">Öğrenmenin <span>Çilingirleri</span></span>
+            <span className="logo-text">
+              Öğrenmenin <span>Çilingirleri</span>
+            </span>
           </LogoWrapper>
-          <button onClick={() => setIsMenuOpen(false)} className="p-2 text-gray-500">
-            <X size={24} />
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="p-2 text-gray-500"
+          >
+            <X size={20} />
           </button>
         </div>
-        <nav className="px-4 py-6 space-y-2">
-          {navLinks.map(link => (
-            <SideLink key={link.to} to={link.to} $active={location.pathname === link.to} onClick={() => setIsMenuOpen(false)}>
+        <nav className="px-3 py-4 space-y-1">
+          {navLinks.map((link) => (
+            <SideLink
+              key={link.to}
+              to={link.to}
+              $active={location.pathname === link.to}
+              onClick={() => setIsMenuOpen(false)}
+            >
               <span className="icon">{link.icon}</span> {link.label}
             </SideLink>
           ))}
-          <div className="pt-6 mt-6 border-t border-gray-100">
+          <div className="pt-4 mt-4 border-t border-gray-100">
             <LogoutButton onClick={logout}>
               <span className="icon">🚪</span> Çıkış Yap
             </LogoutButton>
@@ -71,34 +104,54 @@ export default function TutorLayout() {
       </MobileSidebar>
 
       <div className="flex-1 flex flex-col">
-        <header className="h-20 border-b bg-white flex items-center px-6 justify-between shadow-sm">
+        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
-            <button className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-xl" onClick={() => setIsMenuOpen(true)}>
-              <Menu size={24} />
+            <button
+              className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-xl"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <Menu size={20} />
             </button>
             <div className="md:hidden">
               <LogoWrapper $small>
                 <span className="logo-icon">🔑</span>
-                <span className="logo-text">Öğrenmenin<span>Çilingirleri</span></span>
+                <span className="logo-text">
+                  Öğrenmenin<span>Çilingirleri</span>
+                </span>
               </LogoWrapper>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-6">
+          <div className="ml-auto flex items-center gap-3">
+            <ThemeSwitch />
+            <Link
+              to="/"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+            >
+              <Home size={12} /> Ana Sayfa
+            </Link>
             <NotificationDropdown />
-            <div className="hidden sm:flex flex-col items-end mr-2">
-              <span className="text-sm font-bold text-gray-900">Eğitmen Paneli</span>
-              <span className="text-xs text-gray-500">Hoş geldin, {user?.fullName?.split(' ')[0] || "Hocam"}</span>
+            <div className="hidden sm:flex flex-col items-end mr-1">
+              <span className="text-[11px] font-bold text-gray-900 dark:text-slate-100">
+                Eğitmen Paneli
+              </span>
+              <span className="text-[9px] text-gray-500 dark:text-slate-400">
+                Hoş geldin, {user?.fullName?.split(" ")[0] || "Hocam"}
+              </span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 overflow-hidden">
               {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                <img
+                  src={user.avatarUrl}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 user?.fullName?.charAt(0) || "H"
               )}
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300">
           <Outlet />
         </main>
       </div>
@@ -109,18 +162,22 @@ export default function TutorLayout() {
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
   .logo-icon {
-    font-size: ${props => props.$small ? '18px' : '24px'};
+    font-size: ${(props) => (props.$small ? "16px" : "22px")};
   }
 
   .logo-text {
-    font-size: ${props => props.$small ? '16px' : '20px'};
+    font-size: ${(props) => (props.$small ? "13px" : "18px")};
     font-weight: 800;
     color: #111827;
     letter-spacing: -0.5px;
-    
+
+    .dark & {
+      color: #f1f5f9;
+    }
+
     span {
       color: #2d79f3;
     }
@@ -130,25 +187,36 @@ const LogoWrapper = styled.div`
 const SideLink = styled(Link)`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  font-size: 15px;
+  gap: 10px;
+  padding: 12px 12px;
+  font-size: 14px;
   font-weight: 600;
-  color: ${props => props.$active ? '#2d79f3' : '#4b5563'};
+  color: ${(props) => (props.$active ? "#2d79f3" : "#4b5563")};
   text-decoration: none;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.2s ease;
-  background-color: ${props => props.$active ? '#f3f7ff' : 'transparent'};
+  background-color: ${(props) => (props.$active ? "#f3f7ff" : "transparent")};
+
+  .dark & {
+    color: ${(props) => (props.$active ? "#3b82f6" : "#94a3b8")};
+    background-color: ${(props) =>
+      props.$active ? "#1e3a8a40" : "transparent"};
+  }
 
   .icon {
-    font-size: 18px;
-    opacity: ${props => props.$active ? '1' : '0.7'};
+    font-size: 16px;
+    opacity: ${(props) => (props.$active ? "1" : "0.7")};
   }
 
   &:hover {
-    background-color: ${props => props.$active ? '#f3f7ff' : '#f9fafb'};
+    background-color: ${(props) => (props.$active ? "#f3f7ff" : "#f9fafb")};
     color: #2d79f3;
-    
+
+    .dark & {
+      background-color: ${(props) => (props.$active ? "#1e3a8a60" : "#334155")};
+      color: #3b82f6;
+    }
+
     .icon {
       opacity: 1;
     }
@@ -177,6 +245,10 @@ const LogoutButton = styled.button`
   &:hover {
     background-color: #fef2f2;
     transform: translateX(4px);
+
+    .dark & {
+      background-color: #7f1d1d40;
+    }
   }
 `;
 
@@ -186,10 +258,10 @@ const MobileOverlay = styled.div`
   background: rgba(15, 23, 42, 0.3);
   backdrop-filter: blur(4px);
   z-index: 1000;
-  opacity: ${props => props.$isOpen ? 1 : 0};
-  visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
+  opacity: ${(props) => (props.$isOpen ? 1 : 0)};
+  visibility: ${(props) => (props.$isOpen ? "visible" : "hidden")};
   transition: all 0.3s ease;
-  md:hidden;
+  md: hidden;
 `;
 
 const MobileSidebar = styled.div`
@@ -200,14 +272,16 @@ const MobileSidebar = styled.div`
   width: 280px;
   background: white;
   z-index: 1001;
-  box-shadow: 20px 0 50px rgba(0,0,0,0.1);
-  
+  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+
   /* Requested translate value */
   --tw-translate-x: -110%;
   transform: translateX(var(--tw-translate-x));
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-  ${props => props.$isOpen && `
+  ${(props) =>
+    props.$isOpen &&
+    `
     --tw-translate-x: 0%;
   `}
 
