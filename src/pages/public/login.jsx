@@ -3,12 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import styled from "styled-components";
+import toast from "react-hot-toast";
+import { useAuth } from "@/store/AuthContext";
+import { login as authLogin } from "@/services/authService";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [data, setData] = useState({
     email: "",
@@ -47,27 +51,59 @@ export default function Login() {
     setEmailSuggestions([]);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
-      setError("Geçersiz e-posta formatı.");
+      toast.error("Geçersiz e-posta formatı.");
       return;
     }
 
     if (data.password.length < 6) {
-      setError("Şifre en az 6 karakter olmalıdır.");
+      toast.error("Şifre en az 6 karakter olmalıdır.");
       return;
     }
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const result = await authLogin(data.email, data.password);
+
+      // Global state'i güncelle
+      login(result);
+
+      toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
+
+      // Tam sayfa yenileme ile role göre panele yönlendir
+      setTimeout(() => {
+        const userRole = result?.role?.toLowerCase() || "";
+        if (userRole === "1" || userRole === "student") {
+          window.location.href = "/student";
+        } else if (userRole === "2" || userRole === "tutor") {
+          window.location.href = "/tutor";
+        } else if (userRole === "3" || userRole === "admin" || userRole === "4" || userRole === "superadmin") {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/";
+        }
+      }, 500);
+    } catch (err) {
+      const errorMessage = err.message || "";
+      
+      if (errorMessage.toLowerCase().includes("doğrula") || errorMessage.toLowerCase().includes("verify")) {
+        toast.error("E-posta adresiniz henüz doğrulanmamış. Doğrulama sayfasına yönlendiriliyorsunuz...");
+        
+        setTimeout(() => {
+          navigate("/verify-email", { state: { email: data.email, userId: err.userId, password: data.password } });
+        }, 2000);
+      } else {
+        toast.error(errorMessage || "Sunucuya bağlanılamadı veya giriş başarısız. Lütfen tekrar deneyin.");
+      }
+    } finally {
       setLoading(false);
-      localStorage.setItem("token", "dummy-login-token"); // Test için token ekle
-      navigate("/app/dashboard");
-    }, 1000);
+    }
   };
 
   return (
@@ -75,10 +111,10 @@ export default function Login() {
       <StyledWrapper>
         <form className="form" onSubmit={handleLogin}>
           <div className="flex-column text-center mb-4">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
               Hoş Geldiniz
             </h1>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
               Devam etmek için giriş yapın
             </p>
           </div>
@@ -99,12 +135,12 @@ export default function Login() {
               />
               
               {emailSuggestions.length > 0 && (
-                <ul className="suggestions-list shadow-xl border border-gray-100 bg-white absolute top-full left-0 right-0 z-50 rounded-xl mt-2 overflow-hidden">
+                <ul className="suggestions-list shadow-xl border border-gray-100 dark:border-[#334155] bg-white dark:bg-[#1e293b] absolute top-full left-0 right-0 z-50 rounded-xl mt-2 overflow-hidden">
                   {emailSuggestions.map((suggestion, index) => (
                     <li
                       key={index}
                       onClick={() => handleSuggestionClick(suggestion)}
-                      className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-600 transition-colors border-b border-gray-50 last:border-0"
+                      className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-[#334155] cursor-pointer text-sm text-gray-600 dark:text-slate-300 transition-colors border-b border-gray-50 dark:border-[#334155] last:border-0"
                     >
                       {suggestion}
                     </li>
@@ -153,12 +189,6 @@ export default function Login() {
             </Link>
           </div>
 
-          {error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded-xl text-xs font-medium border border-red-100 animate-pulse text-center">
-              {error}
-            </div>
-          )}
-
           <button className="button-submit" disabled={loading} type="submit">
             {loading ? "Giriş Yapılıyor..." : "Giriş Yap"}
           </button>
@@ -171,7 +201,7 @@ export default function Login() {
               Google
             </button>
             <button type="button" className="social-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
               Apple
             </button>
           </div>
@@ -198,6 +228,7 @@ const StyledWrapper = styled.div`
     flex-direction: column;
     gap: 20px;
     background-color: rgba(255, 255, 255, 0.9);
+    .dark & { background-color: #1e293b; border-color: #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
     backdrop-filter: blur(10px);
     padding: 40px;
     width: 100%;
@@ -218,6 +249,7 @@ const StyledWrapper = styled.div`
 
   .flex-column > label {
     color: #1a1a1a;
+    .dark & { color: #cbd5e1; }
     font-weight: 500;
     font-size: 14px;
     margin-bottom: 6px;
@@ -233,10 +265,12 @@ const StyledWrapper = styled.div`
     padding: 0 16px;
     transition: all 0.2s ease;
     background-color: #f9fafb;
+    .dark & { border-color: #334155; background-color: #0f172a; }
   }
 
   .inputForm svg {
     color: #6b7280;
+    .dark & { color: #94a3b8; }
     flex-shrink: 0;
     margin-right: 8px;
   }
@@ -244,6 +278,7 @@ const StyledWrapper = styled.div`
   .inputForm:focus-within {
     border-color: #2d79f3;
     background-color: #ffffff;
+    .dark & { background-color: #020617; border-color: #3b82f6; }
     box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
   }
 
@@ -259,6 +294,7 @@ const StyledWrapper = styled.div`
     box-shadow: none !important;
     font-size: 15px;
     color: #111827;
+    .dark & { color: white; }
     width: 100%;
     height: 100%;
     padding: 0 4px !important;
@@ -275,6 +311,7 @@ const StyledWrapper = styled.div`
   .flex-row > div > label {
     font-size: 14px;
     color: #4b5563;
+    .dark & { color: #94a3b8; }
   }
 
   .span {
@@ -291,6 +328,7 @@ const StyledWrapper = styled.div`
   .button-submit {
     margin-top: 12px;
     background-color: #111827;
+    .dark & { background-color: #3b82f6; }
     border: none;
     color: white;
     font-size: 16px;
@@ -305,6 +343,7 @@ const StyledWrapper = styled.div`
 
   .button-submit:hover {
     background-color: #1f2937;
+    .dark & { background-color: #2563eb; }
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
@@ -323,6 +362,7 @@ const StyledWrapper = styled.div`
     content: '';
     flex: 1;
     border-bottom: 1px solid #e5e7eb;
+    .dark & { border-bottom-color: #334155; }
   }
 
   .social-divider::before {
@@ -346,6 +386,7 @@ const StyledWrapper = styled.div`
     font-weight: 500;
     color: #374151;
     background: white;
+    .dark & { background: #0f172a; color: #cbd5e1; border-color: #334155; }
     cursor: pointer;
     transition: all 0.2s ease;
   }
@@ -353,11 +394,13 @@ const StyledWrapper = styled.div`
   .social-btn:hover {
     background-color: #f9fafb;
     border-color: #d1d5db;
+    .dark & { background-color: #1e293b; border-color: #475569; }
   }
 
   .p {
     text-align: center;
     color: #4b5563;
+    .dark & { color: #94a3b8; }
     font-size: 14px;
     margin-top: 16px;
   }

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cn } from "@/utils/cn"
 
-function Badge({ className, variant = "default", ...props }) {
+function Badge({ className, variant = "default", danger, primary, small, active, ...props }) {
   const variants = {
     default:
       "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",

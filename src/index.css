@@ -3,6 +3,9 @@
 @tailwind utilities;
  
 @layer base {
+  html {
+    font-size: 75%;
+  }
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -73,4 +76,21 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Dark mode'da select dropdown option'larının beyaz gelmesini önle */
+.dark select {
+  color-scheme: dark;
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.dark select option {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #1e293b;
 }
