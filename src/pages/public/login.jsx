@@ -76,18 +76,25 @@ export default function Login() {
 
       toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
 
-      // Tam sayfa yenileme ile ana sayfaya yönlendir
+      // Tam sayfa yenileme ile role göre panele yönlendir
       setTimeout(() => {
-        window.location.href = "/";
+        const userRole = result?.role?.toLowerCase() || "";
+        if (userRole === "1" || userRole === "student") {
+          window.location.href = "/student";
+        } else if (userRole === "2" || userRole === "tutor") {
+          window.location.href = "/tutor";
+        } else if (userRole === "3" || userRole === "admin" || userRole === "4" || userRole === "superadmin") {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/";
+        }
       }, 500);
     } catch (err) {
       const errorMessage = err.message || "";
       
-      // Eğer hata mesajı e-posta doğrulanmadığını belirtiyorsa (Backend'den gelen mesajla eşleşmeli)
       if (errorMessage.toLowerCase().includes("doğrula") || errorMessage.toLowerCase().includes("verify")) {
         toast.error("E-posta adresiniz henüz doğrulanmamış. Doğrulama sayfasına yönlendiriliyorsunuz...");
         
-        // Backend'den userId dönüyorsa onu kullan, yoksa email ile git (VerifyEmail sayfasında userId gerekebilir)
         setTimeout(() => {
           navigate("/verify-email", { state: { email: data.email, userId: err.userId, password: data.password } });
         }, 2000);

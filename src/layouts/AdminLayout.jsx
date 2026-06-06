@@ -41,8 +41,8 @@ export default function AdminLayout() {
                <Shield className="text-white w-6 h-6" />
             </div>
             <div>
-               <h1 className="text-white font-black text-lg leading-tight tracking-tight">Admin<span className="text-blue-500">Panel</span></h1>
-               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Öğrenmenin Çilingirleri</p>
+               <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Admin Paneli</p>
             </div>
           </Link>
         </div>

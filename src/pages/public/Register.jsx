@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getCities, getDistricts, getNeighborhoods } from "@/services/locationService";
-import { register } from "@/services/authService";
+import { register, login as authLogin } from "@/services/authService";
 import { useAuth } from "@/store/AuthContext";
 
 const Register = () => {
@@ -37,10 +37,14 @@ const Register = () => {
     fullName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     phoneNumber: "",
     cityId: "",
     gender: ""
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [cities, setCities] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -76,6 +80,17 @@ const Register = () => {
 
   const handleFinalSubmit = async (e) => {
     if (e) e.preventDefault();
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Şifreler uyuşmuyor, lütfen kontrol edin.");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Şifre en az 6 karakter olmalıdır.");
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -97,12 +112,11 @@ const Register = () => {
 
       const res = await register(payload);
 
-      toast.success("Kayıt başarılı! Giriş yapabilirsiniz.");
+      toast.success("Kayıt başarılı! Lütfen e-postanızı doğrulayın.");
       
-      // Email doğrulama atlandığı için doğrudan giriş sayfasına yönlendir
       setTimeout(() => {
-        navigate("/login");
-      }, 1000);
+        navigate("/verify-email", { state: { email: payload.email, userId: res?.userId, password: payload.password } });
+      }, 2000);
     } catch (error) {
       toast.error("Kayıt olurken bir hata oluştu: " + error.message);
     } finally {
@@ -115,15 +129,19 @@ const Register = () => {
       <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white text-center mb-2">Hoş Geldiniz</h2>
       <p className="text-center text-gray-500 dark:text-gray-400 mb-10">Devam etmek için size uygun olan rolü seçin</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <RoleCard $active={role === 'student'} onClick={() => { setRole('student'); setStep(1); }}>
-          <div className="icon-box"><GraduationCap /></div>
-          <h3>Öğrenci Olmak İstiyorum</h3>
+        <RoleCard $active={role === 'student'} onClick={() => { setRole('student'); setStep(1); }} className="group">
+          <div className="image-box">
+            <img src="https://img.icons8.com/3d-fluency/188/student-male--v2.png" alt="Öğrenci" className="transition-transform duration-500 group-hover:scale-110" />
+          </div>
+          <h3 className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Öğrenci Olmak İstiyorum</h3>
           <p>En iyi eğitmenlerden ders alarak hedeflerine ulaş.</p>
           <div className="check-icon"><CheckCircle2 /></div>
         </RoleCard>
-        <RoleCard $active={role === 'tutor'} onClick={() => { setRole('tutor'); setStep(1); }}>
-          <div className="icon-box"><UserRoundCheck /></div>
-          <h3>Eğitmen Olmak İstiyorum</h3>
+        <RoleCard $active={role === 'tutor'} onClick={() => { setRole('tutor'); setStep(1); }} className="group">
+          <div className="image-box">
+            <img src="https://img.icons8.com/3d-fluency/188/training.png" alt="Eğitmen" className="transition-transform duration-500 group-hover:scale-110" />
+          </div>
+          <h3 className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Eğitmen Olmak İstiyorum</h3>
           <p>Bilgini paylaş, kendi programını oluştur ve kazanmaya başla.</p>
           <div className="check-icon"><CheckCircle2 /></div>
         </RoleCard>
@@ -187,7 +205,7 @@ const Register = () => {
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputGroup>
+            <InputGroup className="md:col-span-2">
               <label>Cinsiyet</label>
               <select id="gender" value={formData.gender} onChange={handleInputChange} required>
                 <option value="">Cinsiyet Seçin</option>
@@ -197,7 +215,55 @@ const Register = () => {
             </InputGroup>
             <InputGroup>
               <label>Şifre</label>
-              <input id="password" type="password" value={formData.password} onChange={handleInputChange} placeholder="********" required />
+              <div className="relative flex items-center">
+                <input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  value={formData.password} 
+                  onChange={handleInputChange} 
+                  placeholder="********" 
+                  required 
+                  minLength={6} 
+                  className="w-full pr-12" 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+            </InputGroup>
+            <InputGroup>
+              <label>Şifreyi Tekrar Girin</label>
+              <div className="relative flex items-center">
+                <input 
+                  id="confirmPassword" 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  value={formData.confirmPassword} 
+                  onChange={handleInputChange} 
+                  placeholder="********" 
+                  required 
+                  minLength={6} 
+                  className="w-full pr-12" 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
             </InputGroup>
           </div>
         </div>
@@ -263,27 +329,31 @@ const RoleCard = styled.div`
   overflow: hidden;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
-    border-color: ${props => props.$active ? '#3b82f6' : '#cbd5e1'};
-    .dark & { border-color: ${props => props.$active ? '#3b82f6' : '#475569'}; }
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.15);
+    border-color: ${props => props.$active ? '#3b82f6' : '#bfdbfe'};
+    .dark & { border-color: ${props => props.$active ? '#3b82f6' : '#334155'}; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5); }
   }
 
-  .icon-box {
-    width: 64px;
-    height: 64px;
-    background: ${props => props.$active ? '#3b82f6' : '#f8fafc'};
-    color: ${props => props.$active ? 'white' : '#64748b'};
+  .image-box {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 24px auto;
+    background: ${props => props.$active ? 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(255,255,255,0) 70%)' : 'transparent'};
     .dark & {
-      background: ${props => props.$active ? '#3b82f6' : '#1e293b'};
-      color: ${props => props.$active ? 'white' : '#94a3b8'};
+      background: ${props => props.$active ? 'radial-gradient(circle, rgba(59,130,246,0.2) 0%, rgba(15,23,42,0) 70%)' : 'transparent'};
     }
-    border-radius: 18px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
-    margin-bottom: 24px;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+    }
   }
 
   h3 {

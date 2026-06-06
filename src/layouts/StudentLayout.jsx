@@ -39,12 +39,13 @@ export default function StudentLayout() {
       {/* Desktop Sidebar */}
       <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
         <div className="flex h-16 items-center px-6 border-b">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin <span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+          <div className="flex items-center">
+            <img
+              src="/logo.png"
+              alt="Özel Ders VIP"
+              className="h-14 w-auto object-contain"
+            />
+          </div>
         </div>
         <nav className="p-4 space-y-1">
           {navLinks.map((link) => (
@@ -72,13 +73,14 @@ export default function StudentLayout() {
         onClick={() => setIsMenuOpen(false)}
       />
       <MobileSidebar $isOpen={isMenuOpen}>
-        <div className="flex h-16 items-center px-6 border-b justify-between">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin<span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+        <div className="flex h-12 items-center px-6 border-b justify-between">
+          <div className="flex items-center">
+            <img
+              src="/logo.png"
+              alt="Özel Ders VIP"
+              className="h-14 w-auto object-contain"
+            />
+          </div>
           <button
             onClick={() => setIsMenuOpen(false)}
             className="p-2 text-gray-500"
@@ -117,12 +119,13 @@ export default function StudentLayout() {
               <Menu size={24} />
             </button>
             <div className="md:hidden">
-              <LogoWrapper $small>
-                <span className="logo-icon">🔑</span>
-                <span className="logo-text">
-                  Öğrenmenin<span>Çilingirleri</span>
-                </span>
-              </LogoWrapper>
+              <div className="flex items-center">
+                <img
+                  src="/logo.png"
+                  alt="Özel Ders VIP"
+                  className="h-16 w-auto object-contain"
+                />
+              </div>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">

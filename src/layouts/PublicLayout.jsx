@@ -28,7 +28,13 @@ export default function PublicLayout() {
     if (!user) return "/login";
     const role = user.role?.toString().toLowerCase();
     if (role === "2" || role === "tutor") return "/tutor/dashboard";
-    if (role === "3" || role === "admin" || role === "4" || role === "superadmin") return "/admin/dashboard";
+    if (
+      role === "3" ||
+      role === "admin" ||
+      role === "4" ||
+      role === "superadmin"
+    )
+      return "/admin/dashboard";
     return "/student/dashboard";
   };
 
@@ -38,13 +44,8 @@ export default function PublicLayout() {
       <nav className="sticky top-0 z-[100] w-full border-b border-gray-100 dark:border-[#1e293b] bg-white/70 dark:bg-[#0f172a]/80 backdrop-blur-2xl transition-colors duration-300">
         <div className="container mx-auto h-20 flex items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2 no-underline group">
-            <div className="flex items-center gap-2">
-              <img src="/logo.svg" alt="A-Muallem" className="h-8 w-auto" onError={(e) => {
-                if (e.target.src !== "https://img.icons8.com/color/48/education.png") {
-                  e.target.src = "https://img.icons8.com/color/48/education.png";
-                }
-              }} />
-              <span className="text-2xl font-bold text-[#1a2b3b] dark:text-white tracking-tight">A-Muallem</span>
+            <div className="flex items-center">
+              <img src="/logo.png" alt="Özel Ders VIP" className="h-16 w-auto object-contain" />
             </div>
           </Link>
 
@@ -58,7 +59,7 @@ export default function PublicLayout() {
                 Öğretmen Ol
               </button>
             </Link>
-            
+
             <ThemeSwitch />
 
             <div className="flex items-center gap-4 ml-4">
@@ -111,10 +112,7 @@ export default function PublicLayout() {
                 className="flex items-center gap-3 no-underline"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <LogoIcon $small>🔑</LogoIcon>
-                <LogoText $small>
-                  Öğrenmenin<span>Çilingirleri</span>
-                </LogoText>
+                <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
               </Link>
               <button
                 onClick={() => setIsMenuOpen(false)}
@@ -206,10 +204,7 @@ export default function PublicLayout() {
                 to="/"
                 className="flex items-center gap-3 no-underline mb-8"
               >
-                <LogoIcon $small>🔑</LogoIcon>
-                <LogoText $small>
-                  Öğrenmenin<span>Çilingirleri</span>
-                </LogoText>
+                <img src="/logo.png" alt="Özel Ders VIP" className="h-20 w-auto object-contain" />
               </Link>
               <p className="text-gray-500 font-medium leading-relaxed mb-8 max-w-sm">
                 Türkiye'nin en seçkin eğitmenleri ile öğrencileri bir araya
@@ -263,9 +258,7 @@ export default function PublicLayout() {
           </div>
 
           <div className="pt-12 border-t border-gray-50 dark:border-[#1e293b] flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-sm text-gray-400 font-bold tracking-wide uppercase">
-              © 2026 ÖĞRENMENİN ÇİLİNGİRLERİ TEKNOLOJİ A.Ş.
-            </p>
+            <p className="text-sm text-gray-400 font-bold tracking-wide uppercase"></p>
             <div className="flex gap-8">
               <span className="text-xs font-black text-gray-300 tracking-widest uppercase">
                 MADE WITH ❤️ IN TÜRKİYE
@@ -287,7 +280,9 @@ const LogoText = styled.span`
   font-size: ${(props) => (props.$small ? "20px" : "26px")};
   font-weight: 900;
   color: #0f172a;
-  .dark & { color: white; }
+  .dark & {
+    color: white;
+  }
   letter-spacing: -0.04em;
   span {
     color: #2d79f3;
@@ -300,7 +295,9 @@ const DesktopNavLink = styled(Link)`
   color: #475569;
   text-decoration: none;
   transition: all 0.2s;
-  .dark & { color: #cbd5e1; }
+  .dark & {
+    color: #cbd5e1;
+  }
   &:hover {
     color: #2d79f3;
   }
@@ -336,11 +333,17 @@ const DashboardButton = styled.div`
   gap: 8px;
   border: 1px solid #f1f5f9;
   transition: all 0.2s;
-  .dark & { background: #1e293b; color: white; border-color: #334155; }
+  .dark & {
+    background: #1e293b;
+    color: white;
+    border-color: #334155;
+  }
   &:hover {
     background: #f1f5f9;
     border-color: #e2e8f0;
-    .dark & { background: #334155; }
+    .dark & {
+      background: #334155;
+    }
   }
 `;
 
@@ -375,7 +378,10 @@ const MobileMenu = styled.div`
   bottom: 0;
   width: 300px;
   background: white;
-  .dark & { background: #0f172a; border-right: 1px solid #1e293b; }
+  .dark & {
+    background: #0f172a;
+    border-right: 1px solid #1e293b;
+  }
   z-index: 1001;
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
 
@@ -401,12 +407,17 @@ const MobileNavLink = styled(Link)`
   background: ${(props) => (props.$highlight ? "#f3f7ff" : "transparent")};
   text-decoration: none;
   transition: all 0.2s;
-  .dark & { color: ${(props) => (props.$highlight ? "#3b82f6" : "#cbd5e1")}; background: ${(props) => (props.$highlight ? "#1e3a8a" : "transparent")}; }
+  .dark & {
+    color: ${(props) => (props.$highlight ? "#3b82f6" : "#cbd5e1")};
+    background: ${(props) => (props.$highlight ? "#1e3a8a" : "transparent")};
+  }
 
   &:hover {
     background: #f8fafc;
     color: #2d79f3;
-    .dark & { background: #1e293b; }
+    .dark & {
+      background: #1e293b;
+    }
   }
 `;
 
@@ -414,7 +425,9 @@ const FooterTitle = styled.h4`
   font-size: 13px;
   font-weight: 900;
   color: #0f172a;
-  .dark & { color: white; }
+  .dark & {
+    color: white;
+  }
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 24px;
@@ -425,7 +438,9 @@ const FooterLink = styled(Link)`
   font-size: 15px;
   font-weight: 600;
   color: #64748b;
-  .dark & { color: #94a3b8; }
+  .dark & {
+    color: #94a3b8;
+  }
   text-decoration: none;
   margin-bottom: 14px;
   transition: all 0.2s;
@@ -441,7 +456,10 @@ const SocialLink = styled.a`
   border-radius: 14px;
   background: #f8fafc;
   color: #64748b;
-  .dark & { background: #1e293b; color: #94a3b8; }
+  .dark & {
+    background: #1e293b;
+    color: #94a3b8;
+  }
   display: flex;
   align-items: center;
   justify-content: center;

@@ -98,7 +98,16 @@ const VerifyEmail = () => {
         authLoginContext(result);
         toast.success("Giriş başarılı! Yönlendiriliyorsunuz...", { id: "autoLogin" });
         setTimeout(() => {
-          window.location.href = "/";
+          const userRole = result?.role?.toLowerCase() || "";
+          if (userRole === "1" || userRole === "student") {
+            window.location.href = "/student";
+          } else if (userRole === "2" || userRole === "tutor") {
+            window.location.href = "/tutor";
+          } else if (userRole === "3" || userRole === "admin" || userRole === "4" || userRole === "superadmin") {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = "/";
+          }
         }, 500);
       } else {
         setTimeout(() => {

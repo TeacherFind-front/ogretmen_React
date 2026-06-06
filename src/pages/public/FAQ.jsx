@@ -7,8 +7,8 @@ const FAQ_DATA = [
     icon: HelpCircle,
     items: [
       {
-        q: "Öğrenmenin Çilingirleri nedir ve nasıl çalışır?",
-        a: "Öğrenmenin Çilingirleri, yeni bir dil öğrenmek, okul derslerine takviye almak veya yeni bir beceri edinmek isteyen öğrencileri, alanında uzman ve doğrulanmış öğretmenlerle buluşturan bir eğitim platformudur. Platform üzerinden öğretmenleri inceleyebilir, yorumlarını okuyabilir ve size en uygun olanından ders alabilirsiniz."
+        q: "Özel Ders VIP nedir ve nasıl çalışır?",
+        a: "Özel Ders VIP, yeni bir dil öğrenmek, okul derslerine takviye almak veya yeni bir beceri edinmek isteyen öğrencileri, alanında uzman ve doğrulanmış öğretmenlerle buluşturan bir eğitim platformudur. Platform üzerinden öğretmenleri inceleyebilir, yorumlarını okuyabilir ve size en uygun olanından ders alabilirsiniz."
       },
       {
         q: "Dersler nerede ve nasıl yapılıyor?",
@@ -48,7 +48,7 @@ const FAQ_DATA = [
       },
       {
         q: "Platform komisyon oranları nedir?",
-        a: "Öğrenmenin Çilingirleri, platform altyapısı ve pazarlama giderleri için ders başı ücret üzerinden komisyon almaktadır. Komisyon oranlarımız %15'ten başlar ve platformda verdiğiniz ders sayısı arttıkça %8'e kadar düşer."
+        a: "Özel Ders VIP, platform altyapısı ve pazarlama giderleri için ders başı ücret üzerinden komisyon almaktadır. Komisyon oranlarımız %15'ten başlar ve platformda verdiğiniz ders sayısı arttıkça %8'e kadar düşer."
       },
       {
         q: "Ödememi ne zaman alabilirim?",

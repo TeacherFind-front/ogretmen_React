@@ -39,12 +39,9 @@ export default function TutorLayout() {
       {/* Desktop Sidebar */}
       <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
         <div className="flex h-14 items-center px-6">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin <span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+          <div className="flex items-center">
+            <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+          </div>
         </div>
         <nav className="px-3 py-4 space-y-1">
           {navLinks.map((link) => (
@@ -71,12 +68,9 @@ export default function TutorLayout() {
       />
       <MobileSidebar $isOpen={isMenuOpen}>
         <div className="flex h-14 items-center px-6 border-b justify-between">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin <span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+          <div className="flex items-center">
+            <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+          </div>
           <button
             onClick={() => setIsMenuOpen(false)}
             className="p-2 text-gray-500"
@@ -113,12 +107,9 @@ export default function TutorLayout() {
               <Menu size={20} />
             </button>
             <div className="md:hidden">
-              <LogoWrapper $small>
-                <span className="logo-icon">🔑</span>
-                <span className="logo-text">
-                  Öğrenmenin<span>Çilingirleri</span>
-                </span>
-              </LogoWrapper>
+              <div className="flex items-center">
+                <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+              </div>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
