@@ -643,15 +643,15 @@ const CreateListing = () => {
 
 
         {/* Privacy Settings */}
-        <div className="mt-10 p-8 bg-white border-2 border-dashed border-slate-100 rounded-[2.5rem] space-y-6">
-          <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Gizlilik Ayarları</h4>
+        <div className="mt-10 p-8 bg-white dark:bg-slate-800 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-[2.5rem] space-y-6">
+          <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest mb-2">Gizlilik Ayarları</h4>
           
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><Phone size={18} /></div>
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center"><Phone size={18} /></div>
               <div>
-                <p className="font-bold text-slate-800 text-sm">Telefon Numaram Gözüksün</p>
-                <p className="text-[10px] text-slate-500 font-medium">Öğrenciler size doğrudan telefonla ulaşabilsin mi?</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">Telefon Numaram Gözüksün</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Öğrenciler size doğrudan telefonla ulaşabilsin mi?</p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -666,12 +666,12 @@ const CreateListing = () => {
             </label>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center"><GraduationCap size={18} /></div>
+              <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center"><GraduationCap size={18} /></div>
               <div>
-                <p className="font-bold text-slate-800 text-sm">Eğitim Bilgilerim Gözüksün</p>
-                <p className="text-[10px] text-slate-500 font-medium">Üniversite ve bölüm bilgileriniz ilanda yer alsın mı?</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">Eğitim Bilgilerim Gözüksün</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Üniversite ve bölüm bilgileriniz ilanda yer alsın mı?</p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -718,14 +718,14 @@ const CreateListing = () => {
 
       <div className="space-y-10">
         <div className="photo-upload">
-          <label className="block mb-4 font-black text-gray-700">
+          <label className="block mb-4 font-black text-gray-700 dark:text-gray-300">
             İlan Fotoğrafları (Birden fazla seçebilirsiniz)
           </label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {formData.listingPhotos.map((photo, index) => (
               <div
                 key={index}
-                className="relative group w-full h-32 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200"
+                className="relative group w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
               >
                 <img
                   src={URL.createObjectURL(photo)}
@@ -752,7 +752,7 @@ const CreateListing = () => {
               <button
                 type="button"
                 onClick={() => document.getElementById("photos-input").click()}
-                className="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
+                className="w-full h-32 bg-gray-50 dark:bg-slate-800 border-2 border-dashed border-gray-200 dark:border-slate-600 rounded-2xl flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
               >
                 <Plus size={24} />
                 <span className="text-xs font-bold mt-2">Fotoğraf Ekle</span>
@@ -783,7 +783,7 @@ const CreateListing = () => {
 
         <div className="certificates">
           <div className="flex justify-between items-center mb-6">
-            <label className="font-black text-gray-700">
+            <label className="font-black text-gray-700 dark:text-gray-300">
               Sertifikalar & Belgeler
             </label>
             <button
@@ -807,11 +807,11 @@ const CreateListing = () => {
             {formData.certificates.map((cert, index) => (
               <div
                 key={index}
-                className="bg-gray-50 p-4 rounded-2xl flex items-center gap-4 border border-gray-100"
+                className="bg-gray-50 dark:bg-slate-800 p-4 rounded-2xl flex items-center gap-4 border border-gray-100 dark:border-slate-700"
               >
                 <input
                   placeholder="Sertifika Adı"
-                  className="flex-1 bg-white border-gray-200 rounded-xl px-4 py-2"
+                  className="flex-1 bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 rounded-xl px-4 py-2"
                   value={cert.name}
                   onChange={(e) => {
                     const newCerts = [...formData.certificates];
@@ -824,7 +824,7 @@ const CreateListing = () => {
                   onClick={() =>
                     document.getElementById(`cert-file-${index}`).click()
                   }
-                  className={`p-2 rounded-xl border ${cert.file ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-white border-gray-200 text-gray-400"}`}
+                  className={`p-2 rounded-xl border ${cert.file ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800" : "bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-600 text-gray-400 dark:text-gray-500"}`}
                 >
                   <Camera size={20} />
                 </button>
@@ -878,7 +878,7 @@ const CreateListing = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 flex justify-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-12 px-4 flex justify-center">
       <MainWrapper>
         <ProgressBar>
           {[1, 2, 3, 4].map((s) => (
@@ -912,6 +912,12 @@ const MainWrapper = styled.div`
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
   padding: 60px;
   border: 1px solid #f1f5f9;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
 `;
 
 const ProgressBar = styled.div`
@@ -965,11 +971,19 @@ const StepContainer = styled.div`
       color: #0f172a;
       margin-bottom: 10px;
       letter-spacing: -0.02em;
+
+      .dark & {
+        color: #f8fafc;
+      }
     }
     p {
       color: #64748b;
       font-size: 16px;
       font-weight: 500;
+
+      .dark & {
+        color: #94a3b8;
+      }
     }
   }
 
@@ -1029,6 +1043,10 @@ const InputGroup = styled.div`
     font-weight: 800;
     color: #475569;
     margin-bottom: 4px;
+
+    .dark & {
+      color: #cbd5e1;
+    }
   }
 
   input,
@@ -1044,10 +1062,21 @@ const InputGroup = styled.div`
     transition: all 0.2s;
     outline: none;
 
+    .dark & {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f8fafc;
+    }
+
     &:focus {
       border-color: #2d79f3;
       background: white;
       box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+
+      .dark & {
+        background: #0f172a;
+        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.2);
+      }
     }
 
     &::placeholder {
@@ -1145,6 +1174,11 @@ const LessonRateBox = styled.div`
   border-radius: 24px;
   padding: 24px;
   margin-bottom: 16px;
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+  }
 `;
 
 const AvailabilityTable = styled.table`

@@ -121,10 +121,14 @@ export async function getCategories() {
           const normalizedData = data.map(cat => ({
             id: cat.id || cat.Id,
             category: cat.category || cat.Category,
-            subjects: extractData(cat.subjects || cat.Subjects || []).map(sub => ({
-              id: sub.id || sub.Id,
-              name: sub.name || sub.Name
-            }))
+            subjects: extractData(cat.subjects || cat.Subjects || []).map(sub => {
+              const baseName = sub.name || sub.Name;
+              const level = sub.level || sub.Level;
+              return {
+                id: sub.id || sub.Id,
+                name: level ? `${baseName} (${level})` : baseName
+              };
+            })
           }));
 
           console.log(`Kategoriler ${path} üzerinden alındı:`, normalizedData.length, "adet");
