@@ -17,6 +17,7 @@ export default function Login() {
   const [data, setData] = useState({
     email: "",
     password: "",
+    rememberMe: false,
   });
 
   // Email öneri sistemi
@@ -71,8 +72,8 @@ export default function Login() {
     try {
       const result = await authLogin(data.email, data.password);
 
-      // Global state'i güncelle
-      login(result);
+      // Global state'i güncelle (rememberMe parametresi ile)
+      login(result, data.rememberMe);
 
       toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
 
@@ -170,7 +171,12 @@ export default function Login() {
 
           <div className="flex-row">
             <div>
-              <input type="checkbox" id="remember" />
+              <input 
+                type="checkbox" 
+                id="remember" 
+                checked={data.rememberMe}
+                onChange={(e) => setData({ ...data, rememberMe: e.target.checked })}
+              />
               <label htmlFor="remember" className="ml-2 text-sm cursor-pointer">
                 Beni hatırla
               </label>

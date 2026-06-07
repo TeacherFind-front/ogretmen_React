@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
 
   // Sayfa yenilendiğinde token'dan kullanıcıyı geri yükle
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
     if (!token) {
       setIsLoading(false);
@@ -29,10 +29,12 @@ export function AuthProvider({ children }) {
           setUser(userData);
         } else {
           localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
         }
       })
       .catch(() => {
         localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
       })
       .finally(() => {
         setIsLoading(false);
@@ -42,9 +44,16 @@ export function AuthProvider({ children }) {
   /**
    * Giriş yap - login response alındıktan sonra çağrılır
    * @param {{ token, userId, fullName, email, role, avatarUrl }} loginData
+   * @param {boolean} rememberMe
    */
-  const handleLogin = useCallback((loginData) => {
-    localStorage.setItem("token", loginData.token);
+  const handleLogin = useCallback((loginData, rememberMe = true) => {
+    if (rememberMe) {
+      localStorage.setItem("token", loginData.token);
+      sessionStorage.removeItem("token");
+    } else {
+      sessionStorage.setItem("token", loginData.token);
+      localStorage.removeItem("token");
+    }
     setUser({
       userId: loginData.userId,
       fullName: loginData.fullName,
@@ -59,6 +68,7 @@ export function AuthProvider({ children }) {
    */
   const handleLogout = useCallback(() => {
     localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     setUser(null);
   }, []);
 
