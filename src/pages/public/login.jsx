@@ -76,17 +76,17 @@ export default function Login() {
 
       toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
 
-      // Tam sayfa yenileme ile role göre panele yönlendir
+      // React Router navigate ile yönlendir
       setTimeout(() => {
         const userRole = result?.role?.toLowerCase() || "";
         if (userRole === "1" || userRole === "student") {
-          window.location.href = "/student";
+          navigate("/student");
         } else if (userRole === "2" || userRole === "tutor") {
-          window.location.href = "/tutor";
+          navigate("/tutor");
         } else if (userRole === "3" || userRole === "admin" || userRole === "4" || userRole === "superadmin") {
-          window.location.href = "/admin";
+          navigate("/admin");
         } else {
-          window.location.href = "/";
+          navigate("/");
         }
       }, 500);
     } catch (err) {
