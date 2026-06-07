@@ -78,16 +78,7 @@ export default function Login() {
 
       // React Router navigate ile yönlendir
       setTimeout(() => {
-        const userRole = result?.role?.toLowerCase() || "";
-        if (userRole === "1" || userRole === "student") {
-          navigate("/student");
-        } else if (userRole === "2" || userRole === "tutor") {
-          navigate("/tutor");
-        } else if (userRole === "3" || userRole === "admin" || userRole === "4" || userRole === "superadmin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+        navigate("/");
       }, 500);
     } catch (err) {
       const errorMessage = err.message || "";
