@@ -53,6 +53,8 @@ export default function PublicLayout() {
           <div className="hidden md:flex items-center gap-8">
             <DesktopNavLink to="/">Ana Sayfa</DesktopNavLink>
             <DesktopNavLink to="/tutors">Ders Ara</DesktopNavLink>
+            <DesktopNavLink to="/hakkimizda">Hakkımızda</DesktopNavLink>
+            <DesktopNavLink to="/iletisim">İletişim</DesktopNavLink>
             <DesktopNavLink to="/sss">S.S.S</DesktopNavLink>
             <Link to="/register?role=tutor" className="no-underline">
               <button className="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all border border-blue-100 shadow-sm">
@@ -125,6 +127,12 @@ export default function PublicLayout() {
             <div className="flex flex-col gap-2 p-6 flex-1 overflow-y-auto">
               <MobileNavLink to="/tutors" onClick={() => setIsMenuOpen(false)}>
                 Eğitmen Bul
+              </MobileNavLink>
+              <MobileNavLink to="/hakkimizda" onClick={() => setIsMenuOpen(false)}>
+                Hakkımızda
+              </MobileNavLink>
+              <MobileNavLink to="/iletisim" onClick={() => setIsMenuOpen(false)}>
+                İletişim
               </MobileNavLink>
               <MobileNavLink to="/sss" onClick={() => setIsMenuOpen(false)}>
                 S.S.S
@@ -233,8 +241,8 @@ export default function PublicLayout() {
 
             <div>
               <FooterTitle>Kurumsal</FooterTitle>
-              <FooterLink to="/about">Hakkımızda</FooterLink>
-              <FooterLink to="/contact">İletişim</FooterLink>
+              <FooterLink to="/hakkimizda">Hakkımızda</FooterLink>
+              <FooterLink to="/iletisim">İletişim</FooterLink>
               <FooterLink to="/privacy">Gizlilik Politikası</FooterLink>
               <FooterLink to="/terms">Kullanım Koşulları</FooterLink>
             </div>

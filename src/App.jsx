@@ -17,6 +17,8 @@ import Register from "./pages/public/Register";
 import VerifyEmail from "./pages/public/VerifyEmail";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import FAQ from "./pages/public/FAQ";
+import About from "./pages/public/About";
+import Contact from "./pages/public/Contact";
 
 // Dashboards
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -54,6 +56,8 @@ const router = createBrowserRouter([
       { path: "verify-email", element: <VerifyEmail /> },
       { path: "forgot-password", element: <ForgotPassword /> },
       { path: "sss", element: <FAQ /> },
+      { path: "hakkimizda", element: <About /> },
+      { path: "iletisim", element: <Contact /> },
     ],
   },
   {
