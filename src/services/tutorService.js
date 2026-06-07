@@ -25,7 +25,8 @@ export async function getTutors(filters = {}) {
   if (filters.subjectId) params.set("subjectId", filters.subjectId);
   if (filters.cityId) params.set("cityId", filters.cityId);
   if (filters.districtId) params.set("districtId", filters.districtId);
-  if (filters.neighborhoodId) params.set("neighborhoodId", filters.neighborhoodId);
+  if (filters.neighborhoodId)
+    params.set("neighborhoodId", filters.neighborhoodId);
   if (filters.minPrice != null) params.set("minPrice", filters.minPrice);
   if (filters.maxPrice != null) params.set("maxPrice", filters.maxPrice);
   if (filters.serviceType) params.set("serviceType", filters.serviceType);
@@ -86,7 +87,8 @@ export async function getListings(filters = {}) {
   if (filters.minPrice != null) params.set("minPrice", filters.minPrice);
   if (filters.maxPrice != null) params.set("maxPrice", filters.maxPrice);
   if (filters.serviceType) params.set("serviceType", filters.serviceType);
-  if (filters.onlyApproved != null) params.set("onlyApproved", filters.onlyApproved);
+  if (filters.onlyApproved != null)
+    params.set("onlyApproved", filters.onlyApproved);
   if (filters.sortBy) params.set("sortBy", filters.sortBy);
   if (filters.sortDirection) params.set("sortDirection", filters.sortDirection);
 
@@ -123,7 +125,7 @@ export async function getMyListings() {
     if (res.status === 400) {
       const errorData = await res.json();
       console.error("Backend Doğrulama Hataları:", errorData.errors);
-      
+
       // Detaylı hata mesajı oluştur
       let detailMsg = errorData.message || "İlan bilgileri doğrulanamadı.";
       if (errorData.errors) {
@@ -136,14 +138,14 @@ export async function getMyListings() {
         status: res.status,
         statusText: res.statusText,
         details: errorData,
-        message: detailMsg
+        message: detailMsg,
       };
     }
     const err = await res?.json().catch(() => ({}));
     console.error("getMyListings Error:", {
       status: res.status,
       statusText: res.statusText,
-      details: err
+      details: err,
     });
     throw new Error(err.message || "İlanlarınız yüklenemedi.");
   }
@@ -162,7 +164,7 @@ export async function createMyListing(data) {
   if (!res || !res.ok) {
     const errorData = await res?.json().catch(() => ({}));
     console.error("Backend Error Detail:", errorData); // Tüm hatayı yazdırıyoruz
-    
+
     if (res.status === 400) {
       let detailMsg = errorData.message || "İlan bilgileri doğrulanamadı.";
       if (errorData.errors) {
@@ -172,7 +174,7 @@ export async function createMyListing(data) {
       }
       throw { status: 400, message: detailMsg, details: errorData };
     }
-    
+
     throw new Error(errorData.message || "İlan oluşturulamadı.");
   }
 
@@ -193,7 +195,7 @@ export async function updateMyListing(id, data) {
     console.error("updateMyListing Error:", {
       status: res.status,
       statusText: res.statusText,
-      details: err
+      details: err,
     });
     throw new Error(err.message || "İlan güncellenemedi.");
   }
@@ -266,11 +268,13 @@ export async function completeBooking(id) {
 export async function getMyProfile() {
   try {
     const res = await apiFetch("/api/tutors/profile");
-    
+
     // Eğer 404 alırsak veya response başarısızsa fallback olarak auth/me'yi dene
     if (!res || !res.ok) {
       if (res?.status === 404) {
-        console.warn("Tutor profile endpoint not found (404), falling back to auth/me");
+        console.warn(
+          "Tutor profile endpoint not found (404), falling back to auth/me",
+        );
         const authRes = await apiFetch("/api/auth/me");
         if (authRes && authRes.ok) return authRes.json();
       }
@@ -281,7 +285,7 @@ export async function getMyProfile() {
     // Veri sarmalanmış olabilir (data veya $values içinde)
     if (json && json.data) return json.data;
     if (json && json.$values) return json.$values;
-    
+
     return json;
   } catch (err) {
     console.error("getMyProfile error:", err);
@@ -320,8 +324,8 @@ export async function uploadCertificate(name, file) {
   const formData = new FormData();
   formData.append("Name", name || "Sertifika");
   formData.append("files", file); // Fotoğraf yüklemede kullanılan anahtar
-  formData.append("file", file);  // Standart tekil dosya anahtarı
-  formData.append("Organization", "Özel Hoca");
+  formData.append("file", file); // Standart tekil dosya anahtarı
+  formData.append("Organization", "Özel Ders VIP");
   formData.append("Year", new Date().getFullYear().toString());
 
   const res = await apiFetch("/api/tutors/certificates", {
@@ -347,7 +351,7 @@ export async function getMyStudents() {
 }
 /**
  * Profil resmi yükle
- * @param {File} file 
+ * @param {File} file
  */
 export async function uploadAvatar(file) {
   const formData = new FormData();
@@ -368,17 +372,17 @@ export async function uploadAvatar(file) {
 
 /**
  * İlana fotoğraf yükle (Tekli veya Çoklu)
- * @param {string} listingId 
+ * @param {string} listingId
  * @param {File|File[]} files - Tek dosya veya dosya dizisi
  * @param {boolean} isMain - Sadece tek dosya gönderildiğinde anlamlıdır
  */
 export async function uploadListingPhotos(listingId, files) {
   const formData = new FormData();
-  
+
   // Backend [FromForm] IFormFileCollection files bekliyor.
   // Bu yüzden her dosyayı "files" anahtarıyla eklemeliyiz.
   if (Array.isArray(files)) {
-    files.forEach(f => {
+    files.forEach((f) => {
       formData.append("files", f);
     });
   } else {
@@ -393,7 +397,9 @@ export async function uploadListingPhotos(listingId, files) {
   if (!res || !res.ok) {
     const errorText = await res.text();
     console.error("Server Response:", errorText);
-    throw new Error("Sunucu fotoğrafı kabul etmedi (500). Lütfen backend loglarını veya klasör izinlerini kontrol edin.");
+    throw new Error(
+      "Sunucu fotoğrafı kabul etmedi (500). Lütfen backend loglarını veya klasör izinlerini kontrol edin.",
+    );
   }
 
   return res.json();

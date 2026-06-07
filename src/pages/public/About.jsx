@@ -1,6 +1,13 @@
 import React from "react";
 import styled from "styled-components";
-import { BookOpen, Users, ShieldCheck, Target, Award, Star } from "lucide-react";
+import {
+  BookOpen,
+  Users,
+  ShieldCheck,
+  Target,
+  Award,
+  Star,
+} from "lucide-react";
 
 const About = () => {
   return (
@@ -9,10 +16,11 @@ const About = () => {
         <Badge>Hakkımızda</Badge>
         <Title>
           Öğrenmenin En İyi Yolu, <br />
-          <Highlight>Özel Hoca</Highlight>
+          <Highlight>Özel Ders VIP</Highlight>
         </Title>
         <Subtitle>
-          Öğrencileri Türkiye'nin en iyi öğretmenleriyle bir araya getiren yenilikçi eğitim platformu.
+          Öğrencileri Türkiye'nin en iyi öğretmenleriyle bir araya getiren
+          yenilikçi eğitim platformu.
         </Subtitle>
       </HeroSection>
 
@@ -41,34 +49,64 @@ const About = () => {
         <SectionTitle>Neden Bizi Seçmelisiniz?</SectionTitle>
         <Grid>
           <FeatureCard>
-            <IconWrapper className="blue"><Users size={24} /></IconWrapper>
+            <IconWrapper className="blue">
+              <Users size={24} />
+            </IconWrapper>
             <FeatureTitle>Birebir İlgi</FeatureTitle>
-            <FeatureDesc>Size özel hazırlanan ders programlarıyla eksiklerinizi en hızlı şekilde kapatın.</FeatureDesc>
+            <FeatureDesc>
+              Size özel hazırlanan ders programlarıyla eksiklerinizi en hızlı
+              şekilde kapatın.
+            </FeatureDesc>
           </FeatureCard>
           <FeatureCard>
-            <IconWrapper className="green"><ShieldCheck size={24} /></IconWrapper>
+            <IconWrapper className="green">
+              <ShieldCheck size={24} />
+            </IconWrapper>
             <FeatureTitle>Güvenilir Eğitmenler</FeatureTitle>
-            <FeatureDesc>Tüm eğitmenlerimiz titiz bir mülakat ve onay sürecinden geçtikten sonra sisteme dahil edilir.</FeatureDesc>
+            <FeatureDesc>
+              Tüm eğitmenlerimiz titiz bir mülakat ve onay sürecinden geçtikten
+              sonra sisteme dahil edilir.
+            </FeatureDesc>
           </FeatureCard>
           <FeatureCard>
-            <IconWrapper className="purple"><Target size={24} /></IconWrapper>
+            <IconWrapper className="purple">
+              <Target size={24} />
+            </IconWrapper>
             <FeatureTitle>Hedefe Yönelik</FeatureTitle>
-            <FeatureDesc>Sınavlara hazırlık veya okul takviyesi; hedefinize en uygun öğretmeni kolayca bulun.</FeatureDesc>
+            <FeatureDesc>
+              Sınavlara hazırlık veya okul takviyesi; hedefinize en uygun
+              öğretmeni kolayca bulun.
+            </FeatureDesc>
           </FeatureCard>
           <FeatureCard>
-            <IconWrapper className="orange"><Award size={24} /></IconWrapper>
+            <IconWrapper className="orange">
+              <Award size={24} />
+            </IconWrapper>
             <FeatureTitle>Kalite Garantisi</FeatureTitle>
-            <FeatureDesc>Derslerden memnun kalmazsanız paranız güvence altında, anında destek hizmeti.</FeatureDesc>
+            <FeatureDesc>
+              Derslerden memnun kalmazsanız paranız güvence altında, anında
+              destek hizmeti.
+            </FeatureDesc>
           </FeatureCard>
           <FeatureCard>
-            <IconWrapper className="pink"><Star size={24} /></IconWrapper>
+            <IconWrapper className="pink">
+              <Star size={24} />
+            </IconWrapper>
             <FeatureTitle>Öğrenci Yorumları</FeatureTitle>
-            <FeatureDesc>Öğretmenler hakkında yapılan şeffaf yorumları okuyarak en doğru kararı verin.</FeatureDesc>
+            <FeatureDesc>
+              Öğretmenler hakkında yapılan şeffaf yorumları okuyarak en doğru
+              kararı verin.
+            </FeatureDesc>
           </FeatureCard>
           <FeatureCard>
-            <IconWrapper className="teal"><BookOpen size={24} /></IconWrapper>
+            <IconWrapper className="teal">
+              <BookOpen size={24} />
+            </IconWrapper>
             <FeatureTitle>Geniş Kaynak</FeatureTitle>
-            <FeatureDesc>Ders materyallerine ve ek kaynaklara platformumuz üzerinden kolayca erişin.</FeatureDesc>
+            <FeatureDesc>
+              Ders materyallerine ve ek kaynaklara platformumuz üzerinden
+              kolayca erişin.
+            </FeatureDesc>
           </FeatureCard>
         </Grid>
       </FeaturesSection>
@@ -77,9 +115,12 @@ const About = () => {
         <MissionContent>
           <SectionTitle>Misyonumuz</SectionTitle>
           <MissionText>
-            Eğitimde fırsat eşitliğini sağlamak ve bilgiye ulaşımı herkes için kolaylaştırmak amacıyla yola çıktık. 
-            Amacımız, öğrenme tutkusunu canlandırmak ve öğrencilerin kendi potansiyellerini en üst seviyeye çıkarmalarına rehberlik etmektir. 
-            Teknolojinin gücünü eğitimin kalitesiyle birleştirerek, Türkiye'nin her köşesindeki öğrenciyi en iyi eğitmenlerle buluşturmayı hedefliyoruz.
+            Eğitimde fırsat eşitliğini sağlamak ve bilgiye ulaşımı herkes için
+            kolaylaştırmak amacıyla yola çıktık. Amacımız, öğrenme tutkusunu
+            canlandırmak ve öğrencilerin kendi potansiyellerini en üst seviyeye
+            çıkarmalarına rehberlik etmektir. Teknolojinin gücünü eğitimin
+            kalitesiyle birleştirerek, Türkiye'nin her köşesindeki öğrenciyi en
+            iyi eğitmenlerle buluşturmayı hedefliyoruz.
           </MissionText>
         </MissionContent>
       </MissionSection>
@@ -175,17 +216,17 @@ const StatsWrapper = styled.div`
   background: white;
   padding: 30px;
   border-radius: 24px;
-  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
 
   .dark & {
     background: #1e293b;
-    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.4);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
   }
 
   @media (max-width: 900px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
@@ -245,7 +286,7 @@ const Grid = styled.div`
   @media (max-width: 900px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -266,10 +307,10 @@ const FeatureCard = styled.div`
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
-    
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+
     .dark & {
-      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
     }
   }
 `;
@@ -283,12 +324,54 @@ const IconWrapper = styled.div`
   justify-content: center;
   margin-bottom: 20px;
 
-  &.blue { background: #eff6ff; color: #3b82f6; .dark & { background: rgba(59, 130, 246, 0.2); color: #60a5fa; } }
-  &.green { background: #f0fdf4; color: #22c55e; .dark & { background: rgba(34, 197, 94, 0.2); color: #4ade80; } }
-  &.purple { background: #faf5ff; color: #a855f7; .dark & { background: rgba(168, 85, 247, 0.2); color: #c084fc; } }
-  &.orange { background: #fff7ed; color: #f97316; .dark & { background: rgba(249, 115, 22, 0.2); color: #fb923c; } }
-  &.pink { background: #fdf2f8; color: #ec4899; .dark & { background: rgba(236, 72, 153, 0.2); color: #f472b6; } }
-  &.teal { background: #f0fdfa; color: #14b8a6; .dark & { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; } }
+  &.blue {
+    background: #eff6ff;
+    color: #3b82f6;
+    .dark & {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+    }
+  }
+  &.green {
+    background: #f0fdf4;
+    color: #22c55e;
+    .dark & {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+    }
+  }
+  &.purple {
+    background: #faf5ff;
+    color: #a855f7;
+    .dark & {
+      background: rgba(168, 85, 247, 0.2);
+      color: #c084fc;
+    }
+  }
+  &.orange {
+    background: #fff7ed;
+    color: #f97316;
+    .dark & {
+      background: rgba(249, 115, 22, 0.2);
+      color: #fb923c;
+    }
+  }
+  &.pink {
+    background: #fdf2f8;
+    color: #ec4899;
+    .dark & {
+      background: rgba(236, 72, 153, 0.2);
+      color: #f472b6;
+    }
+  }
+  &.teal {
+    background: #f0fdfa;
+    color: #14b8a6;
+    .dark & {
+      background: rgba(20, 184, 166, 0.2);
+      color: #2dd4bf;
+    }
+  }
 `;
 
 const FeatureTitle = styled.h3`
@@ -334,7 +417,7 @@ const MissionContent = styled.div`
   ${SectionTitle} {
     color: white;
     margin-bottom: 20px;
-    
+
     .dark & {
       color: white;
     }
