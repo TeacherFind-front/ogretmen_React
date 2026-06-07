@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -19,6 +19,13 @@ export default function Login() {
     password: "",
     rememberMe: false,
   });
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setData((prev) => ({ ...prev, email: savedEmail, rememberMe: true }));
+    }
+  }, []);
 
   // Email öneri sistemi
   const emailDomains = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com"];
@@ -74,6 +81,12 @@ export default function Login() {
 
       // Global state'i güncelle (rememberMe parametresi ile)
       login(result, data.rememberMe);
+
+      if (data.rememberMe) {
+        localStorage.setItem("rememberedEmail", data.email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
 
       toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
 
