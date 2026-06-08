@@ -43,7 +43,7 @@ export default function TutorLessons() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState("list");
+  const [viewMode, setViewMode] = useState("grid");
   const [currentLessonRates, setCurrentLessonRates] = useState([]);
 
   const [myCourses, setMyCourses] = useState([]);

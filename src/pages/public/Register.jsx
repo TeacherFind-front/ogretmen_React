@@ -56,7 +56,23 @@ const Register = () => {
 
   const handleInputChange = async (e) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    let newValue = value;
+
+    if (id === "phoneNumber") {
+      const digits = value.replace(/\D/g, '').substring(0, 10);
+      const match = digits.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
+      if (match) {
+        let res = match[1];
+        if (match[2]) res += ' ' + match[2];
+        if (match[3]) res += ' ' + match[3];
+        if (match[4]) res += ' ' + match[4];
+        newValue = res;
+      } else {
+        newValue = digits;
+      }
+    }
+
+    setFormData(prev => ({ ...prev, [id]: newValue }));
  
     if (id === "cityId") {
       setDistricts([]);
@@ -178,7 +194,7 @@ const Register = () => {
             </InputGroup>
             <InputGroup>
               <label>Telefon Numarası</label>
-              <input id="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleInputChange} placeholder="05XX XXX XX XX" required />
+              <input id="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleInputChange} placeholder="5XX XXX XX XX" required />
             </InputGroup>
           </div>
  

@@ -271,6 +271,11 @@ const MobileSidebar = styled.div`
   background: white;
   z-index: 1001;
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+  
+  .dark & {
+    background: #1e293b;
+    border-right: 1px solid #334155;
+  }
 
   /* Requested translate value */
   --tw-translate-x: -110%;
