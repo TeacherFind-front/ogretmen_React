@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,11 +19,5 @@ export const auth = getAuth(app);
 
 // Setup Providers
 export const googleProvider = new GoogleAuthProvider();
-// You can add custom scopes if needed
-// googleProvider.addScope('email');
-
-export const appleProvider = new OAuthProvider('apple.com');
-// appleProvider.addScope('email');
-// appleProvider.addScope('name');
 
 export default app;

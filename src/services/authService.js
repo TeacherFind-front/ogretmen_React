@@ -163,10 +163,10 @@ export async function resetPassword(email, code, newPassword) {
  * @param {string} idToken - Firebase'den dönen ID Token
  * @param {string} role - Kayıt oluyorsa zorunlu ('student' veya 'tutor')
  */
-export async function socialLogin(provider, idToken, role = null) {
+export async function socialLogin(provider, idToken) {
   const res = await apiFetch("/api/auth/social-login", {
     method: "POST",
-    body: JSON.stringify({ provider, idToken, role }),
+    body: JSON.stringify({ provider, idToken }),
   });
 
   if (!res.ok) {
