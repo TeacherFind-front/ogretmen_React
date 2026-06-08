@@ -167,8 +167,8 @@ export default function TutorAvailability() {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
+        <div className="overflow-x-auto w-full rounded-2xl border border-gray-100 dark:border-slate-800">
+          <table className="w-full min-w-[800px] border-separate border-spacing-2">
             <thead>
               <tr>
                 <th></th>
@@ -217,7 +217,7 @@ export default function TutorAvailability() {
                 </tr>
               ))}
             </tbody>
-          </Table>
+          </table>
         </div>
       </GridCard>
     </Container>
@@ -362,6 +362,7 @@ const GridCard = styled.div`
 
 const Table = styled.table`
   width: 100%;
+  min-width: 800px;
   border-collapse: separate;
   border-spacing: 8px;
 

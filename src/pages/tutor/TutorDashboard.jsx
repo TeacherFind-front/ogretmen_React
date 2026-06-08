@@ -138,10 +138,10 @@ export default function TutorDashboard() {
             <span className="text-white font-black underline decoration-blue-400 underline-offset-4"> {pendingRequests.length} bekleyen talebiniz</span> var.
           </p>
         </div>
-        <div className="flex gap-2 relative z-10">
+        <div className="flex gap-2 relative z-10 w-full md:w-auto mt-4 md:mt-0">
           <Button 
             variant="outline" 
-            className="h-10 px-4 rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white font-bold backdrop-blur-md text-xs"
+            className="h-10 px-4 rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white font-bold backdrop-blur-md text-xs w-full md:w-auto"
             onClick={() => navigate("/tutor/schedule")}
           >
             Takvimim
@@ -183,16 +183,16 @@ export default function TutorDashboard() {
             ) : (
               todaysBookings.map(b => (
                 <div key={b.id} className="flex flex-col sm:flex-row items-center justify-between p-6 border border-gray-100 dark:border-slate-800 rounded-3xl hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:shadow-xl dark:hover:shadow-none hover:border-white dark:hover:border-slate-700 transition-all group">
-                  <div className="flex items-center gap-5 w-full sm:w-auto">
+                  <div className="flex items-center gap-5 w-full sm:w-auto min-w-0">
                     <img 
                       src={b.studentAvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.studentName)}&background=f1f5f9&color=64748b`} 
-                      className="w-14 h-14 rounded-2xl object-cover border-2 border-white dark:border-slate-700 shadow-md"
+                      className="w-14 h-14 rounded-2xl object-cover border-2 border-white dark:border-slate-700 shadow-md shrink-0"
                       alt="Student"
                     />
-                    <div>
-                      <h4 className="font-black text-gray-900 dark:text-white text-lg">{b.studentName}</h4>
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mt-1 flex items-center gap-2">
-                         <Badge className="p-0 h-4 w-4 rounded-full bg-blue-600 dark:bg-blue-500 border-none"></Badge>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-black text-gray-900 dark:text-white text-lg truncate">{b.studentName}</h4>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mt-1 flex items-center gap-2 truncate">
+                         <Badge className="p-0 h-4 w-4 rounded-full bg-blue-600 dark:bg-blue-500 border-none shrink-0"></Badge>
                          {new Date(b.startTime).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>

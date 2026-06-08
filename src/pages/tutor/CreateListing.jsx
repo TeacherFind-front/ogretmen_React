@@ -291,14 +291,14 @@ const CreateListing = () => {
         )}
       </div>
 
-      <div className="footer-actions">
+      <div className="mt-8 flex justify-end">
         <button
           onClick={() => {
             if (!formData.subjectId)
               return toast.error("Lütfen kategori ve branş seçin.");
             setStep(2);
           }}
-          className="next-btn"
+          className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto"
         >
           Sonraki Adım <ArrowRight className="w-4 h-4" />
         </button>
@@ -336,15 +336,17 @@ const CreateListing = () => {
             <ReactQuill
               theme="snow"
               value={formData.description}
-              onChange={(value) => setFormData({ ...formData, description: value })}
+              onChange={(value) =>
+                setFormData({ ...formData, description: value })
+              }
               placeholder="Ders işleyiş tarzınız, tecrübeniz ve öğrencilere katacaklarınızdan bahsedin..."
               modules={{
                 toolbar: [
-                  [{ 'header': [1, 2, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{'list': 'ordered'}, {'list': 'bullet'}],
-                  ['link'],
-                  ['clean']
+                  [{ header: [1, 2, false] }],
+                  ["bold", "italic", "underline", "strike"],
+                  [{ list: "ordered" }, { list: "bullet" }],
+                  ["link"],
+                  ["clean"],
                 ],
               }}
             />
@@ -479,7 +481,7 @@ const CreateListing = () => {
                     </select>
                   </InputGroup>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
                   {(rate.type === "online" || rate.type === "both") && (
                     <InputGroup>
                       <label className="text-[10px]">Online Ücret (₺)</label>
@@ -553,8 +555,11 @@ const CreateListing = () => {
         </div>
       </div>
 
-      <div className="footer-actions flex justify-between">
-        <button onClick={() => setStep(1)} className="back-btn">
+      <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
+        <button
+          onClick={() => setStep(1)}
+          className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-all"
+        >
           <ArrowLeft className="w-4 h-4" /> Geri
         </button>
         <button
@@ -570,7 +575,7 @@ const CreateListing = () => {
             }
             setStep(3);
           }}
-          className="next-btn"
+          className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto"
         >
           Sonraki Adım <ArrowRight className="w-4 h-4" />
         </button>
@@ -641,46 +646,59 @@ const CreateListing = () => {
           </InputGroup>
         </div>
 
-
         {/* Privacy Settings */}
-        <div className="mt-10 p-8 bg-white dark:bg-slate-800 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-[2.5rem] space-y-6">
-          <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest mb-2">Gizlilik Ayarları</h4>
-          
-          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+        <div className="mt-10 p-5 sm:p-8 bg-white dark:bg-slate-800 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-3xl sm:rounded-[2.5rem] space-y-6">
+          <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest mb-2">
+            Gizlilik Ayarları
+          </h4>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center"><Phone size={18} /></div>
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center">
+                <Phone size={18} />
+              </div>
               <div>
-                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">Telefon Numaram Gözüksün</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Öğrenciler size doğrudan telefonla ulaşabilsin mi?</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                  Telefon Numaram Gözüksün
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  Öğrenciler size doğrudan telefonla ulaşabilsin mi?
+                </p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="showPhoneNumber"
                 checked={formData.showPhoneNumber}
                 onChange={handleInputChange}
-                className="sr-only peer" 
+                className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center"><GraduationCap size={18} /></div>
+              <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center">
+                <GraduationCap size={18} />
+              </div>
               <div>
-                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">Eğitim Bilgilerim Gözüksün</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Üniversite ve bölüm bilgileriniz ilanda yer alsın mı?</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                  Eğitim Bilgilerim Gözüksün
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  Üniversite ve bölüm bilgileriniz ilanda yer alsın mı?
+                </p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="showEducation"
                 checked={formData.showEducation}
                 onChange={handleInputChange}
-                className="sr-only peer" 
+                className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
@@ -688,8 +706,11 @@ const CreateListing = () => {
         </div>
       </div>
 
-      <div className="footer-actions flex justify-between">
-        <button onClick={() => setStep(2)} className="back-btn">
+      <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
+        <button
+          onClick={() => setStep(2)}
+          className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-all"
+        >
           <ArrowLeft className="w-4 h-4" /> Geri
         </button>
         <button
@@ -698,7 +719,7 @@ const CreateListing = () => {
               return toast.error("Lütfen şehir ve ilçe seçin.");
             setStep(4);
           }}
-          className="next-btn"
+          className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all w-full sm:w-auto"
         >
           Sonraki Adım <ArrowRight className="w-4 h-4" />
         </button>
@@ -748,7 +769,7 @@ const CreateListing = () => {
                 </button>
               </div>
             ))}
-            {formData.listingPhotos.length < 8 && (
+            {formData.listingPhotos.length < 2 && (
               <button
                 type="button"
                 onClick={() => document.getElementById("photos-input").click()}
@@ -770,14 +791,17 @@ const CreateListing = () => {
                 ...formData,
                 listingPhotos: [...formData.listingPhotos, ...files].slice(
                   0,
-                  8,
+                  2,
                 ),
               });
             }}
             accept="image/*"
           />
           <p className="text-xs text-gray-500">
-            Maksimum 8 fotoğraf. JPG veya PNG.
+            En fazla 2 fotoğraf yüklenebilir. Şu an{" "}
+            {formData.listingPhotos.length} fotoğrafınız var,{" "}
+            {Math.max(0, 2 - formData.listingPhotos.length)} tane daha
+            ekleyebilirsiniz.
           </p>
         </div>
 
@@ -807,7 +831,7 @@ const CreateListing = () => {
             {formData.certificates.map((cert, index) => (
               <div
                 key={index}
-                className="bg-gray-50 dark:bg-slate-800 p-4 rounded-2xl flex items-center gap-4 border border-gray-100 dark:border-slate-700"
+                className="bg-gray-50 dark:bg-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center gap-4 border border-gray-100 dark:border-slate-700"
               >
                 <input
                   placeholder="Sertifika Adı"
@@ -858,13 +882,16 @@ const CreateListing = () => {
         </div>
       </div>
 
-      <div className="footer-actions flex justify-between mt-12">
-        <button onClick={() => setStep(3)} className="back-btn">
+      <div className="mt-12 flex flex-col sm:flex-row justify-between gap-4">
+        <button
+          onClick={() => setStep(3)}
+          className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-all"
+        >
           <ArrowLeft className="w-4 h-4" /> Geri
         </button>
         <button
           onClick={handleSubmit}
-          className="submit-btn"
+          className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all w-full sm:w-auto"
           disabled={loading}
         >
           {loading ? (
@@ -878,7 +905,7 @@ const CreateListing = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-12 px-4 flex justify-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-12 px-4 pb-32 flex justify-center">
       <MainWrapper>
         <ProgressBar>
           {[1, 2, 3, 4].map((s) => (
@@ -918,6 +945,12 @@ const MainWrapper = styled.div`
     border-color: #334155;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
+
+  @media (max-width: 768px) {
+    padding: 30px 20px;
+    border-radius: 24px;
+    margin-bottom: 80px;
+  }
 `;
 
 const ProgressBar = styled.div`
@@ -926,6 +959,11 @@ const ProgressBar = styled.div`
   justify-content: center;
   margin-bottom: 60px;
   gap: 12px;
+
+  @media (max-width: 768px) {
+    gap: 8px;
+    margin-bottom: 40px;
+  }
 
   .step {
     width: 36px;
@@ -939,6 +977,15 @@ const ProgressBar = styled.div`
     font-weight: 800;
     font-size: 14px;
     transition: all 0.3s ease;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
     &.active {
       background: #2d79f3;
       color: white;
@@ -956,6 +1003,12 @@ const ProgressBar = styled.div`
     height: 3px;
     background: #f1f5f9;
     border-radius: 10px;
+    flex-shrink: 1;
+
+    @media (max-width: 768px) {
+      width: 20px;
+    }
+
     &.active {
       background: #10b981;
     }
@@ -1130,15 +1183,51 @@ const InputGroup = styled.div`
 
       .ql-picker-label {
         color: #1e293b;
-        .dark & { color: #f1f5f9; }
+        .dark & {
+          color: #f1f5f9;
+        }
       }
       .ql-stroke {
         stroke: #475569;
-        .dark & { stroke: #cbd5e1; }
+        .dark & {
+          stroke: #cbd5e1;
+        }
       }
       .ql-fill {
         fill: #475569;
-        .dark & { fill: #cbd5e1; }
+        .dark & {
+          fill: #cbd5e1;
+        }
+      }
+
+      button.ql-active,
+      button:hover,
+      button:focus,
+      .ql-picker-label.ql-active,
+      .ql-picker-label.ql-expanded,
+      .ql-picker-label:hover {
+        color: #2d79f3 !important;
+      }
+
+      button.ql-active .ql-stroke,
+      button.ql-active .ql-stroke-miter,
+      .ql-picker-label.ql-active .ql-stroke,
+      .ql-picker-label.ql-active .ql-stroke-miter,
+      .ql-picker-label.ql-expanded .ql-stroke,
+      .ql-picker-label.ql-expanded .ql-stroke-miter,
+      button:hover .ql-stroke,
+      button:hover .ql-stroke-miter,
+      button:focus .ql-stroke,
+      button:focus .ql-stroke-miter {
+        stroke: #2d79f3 !important;
+      }
+
+      button.ql-active .ql-fill,
+      .ql-picker-label.ql-active .ql-fill,
+      .ql-picker-label.ql-expanded .ql-fill,
+      button:hover .ql-fill,
+      button:focus .ql-fill {
+        fill: #2d79f3 !important;
       }
     }
 
@@ -1174,6 +1263,10 @@ const LessonRateBox = styled.div`
   border-radius: 24px;
   padding: 24px;
   margin-bottom: 16px;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 
   .dark & {
     background: #0f172a;

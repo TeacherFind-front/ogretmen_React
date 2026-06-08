@@ -94,3 +94,25 @@ select option {
   background-color: #ffffff;
   color: #1e293b;
 }
+
+/* Quill Editor Global Overrides */
+.ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke,
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow .ql-toolbar button:hover .ql-stroke {
+  stroke: #2d79f3 !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active .ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-fill,
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-fill {
+  fill: #2d79f3 !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active,
+.ql-snow .ql-toolbar button.ql-active,
+.ql-snow.ql-toolbar button:hover,
+.ql-snow .ql-toolbar button:hover {
+  color: #2d79f3 !important;
+}

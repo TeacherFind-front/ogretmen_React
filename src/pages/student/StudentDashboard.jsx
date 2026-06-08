@@ -90,7 +90,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="space-y-10 max-w-7xl mx-auto px-4 pb-20 animate-in fade-in duration-700">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-gradient-to-br from-violet-600 via-purple-700 to-fuchsia-800 p-10 rounded-[3rem] shadow-xl shadow-purple-200 relative overflow-hidden border-none">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-gradient-to-br from-violet-600 via-purple-700 to-fuchsia-800 p-6 sm:p-10 rounded-[3rem] shadow-xl shadow-purple-200 relative overflow-hidden border-none">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-400/20 rounded-full -ml-10 -mb-10 blur-2xl"></div>
         
@@ -105,16 +105,16 @@ export default function StudentDashboard() {
             Hangi konuyu bugün daha iyi öğrenmek istersin?
           </p>
         </div>
-        <div className="flex flex-wrap gap-4 relative z-10">
+        <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto mt-4 md:mt-0">
           <Button 
             variant="outline"
-            className="h-14 px-8 rounded-2xl font-bold bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white backdrop-blur-md"
+            className="w-full sm:w-auto h-14 px-8 rounded-2xl font-bold bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white backdrop-blur-md"
             onClick={() => navigate("/student/favorites")}
           >
             ❤️ Favori Hocalarım
           </Button>
           <Button 
-            className="h-14 px-8 rounded-2xl font-bold bg-white text-violet-600 hover:bg-purple-50 shadow-xl"
+            className="w-full sm:w-auto h-14 px-8 rounded-2xl font-bold bg-white text-violet-600 hover:bg-purple-50 shadow-xl"
             onClick={() => navigate("/tutors")}
           >
             Yeni Hoca Bul

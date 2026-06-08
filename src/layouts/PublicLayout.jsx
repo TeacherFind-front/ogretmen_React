@@ -101,74 +101,95 @@ export default function PublicLayout() {
         </div>
 
         {/* Mobile Sidebar & Overlay */}
-        <MobileOverlay
-          $isOpen={isMenuOpen}
-          onClick={() => setIsMenuOpen(false)}
-        />
+        {isMenuOpen && (
+          <div
+            className="fixed inset-0 bg-[#0f172a]/30 backdrop-blur-sm z-[1000] md:hidden transition-opacity"
+            onClick={() => setIsMenuOpen(false)}
+          />
+        )}
 
-        <MobileMenu $isOpen={isMenuOpen} className="md:hidden">
-          <div className="flex flex-col h-full">
-            <div className="p-6 border-b flex items-center justify-between">
+        <div 
+          className={`fixed top-0 left-0 h-[100dvh] w-[300px] bg-white dark:bg-[#0f172a] border-r border-transparent dark:border-[#1e293b] z-[1001] shadow-2xl transition-transform duration-300 ease-in-out md:hidden flex flex-col ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          <div className="flex flex-col h-full w-full overflow-hidden">
+            <div className="p-6 border-b border-gray-100 dark:border-[#1e293b] flex items-center justify-between shrink-0">
               <Link
                 to="/"
                 className="flex items-center gap-3 no-underline"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+                <img src="/logo.png" alt="Özel Ders VIP" className="h-10 w-auto object-contain" />
               </Link>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="p-2 text-gray-500"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1e293b] rounded-lg transition-colors"
               >
                 <X size={24} />
               </button>
             </div>
 
             <div className="flex flex-col gap-2 p-6 flex-1 overflow-y-auto">
-              <MobileNavLink to="/tutors" onClick={() => setIsMenuOpen(false)}>
+              <Link 
+                to="/tutors" 
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-4 py-3 rounded-xl font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors no-underline"
+              >
                 Eğitmen Bul
-              </MobileNavLink>
-              <MobileNavLink to="/hakkimizda" onClick={() => setIsMenuOpen(false)}>
+              </Link>
+              <Link 
+                to="/hakkimizda" 
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-4 py-3 rounded-xl font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors no-underline"
+              >
                 Hakkımızda
-              </MobileNavLink>
-              <MobileNavLink to="/iletisim" onClick={() => setIsMenuOpen(false)}>
+              </Link>
+              <Link 
+                to="/iletisim" 
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-4 py-3 rounded-xl font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors no-underline"
+              >
                 İletişim
-              </MobileNavLink>
-              <MobileNavLink to="/sss" onClick={() => setIsMenuOpen(false)}>
+              </Link>
+              <Link 
+                to="/sss" 
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-4 py-3 rounded-xl font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors no-underline"
+              >
                 S.S.S
-              </MobileNavLink>
-              <hr className="my-4 border-gray-100" />
+              </Link>
+              <hr className="my-4 border-gray-100 dark:border-[#1e293b]" />
               {!isLoading &&
                 (isAuthenticated ? (
                   <>
-                    <MobileNavLink
+                    <Link
                       to={getDashboardPath()}
-                      $highlight
                       onClick={() => setIsMenuOpen(false)}
+                      className="block px-4 py-3 rounded-xl font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors no-underline"
                     >
                       Panelim
-                    </MobileNavLink>
+                    </Link>
                     <button
-                      onClick={handleLogout}
-                      className="mt-4 flex items-center gap-2 text-red-500 font-bold p-4 rounded-xl hover:bg-red-50 text-left"
+                      onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                      className="mt-2 flex items-center gap-2 text-red-500 font-bold px-4 py-4 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
                     >
                       <LogOut size={18} /> Çıkış Yap
                     </button>
                   </>
                 ) : (
                   <>
-                    <MobileNavLink
+                    <Link
                       to="/login"
                       onClick={() => setIsMenuOpen(false)}
+                      className="block px-4 py-3 rounded-xl font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors no-underline"
                     >
                       Giriş Yap
-                    </MobileNavLink>
+                    </Link>
                     <Link
                       to="/register"
-                      className="no-underline mt-2"
+                      className="no-underline mt-2 block px-2"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <JoinButton className="justify-center">
+                      <JoinButton className="justify-center w-full">
                         Hemen Katıl
                       </JoinButton>
                     </Link>
@@ -176,7 +197,7 @@ export default function PublicLayout() {
                 ))}
             </div>
 
-            <div className="p-8 bg-gray-50/50 dark:bg-[#0b1120] border-t dark:border-[#1e293b]">
+            <div className="p-6 sm:p-8 bg-gray-50/50 dark:bg-[#0b1120] border-t border-gray-100 dark:border-[#1e293b] shrink-0">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
                 Sosyal Medya
               </p>
@@ -193,7 +214,7 @@ export default function PublicLayout() {
               </div>
             </div>
           </div>
-        </MobileMenu>
+        </div>
       </nav>
 
       {/* Main Content */}
@@ -206,7 +227,7 @@ export default function PublicLayout() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[1px] bg-gradient-to-r from-transparent via-blue-200 to-transparent"></div>
 
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-16 mb-20">
             <div className="col-span-1 md:col-span-2 lg:col-span-1">
               <Link
                 to="/"
@@ -365,67 +386,6 @@ const LogoutButton = styled.button`
   &:hover {
     background: #ffe4e6;
     transform: scale(1.05);
-  }
-`;
-
-const MobileOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
-  opacity: ${(props) => (props.$isOpen ? 1 : 0)};
-  visibility: ${(props) => (props.$isOpen ? "visible" : "hidden")};
-  transition: all 0.3s ease;
-`;
-
-const MobileMenu = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 300px;
-  background: white;
-  .dark & {
-    background: #0f172a;
-    border-right: 1px solid #1e293b;
-  }
-  z-index: 1001;
-  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
-
-  /* Requested translate value */
-  --tw-translate-x: -110%;
-  transform: translateX(var(--tw-translate-x));
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-  ${(props) =>
-    props.$isOpen &&
-    `
-    --tw-translate-x: 0%;
-  `}
-`;
-
-const MobileNavLink = styled(Link)`
-  display: block;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 700;
-  color: ${(props) => (props.$highlight ? "#2d79f3" : "#4b5563")};
-  background: ${(props) => (props.$highlight ? "#f3f7ff" : "transparent")};
-  text-decoration: none;
-  transition: all 0.2s;
-  .dark & {
-    color: ${(props) => (props.$highlight ? "#3b82f6" : "#cbd5e1")};
-    background: ${(props) => (props.$highlight ? "#1e3a8a" : "transparent")};
-  }
-
-  &:hover {
-    background: #f8fafc;
-    color: #2d79f3;
-    .dark & {
-      background: #1e293b;
-    }
   }
 `;
 

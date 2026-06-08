@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAdminListings, approveListing } from "@/services/adminService";
+import { getAdminListings, approveListing, getAdminListingDetail } from "@/services/adminService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -25,6 +25,8 @@ export default function AdminTutors() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedListingDetail, setSelectedListingDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     loadListings();
@@ -44,12 +46,36 @@ export default function AdminTutors() {
   }
 
   async function handleApprove(id, isApproved) {
+    let reason = "Uygun görülmedi.";
+    if (!isApproved) {
+      const inputReason = window.prompt("Lütfen red sebebini giriniz (Eğitmene iletilecek):");
+      if (inputReason === null) return; // Kullanıcı iptal etti
+      if (inputReason.trim() !== "") {
+        reason = inputReason.trim();
+      }
+    }
+
     try {
-      await approveListing(id, isApproved);
+      await approveListing(id, isApproved, reason);
       setListings(listings.filter(l => l.id !== id));
       toast.success(isApproved ? "İlan başarıyla onaylandı." : "İlan reddedildi.");
+      if (selectedListingDetail?.id === id) {
+        setSelectedListingDetail(null);
+      }
     } catch (err) {
-      toast.error("İşlem sırasında bir hata oluştu.");
+      toast.error(err.message || "İşlem sırasında bir hata oluştu.");
+    }
+  }
+
+  async function handleViewDetails(id) {
+    setDetailLoading(true);
+    try {
+      const detail = await getAdminListingDetail(id);
+      setSelectedListingDetail(detail);
+    } catch (err) {
+      toast.error(err.message || "Detaylar yüklenemedi.");
+    } finally {
+      setDetailLoading(false);
     }
   }
 
@@ -133,11 +159,14 @@ export default function AdminTutors() {
                 </div>
 
                 <div className="bg-slate-50/50 dark:bg-slate-800/50 p-8 flex flex-col justify-center gap-4 lg:w-80 border-l border-slate-100 dark:border-slate-700">
-                  <Link to={`/tutors/${listing.id}`} target="_blank" className="w-full">
-                    <Button variant="outline" className="w-full h-12 rounded-xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-bold text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all dark:text-slate-200">
-                      <ExternalLink className="w-4 h-4 mr-2" /> Detayları Gör
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 rounded-xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-bold text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all dark:text-slate-200"
+                    onClick={() => handleViewDetails(listing.id)}
+                    disabled={detailLoading}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" /> Detayları Gör
+                  </Button>
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <Button 
                       className="h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black shadow-lg shadow-emerald-200"
@@ -157,6 +186,57 @@ export default function AdminTutors() {
               </div>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* İlan Detay Modalı */}
+      {selectedListingDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border-none shadow-2xl rounded-3xl relative">
+            <button 
+              onClick={() => setSelectedListingDetail(null)}
+              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+              <XCircle className="w-6 h-6 text-slate-500" />
+            </button>
+            <CardContent className="p-8">
+              <div className="mb-6">
+                <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-none mb-3 px-3 py-1 text-xs">
+                  {selectedListingDetail.category}
+                </Badge>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">{selectedListingDetail.title}</h2>
+                <div className="flex items-center gap-4 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <span className="flex items-center gap-1"><User className="w-4 h-4"/> {selectedListingDetail.tutorName || selectedListingDetail.teacherName}</span>
+                  <span className="flex items-center gap-1"><Tag className="w-4 h-4"/> ₺{selectedListingDetail.price} / saat</span>
+                </div>
+              </div>
+
+              <div className="prose dark:prose-invert max-w-none">
+                <h4 className="text-lg font-bold mb-2">İlan Açıklaması</h4>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
+                  {selectedListingDetail.description}
+                </p>
+              </div>
+
+              {selectedListingDetail.status === 'PendingApproval' && (
+                <div className="flex gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <Button 
+                    className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black"
+                    onClick={() => handleApprove(selectedListingDetail.id, true)}
+                  >
+                    <ThumbsUp className="w-4 h-4 mr-2" /> Onayla
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    className="flex-1 h-12 rounded-xl font-black"
+                    onClick={() => handleApprove(selectedListingDetail.id, false)}
+                  >
+                    <ThumbsDown className="w-4 h-4 mr-2" /> Reddet
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

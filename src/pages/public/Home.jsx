@@ -280,10 +280,10 @@ export default function Home() {
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold mb-14 leading-[1.2]">
+          <h1 className="text-3xl md:text-5xl lg:text-[56px] font-bold mb-10 md:mb-14 leading-[1.3] md:leading-[1.2]">
             En İyi Öğretmenlerden{" "}
             <span className="text-[#d1d8f5] font-medium">Online veya</span>{" "}
-            <br />
+            <br className="hidden sm:block" />
             <span className="text-[#d1d8f5] font-medium">Yüz Yüze</span> Dersler
             Alın
           </h1>
@@ -368,7 +368,7 @@ export default function Home() {
                   key={cat.id}
                   onMouseEnter={() => setHoveredCategory(cat.id)}
                   onClick={() => navigate(`/tutors?category=${encodeURIComponent(cat.queryValue)}`)}
-                  className={`p-4 rounded-[24px] border border-gray-100 dark:border-[#1e293b] flex flex-col items-start gap-3 transition-all hover:scale-105 hover:shadow-lg cursor-pointer group ${
+                  className={`p-3 md:p-4 rounded-[20px] md:rounded-[24px] border border-gray-100 dark:border-[#1e293b] flex flex-col items-start gap-2 md:gap-3 transition-all hover:scale-105 hover:shadow-lg cursor-pointer group ${
                     isActive
                       ? "bg-[#1e3a8a] text-white dark:bg-[#1e3a8a] dark:text-white"
                       : "bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100"
@@ -469,11 +469,11 @@ export default function Home() {
             Türkiye'nin en başarılı öğretmenlerinden size özel dersler alarak
             hedeflerinize bir adım daha yaklaşın.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-[#002e47] dark:bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-[#003d5c] dark:hover:bg-blue-700 transition-all">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button className="w-full sm:w-auto bg-[#002e47] dark:bg-blue-600 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-[#003d5c] dark:hover:bg-blue-700 transition-all text-sm md:text-base">
               Öğretmen Bul
             </button>
-            <button className="bg-white dark:bg-[#1e293b] text-[#002e47] dark:text-white border-2 border-[#002e47] dark:border-[#334155] px-10 py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-[#334155] transition-all">
+            <button className="w-full sm:w-auto bg-white dark:bg-[#1e293b] text-[#002e47] dark:text-white border-2 border-[#002e47] dark:border-[#334155] px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-[#334155] transition-all text-sm md:text-base">
               Nasıl Çalışır?
             </button>
           </div>

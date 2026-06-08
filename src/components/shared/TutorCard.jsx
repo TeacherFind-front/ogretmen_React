@@ -76,7 +76,7 @@ export function TutorCard({ tutor }) {
   return (
     <Card className="flex flex-col md:flex-row overflow-hidden border-gray-100 dark:border-[#334155] hover:shadow-2xl hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-100 dark:hover:border-blue-500 transition-all duration-300 group rounded-[2rem] bg-white dark:bg-[#1e293b]">
       {/* Sol Panel - Avatar & Fiyat */}
-      <div className="md:w-56 bg-gray-50/50 dark:bg-[#0f172a] group-hover:bg-blue-50/30 dark:group-hover:bg-[#0b1120] transition-colors p-8 flex flex-col items-center justify-center border-r border-gray-100 dark:border-[#334155]">
+      <div className="md:w-56 bg-gray-50/50 dark:bg-[#0f172a] group-hover:bg-blue-50/30 dark:group-hover:bg-[#0b1120] transition-colors p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#334155]">
         <div className="relative">
           <img
             src={avatar}

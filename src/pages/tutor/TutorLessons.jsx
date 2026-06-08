@@ -457,16 +457,16 @@ export default function TutorLessons() {
         </Card>
       ) : viewMode === "list" ? (
         <Card className="border-none shadow-2xl shadow-gray-900/5 bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden">
-          <TableContainer>
-            <table>
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-[800px]">
               <thead>
                 <tr>
-                  <th>Branş & Başlık</th>
-                  <th>Kategori</th>
-                  <th>Ücretlendirme</th>
-                  <th>Puan / Yorum</th>
-                  <th>Durum</th>
-                  <th className="text-right">Aksiyon</th>
+                  <th className="text-left p-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100 dark:border-slate-800">Branş & Başlık</th>
+                  <th className="text-left p-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100 dark:border-slate-800">Kategori</th>
+                  <th className="text-left p-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100 dark:border-slate-800">Ücretlendirme</th>
+                  <th className="text-left p-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100 dark:border-slate-800">Puan / Yorum</th>
+                  <th className="text-left p-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100 dark:border-slate-800">Durum</th>
+                  <th className="text-right p-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-gray-100 dark:border-slate-800">Aksiyon</th>
                 </tr>
               </thead>
               <tbody>
@@ -494,10 +494,10 @@ export default function TutorLessons() {
                   myCourses.map((course, i) => (
                     <tr
                       key={course.id}
-                      className="animate-in fade-in slide-in-from-left-4"
+                      className="animate-in fade-in slide-in-from-left-4 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors"
                       style={{ animationDelay: `${i * 100}ms` }}
                     >
-                      <td>
+                      <td className="p-6 border-b border-gray-50 dark:border-slate-800/50 align-middle">
                         <div className="flex items-center gap-3">
                           {course.photos && course.photos.length > 0 ? (
                             <img
@@ -516,14 +516,14 @@ export default function TutorLessons() {
                               {course.title.charAt(0)}
                             </div>
                           )}
-                          <div className="flex flex-col">
-                            <span className="font-black text-gray-900 dark:text-white text-base">
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-black text-gray-900 dark:text-white text-base truncate max-w-[200px]">
                               {course.title}
                             </span>
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td className="p-6 border-b border-gray-50 dark:border-slate-800/50 align-middle">
                         <div className="flex flex-col">
                           <span className="text-xs font-black text-gray-700 dark:text-slate-300">
                             {course.category}
@@ -533,7 +533,7 @@ export default function TutorLessons() {
                           </span>
                         </div>
                       </td>
-                      <td>
+                      <td className="p-6 border-b border-gray-50 dark:border-slate-800/50 align-middle">
                         <div className="flex flex-col">
                           <span className="font-black text-blue-600 dark:text-blue-400 text-base">
                             ₺{course.price}
@@ -543,7 +543,7 @@ export default function TutorLessons() {
                           </span>
                         </div>
                       </td>
-                      <td>
+                      <td className="p-6 border-b border-gray-50 dark:border-slate-800/50 align-middle">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1 text-yellow-500 font-black">
                             <Star className="w-3.5 h-3.5 fill-yellow-500" />
@@ -554,7 +554,7 @@ export default function TutorLessons() {
                           </span>
                         </div>
                       </td>
-                      <td>
+                      <td className="p-6 border-b border-gray-50 dark:border-slate-800/50 align-middle">
                         <StatusBadge $status={course.status}>
                           {course.status === "Active" ? (
                             <>
@@ -575,7 +575,7 @@ export default function TutorLessons() {
                           )}
                         </StatusBadge>
                       </td>
-                      <td>
+                      <td className="p-6 border-b border-gray-50 dark:border-slate-800/50 align-middle">
                         <div className="flex justify-end gap-3">
                           <IconButton
                             title="Düzenle"
@@ -597,7 +597,7 @@ export default function TutorLessons() {
                 )}
               </tbody>
             </table>
-          </TableContainer>
+          </div>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -902,6 +902,7 @@ const TableContainer = styled.div`
 
   table {
     width: 100%;
+    min-width: 800px;
     border-collapse: collapse;
 
     th {

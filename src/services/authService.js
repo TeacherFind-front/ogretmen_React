@@ -13,10 +13,10 @@ import { apiFetch } from "./api";
  * @param {string} password
  * @returns {{ token, userId, fullName, email, role }}
  */
-export async function login(email, password) {
+export async function login(email, password, rememberMe = false) {
   const res = await apiFetch("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, rememberMe }),
   });
 
   if (!res.ok) {
@@ -140,15 +140,40 @@ export async function forgotPassword(email) {
   return res.json();
 }
 
+/**
+ * Şifre sıfırlama işlemi (yeni şifre belirleme)
+ */
 export async function resetPassword(email, code, newPassword) {
   const res = await apiFetch("/api/auth/reset-password", {
     method: "POST",
     body: JSON.stringify({ email, code, newPassword }),
   });
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || "Şifre sıfırlama başarısız.");
   }
+
+  return res.json();
+}
+
+/**
+ * Firebase ID Token ile sosyal giriş yap
+ * @param {string} provider - 'google' veya 'apple'
+ * @param {string} idToken - Firebase'den dönen ID Token
+ * @param {string} role - Kayıt oluyorsa zorunlu ('student' veya 'tutor')
+ */
+export async function socialLogin(provider, idToken, role = null) {
+  const res = await apiFetch("/api/auth/social-login", {
+    method: "POST",
+    body: JSON.stringify({ provider, idToken, role }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Sosyal giriş başarısız.");
+  }
+
   return res.json();
 }
 

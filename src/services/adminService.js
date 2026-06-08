@@ -106,6 +106,18 @@ export async function getAdminListings(query = {}) {
 }
 
 /**
+ * Tekil ilan detayını admin yetkisiyle getir
+ */
+export async function getAdminListingDetail(listingId) {
+  const res = await apiFetch(`/api/admin/listings/${listingId}`);
+  if (!res || !res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "İlan detayı yüklenemedi.");
+  }
+  return res.json();
+}
+
+/**
  * İlanı onayla veya reddet
  */
 export async function approveListing(listingId, isApproved, reason = "Uygun görülmedi.") {
@@ -119,8 +131,15 @@ export async function approveListing(listingId, isApproved, reason = "Uygun gör
   }
 
   const res = await apiFetch(`/api/admin/listings/${listingId}/${endpoint}`, options);
-  if (!res || !res.ok) throw new Error("İşlem başarısız.");
-  return res.json();
+  
+  if (!res || !res.ok) {
+    const err = res ? await res.json().catch(() => ({})) : {};
+    throw new Error(err.message || "İşlem sırasında bir hata oluştu.");
+  }
+  
+  // Bazı durumlarda backend boş gövde (200 OK) dönebilir.
+  const text = await res.text();
+  return text ? JSON.parse(text) : { success: true };
 }
 
 /**

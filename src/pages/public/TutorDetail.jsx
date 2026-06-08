@@ -199,10 +199,10 @@ function TutorDetail() {
                   }}
                 />
               </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-1">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tutor.teacherName}</h1>
-                  <div className="text-xl font-black text-gray-900 dark:text-white">{tutor.price} ₺/saat</div>
+              <div className="flex-1 w-full min-w-0">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 gap-2 sm:gap-0">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate w-full">{tutor.teacherName}</h1>
+                  <div className="text-xl font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-lg shrink-0">{tutor.price} ₺/saat</div>
                 </div>
                 
                 <div className="flex justify-between items-center mb-3">

@@ -283,8 +283,8 @@ export default function TutorsList() {
 
         {/* Main Content */}
         <main className="flex-1 shrink min-w-0">
-          <div className="hidden lg:flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 lg:mb-8 gap-4">
+            <h2 className="hidden lg:flex text-xl font-bold text-gray-900 dark:text-white items-center gap-2">
               {loading && filters.page === 1 ? (
                 <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
               ) : (
