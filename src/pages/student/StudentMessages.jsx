@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { useSearchParams } from "react-router-dom";
 import { getConversations, getMessages, sendMessage } from "@/services/messageService";
 import { startChatConnection, stopChatConnection, sendMessageLive } from "@/services/chatService";
-import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Paperclip } from "lucide-react";
+import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Paperclip, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
 
 export default function StudentMessages() {
@@ -160,10 +160,10 @@ export default function StudentMessages() {
   }
 
   return (
-    <div className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] border border-gray-100 dark:border-slate-800 flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl">
+    <div className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] border border-gray-100 dark:border-slate-800 flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl relative">
       
       {/* Sidebar */}
-      <div className="w-96 border-r dark:border-slate-800 flex flex-col bg-gray-50/50 dark:bg-[#0f172a]/40 shrink-0">
+      <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r dark:border-slate-800 flex-col bg-gray-50/50 dark:bg-[#0f172a]/40 shrink-0`}>
         <div className="p-6 border-b dark:border-slate-800 bg-white dark:bg-[#1e293b]">
           <div className="relative group">
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
@@ -206,12 +206,18 @@ export default function StudentMessages() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-[#1e293b]">
+      <div className={`${!selectedConv ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-white dark:bg-[#1e293b] w-full md:w-auto absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`}>
         {selectedConv ? (
           <>
             {/* Chat Header */}
-            <div className="h-20 border-b dark:border-slate-800 px-8 flex items-center justify-between bg-white dark:bg-[#1e293b] shrink-0">
-               <div className="flex items-center gap-4">
+            <div className="h-20 border-b dark:border-slate-800 px-4 md:px-8 flex items-center justify-between bg-white dark:bg-[#1e293b] shrink-0">
+               <div className="flex items-center gap-3 md:gap-4">
+                  <button 
+                    className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                    onClick={() => setSelectedConv(null)}
+                  >
+                    <ArrowLeft size={24} />
+                  </button>
                   <Avatar $small>
                     {selectedConv.otherUserName?.charAt(0)}
                   </Avatar>

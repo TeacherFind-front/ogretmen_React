@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
 
 export default function StudentLayout() {
@@ -110,20 +111,14 @@ export default function StudentLayout() {
       </MobileSidebar>
 
       <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-6 justify-between shadow-sm">
+        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-4 md:px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
-            <button
-              className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-xl"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <Menu size={24} />
-            </button>
             <div className="md:hidden">
               <div className="flex items-center">
                 <img
                   src="/logo.png"
                   alt="Özel Ders VIP"
-                  className="h-16 w-auto object-contain"
+                  className="h-10 w-auto object-contain"
                 />
               </div>
             </div>
@@ -145,7 +140,7 @@ export default function StudentLayout() {
                 Hoş geldin, {user?.fullName || "Kullanıcı"}
               </span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 overflow-hidden shrink-0">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -158,10 +153,13 @@ export default function StudentLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-[#0f172a] transition-colors duration-300">
+        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 bg-gray-50 dark:bg-[#0f172a] transition-colors duration-300 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onMenuClick={() => setIsMenuOpen(true)} />
     </div>
   );
 }

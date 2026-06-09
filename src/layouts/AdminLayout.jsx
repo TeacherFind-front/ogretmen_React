@@ -16,6 +16,7 @@ import {
   Home
 } from "lucide-react";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
 
 export default function AdminLayout() {
@@ -82,8 +83,11 @@ export default function AdminLayout() {
 
       {/* Mobile Nav */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#0f172a] z-50 flex items-center px-6 justify-between border-b border-white/5">
-         <Shield className="text-blue-500 w-8 h-8" />
-         <button onClick={() => setIsMenuOpen(true)} className="text-white"><Menu /></button>
+         <div className="flex items-center gap-2">
+           <Shield className="text-blue-500 w-8 h-8" />
+           <span className="text-white font-bold tracking-widest text-sm uppercase">Admin Panel</span>
+         </div>
+         <ThemeSwitch />
       </div>
 
       <MobileSidebar $isOpen={isMenuOpen}>
@@ -97,11 +101,22 @@ export default function AdminLayout() {
                   {link.icon} <span>{link.label}</span>
                </AdminSideLink>
             ))}
+            <div className="pt-4 mt-4 border-t border-white/10">
+              <button 
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                }}
+                className="w-full py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
+              >
+                 <LogOut size={16} /> Çıkış Yap
+              </button>
+            </div>
          </nav>
       </MobileSidebar>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 pt-16 lg:pt-0">
          <header className="h-20 bg-white dark:bg-[#1e293b] border-b border-slate-100 dark:border-slate-800 hidden lg:flex items-center px-10 sticky top-0 z-30 transition-colors">
             <div className="flex-1"></div>
            <div className="ml-auto flex items-center gap-4">
@@ -127,12 +142,15 @@ export default function AdminLayout() {
            </div>
         </header>
 
-        <main className="flex-1 p-10 bg-[#f8fafc] dark:bg-[#0f172a] transition-colors">
+        <main className="flex-1 p-4 lg:p-10 pb-24 lg:pb-10 bg-[#f8fafc] dark:bg-[#0f172a] transition-colors overflow-x-hidden">
            <div className="max-w-7xl mx-auto">
               <Outlet />
            </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onMenuClick={() => setIsMenuOpen(true)} />
     </div>
   );
 }

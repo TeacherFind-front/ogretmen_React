@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
 
 export default function TutorLayout() {
@@ -98,17 +99,11 @@ export default function TutorLayout() {
       </MobileSidebar>
 
       <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-6 justify-between shadow-sm">
+        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-4 md:px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
-            <button
-              className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-xl"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
             <div className="md:hidden">
               <div className="flex items-center">
-                <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+                <img src="/logo.png" alt="Özel Ders VIP" className="h-10 w-auto object-contain" />
               </div>
             </div>
           </div>
@@ -129,7 +124,7 @@ export default function TutorLayout() {
                 Hoş geldin, {user?.fullName?.split(" ")[0] || "Hocam"}
               </span>
             </div>
-            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 overflow-hidden shrink-0">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -142,10 +137,13 @@ export default function TutorLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300">
+        <main className="flex-1 p-4 pb-24 md:pb-4 bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onMenuClick={() => setIsMenuOpen(true)} />
     </div>
   );
 }

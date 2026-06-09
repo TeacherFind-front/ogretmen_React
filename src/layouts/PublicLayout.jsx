@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import BottomNav from "@/components/BottomNav";
 
 export default function PublicLayout() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function PublicLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-[#fcfdff] text-[#0f172a] dark:bg-[#0f172a] dark:text-slate-100 transition-colors duration-300">
       {/* Premium Navbar */}
-      <nav className="sticky top-0 z-[100] w-full border-b border-gray-100 dark:border-[#1e293b] bg-white/70 dark:bg-[#0f172a]/80 backdrop-blur-2xl transition-colors duration-300">
+      <nav className="sticky top-0 z-[90] w-full border-b border-gray-100 dark:border-[#1e293b] bg-white/70 dark:bg-[#0f172a]/80 backdrop-blur-2xl transition-colors duration-300">
         <div className="container mx-auto h-20 flex items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2 no-underline group">
             <div className="flex items-center">
@@ -91,12 +92,6 @@ export default function PublicLayout() {
           {/* Mobile Toggle */}
           <div className="md:hidden flex items-center gap-3">
             <ThemeSwitch />
-            <button
-              className="p-2 text-gray-900 dark:text-gray-100"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
           </div>
         </div>
 
@@ -296,6 +291,9 @@ export default function PublicLayout() {
           </div>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onMenuClick={() => setIsMenuOpen(true)} />
     </div>
   );
 }
