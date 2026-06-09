@@ -6,7 +6,7 @@ import styled from "styled-components";
 import toast from "react-hot-toast";
 import { useAuth } from "@/store/AuthContext";
 import { login as authLogin, socialLogin } from "@/services/authService";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
 import { auth, googleProvider } from "@/config/firebase";
 
 export default function Login() {
@@ -117,6 +117,11 @@ export default function Login() {
     try {
       setLoading(true);
       setError("");
+
+      // signInWithPopup'tan ÖNCE çağır (Backend raporuna istinaden eklendi)
+      await setPersistence(auth,
+        data.rememberMe ? browserLocalPersistence : browserSessionPersistence
+      );
       
       const provider = googleProvider;
       const result = await signInWithPopup(auth, provider);
