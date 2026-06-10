@@ -1,35 +1,62 @@
-name: Deploy React to Plesk via FTP
+name: Deploy React Frontend to IIS
 
 on:
   push:
     branches:
-      - Develop
       - main
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  deploy-frontend:
+    runs-on: self-hosted
+
+    env:
+      SITE_PATH: C:\Sites\OzelDersVip\frontend
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Show Node version
+        shell: powershell
+        run: |
+          node -v
+          npm.cmd -v
 
-    - name: Install Dependencies
-      run: npm install
+      - name: Install dependencies
+        shell: powershell
+        run: npm.cmd ci
 
-    - name: Build Project
-      run: npm run build
+      - name: Create production env
+        shell: powershell
+        run: |
+          @"
+          VITE_API_BASE_URL=http://api.ozeldersvip.com
+          VITE_API_URL=http://api.ozeldersvip.com
+          VITE_BASE_API_URL=http://api.ozeldersvip.com
+          VITE_SIGNALR_URL=http://api.ozeldersvip.com/chat
+          "@ | Set-Content -Path ".env.production" -Encoding UTF8
 
-    - name: Deploy via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./dist/
-        server-dir: /httpdocs/
+      - name: Build frontend
+        shell: powershell
+        run: npm.cmd run build
+
+      - name: Deploy to IIS folder
+        shell: powershell
+        run: |
+          $sitePath = $env:SITE_PATH
+          $distPath = Join-Path $PWD "dist"
+
+          if (!(Test-Path $sitePath)) {
+            New-Item -ItemType Directory -Path $sitePath -Force | Out-Null
+          }
+
+          Get-ChildItem -Path $sitePath -Force | Remove-Item -Recurse -Force
+          Copy-Item -Path "$distPath\*" -Destination $sitePath -Recurse -Force
+
+      - name: Test frontend domain
+        shell: powershell
+        continue-on-error: true
+        run: |
+          Start-Sleep -Seconds 5
+          Invoke-WebRequest -UseBasicParsing http://ozeldersvip.com -TimeoutSec 30 | Select-Object StatusCode, Content
