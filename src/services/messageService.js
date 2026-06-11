@@ -14,7 +14,17 @@ import { apiFetch } from "./api";
 export async function getConversations() {
   const res = await apiFetch("/api/messages/conversations");
   if (!res || !res.ok) return [];
-  return res.json();
+  
+  const data = await res.json();
+  
+  // Backend'in güncel build'inin geldiğini teyit etmek için geçici log (UI'da gösterilmez)
+  if (data.length > 0 && data[0].debugVersion) {
+    console.log("Backend Debug Version:", data[0].debugVersion);
+  } else if (data.debugVersion) {
+    console.log("Backend Debug Version:", data.debugVersion);
+  }
+  
+  return data;
 }
 
 /**
