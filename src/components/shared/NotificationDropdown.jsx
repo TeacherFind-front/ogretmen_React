@@ -17,11 +17,16 @@ export default function NotificationDropdown() {
     fetchNotifications();
 
     // Canlı bildirimleri dinle
-    startChatConnection(null, (newNotification) => {
-      setNotifications(prev => [newNotification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-      // Opsiyonel: Tarayıcı bildirimi sesi veya browser notification
-    });
+    const setupSignalR = async () => {
+      const connection = await startChatConnection();
+      if (connection) {
+        connection.on("ReceiveNotification", (newNotification) => {
+          setNotifications(prev => [newNotification, ...prev]);
+          setUnreadCount(prev => prev + 1);
+        });
+      }
+    };
+    setupSignalR();
 
     // Dışarı tıklayınca kapat
     const handleClickOutside = (e) => {

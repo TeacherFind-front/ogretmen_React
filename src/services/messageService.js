@@ -39,6 +39,9 @@ export async function sendMessage({ receiverId, content }) {
 
   if (!res || !res.ok) {
     const err = await res?.json().catch(() => ({}));
+    if (err.inner && import.meta.env.DEV) {
+      console.error("SendMessage API Error Detail:", err.inner);
+    }
     throw new Error(err.message || "Mesaj gönderilemedi.");
   }
 

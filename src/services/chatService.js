@@ -6,7 +6,7 @@ let connection = null;
 /**
  * SignalR bağlantısını başlatır.
  */
-export const startChatConnection = async (onMessageReceived, onNotificationReceived) => {
+export const startChatConnection = async () => {
   const token = localStorage.getItem("token");
   if (!token) return null;
 
@@ -24,21 +24,13 @@ export const startChatConnection = async (onMessageReceived, onNotificationRecei
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
-  connection.on("ReceiveMessage", (message) => {
-    if (onMessageReceived) onMessageReceived(message);
-  });
-
-  connection.on("ReceiveNotification", (notification) => {
-    if (onNotificationReceived) onNotificationReceived(notification);
-  });
-
   try {
     await connection.start();
     console.log("SignalR Connected.");
     return connection;
   } catch (err) {
     console.error("SignalR Connection Error: ", err);
-    setTimeout(() => startChatConnection(onMessageReceived, onNotificationReceived), 5000);
+    setTimeout(() => startChatConnection(), 5000);
     return null;
   }
 };

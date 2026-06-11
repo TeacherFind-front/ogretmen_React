@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useSearchParams } from "react-router-dom";
 import { getConversations, getMessages, sendMessage } from "@/services/messageService";
-import { startChatConnection, stopChatConnection, sendMessageLive } from "@/services/chatService";
+import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
 import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Paperclip, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
 
@@ -48,10 +48,20 @@ export default function StudentMessages() {
       });
     };
 
-    startChatConnection(handleNewMessage);
+    const setupSignalR = async () => {
+      const connection = await startChatConnection();
+      if (connection) {
+        connection.off("ReceiveMessage", handleNewMessage);
+        connection.on("ReceiveMessage", handleNewMessage);
+      }
+    };
+    setupSignalR();
 
     return () => {
-      stopChatConnection();
+      const connection = getChatConnection();
+      if (connection) {
+        connection.off("ReceiveMessage", handleNewMessage);
+      }
     };
   }, [selectedConv, user?.userId]);
 
