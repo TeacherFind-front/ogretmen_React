@@ -200,7 +200,7 @@ export default function StudentMessages() {
               </div>
               <div className="flex-1 min-w-0">
                  <div className="flex justify-between items-center mb-1">
-                    <h4 className="font-bold text-gray-900 dark:text-slate-100 text-sm truncate">{conv.otherUserName}</h4>
+                    <h4 className="font-bold text-gray-900 dark:text-slate-100 text-sm truncate">{conv.otherUserName || "Kullanıcı"}</h4>
                     <span className="text-[10px] font-bold text-gray-400 uppercase">
                        {new Date(conv.lastMessageAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
                     </span>
@@ -232,7 +232,7 @@ export default function StudentMessages() {
                     {selectedConv.otherUserName?.charAt(0)}
                   </Avatar>
                   <div>
-                     <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName}</h3>
+                     <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName || "Kullanıcı"}</h3>
                      <div className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
                         <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Çevrimiçi</span>
