@@ -385,7 +385,7 @@ export default function AdminSettings() {
                         })
                       }
                       className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 dark:text-slate-200"
-                      placeholder="özel ders vip, matematik dersi, online eğitim"
+                      placeholder="özel hoca, matematik dersi, online eğitim"
                     />
                   </div>
                 </div>
