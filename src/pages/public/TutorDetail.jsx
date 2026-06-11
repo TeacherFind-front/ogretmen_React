@@ -101,10 +101,16 @@ function TutorDetail() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!messageContent.trim()) return;
+    
+    const targetId = tutor.teacherUserId;
+    if (!targetId) {
+      toast.error("Öğretmen kullanıcı bilgisi bulunamadı. Lütfen daha sonra tekrar deneyin.");
+      return;
+    }
+
     setSendingMessage(true);
     try {
-      const targetId = tutor.teacherUserId || tutor.teacherProfileId;
-      await sendMessage({ receiverId: targetId, content: messageContent });
+      await sendMessage({ receiverId: targetId, content: messageContent.trim() });
       toast.success("Mesajınız iletildi!");
       setMessageContent("");
     } catch (err) {
