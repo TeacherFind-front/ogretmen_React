@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { getMe } from "@/services/authService";
+import { getMe, sendHeartbeat } from "@/services/authService";
+import { stopChatConnection } from "@/services/chatService";
 
 /**
  * Auth Context
@@ -70,6 +71,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
     setUser(null);
+    stopChatConnection();
   }, []);
 
   const value = useMemo(() => ({
@@ -79,6 +81,23 @@ export function AuthProvider({ children }) {
     login: handleLogin,
     logout: handleLogout,
   }), [user, isLoading]);
+
+  // Heartbeat Effect
+  useEffect(() => {
+    if (!user) return;
+
+    // Hemen bir tane gönder
+    sendHeartbeat();
+
+    const interval = setInterval(() => {
+      // Sadece sayfa görünür durumdaysa heartbeat at
+      if (document.visibilityState === 'visible') {
+        sendHeartbeat();
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -187,3 +187,14 @@ export function logout() {
   // Backend'e session bitirme isteği gönderilebilir (opsiyonel)
   window.location.href = "/login";
 }
+
+/**
+ * Kullanıcı online durumunu güncel tutmak için heartbeat
+ */
+export async function sendHeartbeat() {
+  try {
+    await apiFetch("/api/users/heartbeat", { method: "POST" });
+  } catch (err) {
+    // Sessizce geç
+  }
+}

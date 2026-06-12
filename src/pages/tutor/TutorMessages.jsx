@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { getConversations, getMessages, sendMessage } from "@/services/messageService";
+import { getConversations, getMessages, sendMessage, deleteMessages } from "@/services/messageService";
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
-import { Loader2, Send, Search, MoreVertical, Check, CheckCheck } from "lucide-react";
+import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Trash2, CheckCircle2, Reply, CornerUpLeft, X } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
 
 export default function TutorMessages() {
@@ -13,12 +13,17 @@ export default function TutorMessages() {
   const [loading, setLoading] = useState(true);
   const [msgLoading, setMsgLoading] = useState(false);
   const [newMsg, setNewMsg] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedMessages, setSelectedMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
   // SignalR bağlantısı ve mesaj dinleme
   useEffect(() => {
     fetchConversations();
+  }, []);
 
+  useEffect(() => {
     const handleNewMessage = (message) => {
       // Eğer bu mesaj seçili konuşmaysa mesajlara ekle
       if (selectedConv && (message.senderId === selectedConv.otherUserId || message.receiverId === selectedConv.otherUserId)) {
@@ -51,11 +56,30 @@ export default function TutorMessages() {
       });
     };
 
+    const handleUserStatusChanged = ({ userId, isOnline, lastSeenAt }) => {
+      setConversations(prev => prev.map(c => {
+        if (c.otherUserId === userId) {
+          return { ...c, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
+        }
+        return c;
+      }));
+
+      setSelectedConv(prev => {
+        if (prev && prev.otherUserId === userId) {
+          return { ...prev, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
+        }
+        return prev;
+      });
+    };
+
     const setupSignalR = async () => {
       const connection = await startChatConnection();
       if (connection) {
         connection.off("ReceiveMessage", handleNewMessage);
         connection.on("ReceiveMessage", handleNewMessage);
+        
+        connection.off("UserStatusChanged", handleUserStatusChanged);
+        connection.on("UserStatusChanged", handleUserStatusChanged);
       }
     };
     setupSignalR();
@@ -64,6 +88,7 @@ export default function TutorMessages() {
       const connection = getChatConnection();
       if (connection) {
         connection.off("ReceiveMessage", handleNewMessage);
+        connection.off("UserStatusChanged", handleUserStatusChanged);
       }
     };
   }, [selectedConv, user?.userId]);
@@ -115,16 +140,17 @@ export default function TutorMessages() {
 
     const msgContent = newMsg.trim();
     setNewMsg("");
+    const replyId = replyTo?.id;
+    setReplyTo(null);
 
     try {
-      // Önce canlı göndermeyi dene, SignalR üzerinden kendine de ReceiveMessage gelecek
-      const success = await sendMessageLive(selectedConv.otherUserId, msgContent);
+      const success = await sendMessageLive(selectedConv.otherUserId, msgContent, replyId);
       
       if (!success) {
-        // SignalR başarısızsa HTTP üzerinden gönder
         const sent = await sendMessage({
           receiverId: selectedConv.otherUserId,
-          content: msgContent
+          content: msgContent,
+          replyToMessageId: replyId
         });
         setMessages(prev => [...prev, sent]);
       }
@@ -169,7 +195,10 @@ export default function TutorMessages() {
                     $active={selectedConv?.conversationId === conv.conversationId}
                     onClick={() => setSelectedConv(conv)}
                   >
-                    <Avatar>{conv.otherUserName?.charAt(0) || "U"}</Avatar>
+                    <div className="relative">
+                      <Avatar>{conv.otherUserName?.charAt(0) || "U"}</Avatar>
+                      {conv.otherUserIsOnline && <OnlineStatus />}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-bold text-gray-900 dark:text-white truncate">{conv.otherUserName || "Kullanıcı"}</span>
@@ -199,38 +228,144 @@ export default function TutorMessages() {
                     <Avatar $large>{selectedConv.otherUserName?.charAt(0) || "U"}</Avatar>
                     <div>
                       <h3 className="font-bold text-gray-900 dark:text-white">{selectedConv.otherUserName || "Kullanıcı"}</h3>
-                      <span className="text-[11px] text-green-500 font-bold flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Çevrimiçi
-                      </span>
+                      {selectedConv.otherUserIsOnline ? (
+                        <span className="text-[11px] text-green-500 font-bold flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Çevrimiçi
+                        </span>
+                      ) : selectedConv.otherUserLastSeenAt ? (
+                        <span className="text-[11px] text-gray-500 font-bold flex items-center gap-1">
+                          Son görülme: {new Date(selectedConv.otherUserLastSeenAt).toLocaleDateString('tr-TR')} {new Date(selectedConv.otherUserLastSeenAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-gray-400 font-bold flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div> Çevrimdışı
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <button className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                    <MoreVertical className="w-5 h-5 text-gray-400" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {selectionMode ? (
+                      <>
+                        <button 
+                          onClick={() => { setSelectionMode(false); setSelectedMessages([]); }}
+                          className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl"
+                        >
+                          İptal
+                        </button>
+                        {selectedMessages.length > 0 && (
+                          <button 
+                            onClick={async () => {
+                              if(window.confirm(`${selectedMessages.length} mesajı silmek istediğinize emin misiniz?`)) {
+                                try {
+                                  await deleteMessages(selectedMessages);
+                                  setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
+                                  setSelectionMode(false);
+                                  setSelectedMessages([]);
+                                } catch(err) {
+                                  alert("Silme işlemi başarısız: " + err.message);
+                                }
+                              }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                          >
+                            <Trash2 size={16} /> <span className="hidden sm:inline">Sil ({selectedMessages.length})</span>
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <div className="relative group/menu">
+                        <button className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                          <MoreVertical className="w-5 h-5 text-gray-400" />
+                        </button>
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
+                          <button 
+                            onClick={() => setSelectionMode(true)}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
+                          >
+                            <CheckCircle2 size={16} /> Mesaj Seç
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex-1 bg-[#f8fafc] dark:bg-[#0f172a] p-6 overflow-y-auto custom-scrollbar space-y-4">
                   {msgLoading && messages.length === 0 ? (
                     <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-blue-400" /></div>
                   ) : (
-                    messages.map((m) => (
-                      <MessageGroup key={m.id} $isMine={m.senderId === user?.userId}>
-                        <MessageBubble $isMine={m.senderId === user?.userId}>
-                          {m.content}
-                          <div className="time flex items-center justify-end gap-1">
-                            {new Date(m.sentAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
-                            {m.senderId === user?.userId && (
-                              m.isRead ? <CheckCheck className="w-3 h-3 text-white" /> : <Check className="w-3 h-3 text-white/70" />
-                            )}
-                          </div>
-                        </MessageBubble>
-                      </MessageGroup>
-                    ))
+                    messages.map((m, i) => {
+                      const isMine = m.senderId === user?.userId;
+                      const isSelected = selectedMessages.includes(m.id || i);
+
+                      return (
+                        <div key={m.id || i} className={`flex items-center gap-4 group/msg ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
+                          {selectionMode && (
+                            <button 
+                              onClick={() => setSelectedMessages(prev => 
+                                prev.includes(m.id || i) ? prev.filter(id => id !== (m.id || i)) : [...prev, m.id || i]
+                              )}
+                              className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
+                            >
+                              {isSelected && <Check size={14} strokeWidth={3} />}
+                            </button>
+                          )}
+
+                          <MessageGroup $isMine={isMine} className="flex-1">
+                            <div className={`flex items-center gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} w-full`}>
+                              <MessageBubble $isMine={isMine}>
+                                {m.replyToMessageContent && (
+                                  <div className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg text-sm border-l-4 border-black/10 dark:border-white/10 opacity-80">
+                                    <span className="font-bold block mb-0.5 text-xs">Yanıt:</span>
+                                    <p className="truncate">{m.replyToMessageContent}</p>
+                                  </div>
+                                )}
+                                {m.content}
+                                <div className="time flex items-center justify-end gap-1">
+                                  {new Date(m.sentAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
+                                  {isMine && (
+                                    m.isRead ? <CheckCheck className="w-3 h-3 text-white" /> : <Check className="w-3 h-3 text-white/70" />
+                                  )}
+                                </div>
+                              </MessageBubble>
+
+                              {!selectionMode && (
+                                <button 
+                                  onClick={() => setReplyTo(m)}
+                                  className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all shrink-0 mx-2"
+                                >
+                                  <Reply size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </MessageGroup>
+                        </div>
+                      );
+                    })
                   )}
                   <div ref={messagesEndRef} />
                 </div>
 
                 <div className="p-4 border-t dark:border-slate-700 bg-white dark:bg-[#1e293b]">
+                  {replyTo && (
+                    <div className="mb-4 flex items-start justify-between bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border-l-4 border-blue-500">
+                      <div className="flex-1 min-w-0 pr-4">
+                        <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1.5">
+                          <CornerUpLeft size={12} />
+                          {replyTo.senderId === user?.userId ? 'Kendi mesajınıza yanıt veriyorsunuz' : 'Yanıt veriyorsunuz'}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-slate-300 truncate">
+                          {replyTo.content}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setReplyTo(null)}
+                        className="p-1.5 text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors shrink-0"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
                   <form onSubmit={handleSend} className="flex gap-3">
                     <InputWrapper>
                       <input 
@@ -305,6 +440,21 @@ const ConversationItem = styled.div`
   &:hover {
     background: #f8fafc;
     .dark & { background: #33415540; }
+  }
+`;
+
+const OnlineStatus = styled.div`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  background: #22c55e;
+  border: 3px solid white;
+  border-radius: 50%;
+
+  .dark & {
+    border-color: #0f172a;
   }
 `;
 

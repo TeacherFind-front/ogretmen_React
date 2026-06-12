@@ -38,10 +38,12 @@ export const startChatConnection = async () => {
 /**
  * Mesaj gönderir.
  */
-export const sendMessageLive = async (receiverId, content) => {
+export const sendMessageLive = async (receiverId, content, replyToMessageId = null) => {
   if (connection && connection.state === signalR.HubConnectionState.Connected) {
     try {
-      await connection.invoke("SendMessage", { receiverId, content });
+      const payload = { receiverId, content };
+      if (replyToMessageId) payload.replyToMessageId = replyToMessageId;
+      await connection.invoke("SendMessage", payload);
       return true;
     } catch (err) {
       console.error("SendMessage Error: ", err);

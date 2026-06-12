@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useSearchParams } from "react-router-dom";
-import { getConversations, getMessages, sendMessage } from "@/services/messageService";
+import { getConversations, getMessages, sendMessage, deleteMessages } from "@/services/messageService";
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
 import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, ArrowLeft, Trash2, CornerUpLeft, X, Circle, CheckCircle2, Reply } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
@@ -22,7 +22,9 @@ export default function StudentMessages() {
 
   useEffect(() => {
     fetchConversations();
+  }, [searchParams]);
 
+  useEffect(() => {
     const handleNewMessage = (message) => {
       if (selectedConv && (message.senderId === selectedConv.otherUserId || message.receiverId === selectedConv.otherUserId)) {
         setMessages(prev => {
@@ -51,11 +53,30 @@ export default function StudentMessages() {
       });
     };
 
+    const handleUserStatusChanged = ({ userId, isOnline, lastSeenAt }) => {
+      setConversations(prev => prev.map(c => {
+        if (c.otherUserId === userId) {
+          return { ...c, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
+        }
+        return c;
+      }));
+
+      setSelectedConv(prev => {
+        if (prev && prev.otherUserId === userId) {
+          return { ...prev, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
+        }
+        return prev;
+      });
+    };
+
     const setupSignalR = async () => {
       const connection = await startChatConnection();
       if (connection) {
         connection.off("ReceiveMessage", handleNewMessage);
         connection.on("ReceiveMessage", handleNewMessage);
+        
+        connection.off("UserStatusChanged", handleUserStatusChanged);
+        connection.on("UserStatusChanged", handleUserStatusChanged);
       }
     };
     setupSignalR();
@@ -64,6 +85,7 @@ export default function StudentMessages() {
       const connection = getChatConnection();
       if (connection) {
         connection.off("ReceiveMessage", handleNewMessage);
+        connection.off("UserStatusChanged", handleUserStatusChanged);
       }
     };
   }, [selectedConv, user?.userId]);
@@ -148,7 +170,7 @@ export default function StudentMessages() {
       setNewMsg("");
       setReplyTo(null);
 
-      const success = await sendMessageLive(selectedConv.otherUserId, newMsg.trim());
+      const success = await sendMessageLive(selectedConv.otherUserId, newMsg.trim(), replyTo?.id);
       if (!success) {
         
         // Eğer bu yeni bir konuşmaysa, conversationId'yi güncelle
@@ -199,7 +221,7 @@ export default function StudentMessages() {
                  <Avatar>
                    {conv.otherUserName?.charAt(0)}
                  </Avatar>
-                 <OnlineStatus />
+                 {conv.otherUserIsOnline && <OnlineStatus />}
               </div>
               <div className="flex-1 min-w-0">
                  <div className="flex justify-between items-center mb-1">
@@ -237,8 +259,19 @@ export default function StudentMessages() {
                   <div>
                      <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName || "Kullanıcı"}</h3>
                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                        <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Çevrimiçi</span>
+                        {selectedConv.otherUserIsOnline ? (
+                          <>
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Çevrimiçi</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                              {selectedConv.otherUserLastSeenAt ? `Son görülme: ${new Date(selectedConv.otherUserLastSeenAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}` : "Çevrimdışı"}
+                            </span>
+                          </>
+                        )}
                      </div>
                   </div>
                </div>
@@ -256,9 +289,14 @@ export default function StudentMessages() {
                        <button 
                          onClick={async () => {
                            if(window.confirm(`${selectedMessages.length} mesajı silmek istediğinize emin misiniz?`)) {
-                             alert("Silme işlemi (Backend entegrasyonu bekleniyor)");
-                             setSelectionMode(false);
-                             setSelectedMessages([]);
+                             try {
+                               await deleteMessages(selectedMessages);
+                               setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
+                               setSelectionMode(false);
+                               setSelectedMessages([]);
+                             } catch(err) {
+                               alert(err.message);
+                             }
                            }
                          }}
                          className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
