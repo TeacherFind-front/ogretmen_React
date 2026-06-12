@@ -100,7 +100,6 @@ function TutorDetail() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!messageContent.trim()) return;
     
     const targetId = tutor.teacherUserId;
     if (!targetId) {
@@ -108,14 +107,8 @@ function TutorDetail() {
       return;
     }
 
-    setSendingMessage(true);
-    try {
-      await sendMessage({ receiverId: targetId, content: messageContent.trim() });
-      toast.success("Mesajınız iletildi!");
-      setMessageContent("");
-    } catch (err) {
-      toast.error("Mesaj gönderilemedi.");
-    } finally { setSendingMessage(false); }
+    // Direct to messages screen
+    navigate(`/student/messages?tutorId=${targetId}&tutorName=${encodeURIComponent(tutor.teacherName)}`);
   };
 
   const handleSubmitReview = async (e) => {
@@ -584,37 +577,12 @@ function TutorDetail() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSendMessage} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <textarea 
-                      className="w-full h-28 bg-[#f8fafc] dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-700 dark:text-slate-300 outline-none focus:border-blue-500 transition-all resize-none"
-                      placeholder={`Merhaba ${tutor.teacherName?.split(' ')[0]}, ders almak istiyorum...`}
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Konu ve seviye</label>
-                    <select className="w-full h-10 bg-[#f8fafc] dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 rounded-lg px-3 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none">
-                      <option>{tutor.subject} - Genel</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2 px-1">
-                    <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600" checked readOnly />
-                    <span className="text-[10px] text-slate-500 font-medium leading-tight">
-                      {tutor.teacherName?.split(' ')[0]} gibi 2-3 eğitmenin görüşlerini dinleyin.
-                    </span>
-                  </div>
-
+                <form onSubmit={handleSendMessage} className="space-y-4 mt-4">
                   <Button 
                     type="submit" 
                     className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-md shadow-lg shadow-emerald-200 dark:shadow-none"
-                    disabled={sendingMessage}
                   >
-                    {sendingMessage ? <Loader2 className="animate-spin" /> : "Mesaj Gönder"}
+                    Mesaj Ekranına Git
                   </Button>
 
                   <p className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">

@@ -30,7 +30,7 @@ export default function StudentFavorites() {
   if (loading) {
     return (
       <div className="space-y-10 max-w-7xl mx-auto px-4 pb-20 mt-8">
-        <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 p-10 rounded-[3rem] border border-gray-100 dark:border-slate-700 shadow-sm">
           <Skeleton height="40px" width="200px" className="mb-4" borderRadius="20px" />
           <Skeleton height="24px" width="60%" borderRadius="12px" />
         </div>
@@ -44,24 +44,24 @@ export default function StudentFavorites() {
 
   return (
     <div className="space-y-10 max-w-7xl mx-auto px-4 pb-20 mt-8 animate-in fade-in duration-700">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white dark:bg-slate-800 p-10 rounded-[3rem] border border-gray-100 dark:border-slate-700 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 dark:bg-red-900/20 rounded-full -mr-16 -mt-16 opacity-50"></div>
         <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Favori Hocalarım</h1>
-          <p className="text-gray-500 font-medium mt-2 text-lg">Takip ettiğiniz ve ders almayı planladığınız hocalar.</p>
+          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Favori Hocalarım</h1>
+          <p className="text-gray-500 dark:text-slate-400 font-medium mt-2 text-lg">Takip ettiğiniz ve ders almayı planladığınız hocalar.</p>
         </div>
-        <Button className="h-14 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 font-bold" onClick={() => navigate("/tutors")}>
+        <Button className="h-14 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 dark:shadow-none font-bold" onClick={() => navigate("/tutors")}>
           Daha Fazla Hoca Bul
         </Button>
       </header>
 
       {favorites.length === 0 ? (
-        <div className="text-center py-32 bg-white rounded-[3rem] border border-dashed border-gray-200">
-           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Heart className="w-10 h-10 text-gray-200" />
+        <div className="text-center py-32 bg-white dark:bg-slate-800 rounded-[3rem] border border-dashed border-gray-200 dark:border-slate-700">
+           <div className="w-20 h-20 bg-gray-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Heart className="w-10 h-10 text-gray-200 dark:text-slate-500" />
            </div>
-           <p className="text-gray-400 font-bold text-lg">Henüz favori hocanız bulunmuyor.</p>
-           <Button variant="link" className="text-blue-600 font-black mt-2" onClick={() => navigate("/tutors")}>Hemen hoca keşfedin →</Button>
+           <p className="text-gray-400 dark:text-slate-400 font-bold text-lg">Henüz favori hocanız bulunmuyor.</p>
+           <Button variant="link" className="text-blue-600 dark:text-blue-400 font-black mt-2" onClick={() => navigate("/tutors")}>Hemen hoca keşfedin →</Button>
         </div>
       ) : (
         <div className="grid gap-6">

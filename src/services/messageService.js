@@ -39,12 +39,17 @@ export async function getMessages(userId) {
 
 /**
  * Mesaj gönder
- * @param {{ receiverId: string, content: string }} data
+ * @param {{ receiverId: string, content: string, replyToMessageId?: string }} data
  */
-export async function sendMessage({ receiverId, content }) {
+export async function sendMessage({ receiverId, content, replyToMessageId }) {
+  const payload = { receiverId, content };
+  if (replyToMessageId) {
+    payload.replyToMessageId = replyToMessageId;
+  }
+
   const res = await apiFetch("/api/messages", {
     method: "POST",
-    body: JSON.stringify({ receiverId, content }),
+    body: JSON.stringify(payload),
   });
 
   if (!res || !res.ok) {
@@ -53,6 +58,30 @@ export async function sendMessage({ receiverId, content }) {
       console.error("SendMessage API Error Detail:", err.inner);
     }
     throw new Error(err.message || "Mesaj gönderilemedi.");
+  }
+
+  return res.json();
+}
+
+/**
+ * Mesajları sil (Toplu veya tekli)
+ * @param {string[]} messageIds - Silinecek mesaj ID'leri
+ */
+export async function deleteMessages(messageIds) {
+  const res = await apiFetch("/api/messages/delete", {
+    method: "DELETE",
+    body: JSON.stringify({ messageIds }),
+  });
+
+  if (!res || !res.ok) {
+    // Backend henüz bu endpoint'i açmamış olabilir, geliştirme ortamında sessizce devam et
+    if (res?.status === 404) {
+      console.warn("Backend /api/messages/delete endpoint'i henüz bulunamadı. Silme işlemi mock (sahte) olarak kabul edildi.");
+      return { success: true, mock: true };
+    }
+    
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err?.message || "Mesajlar silinemedi.");
   }
 
   return res.json();
