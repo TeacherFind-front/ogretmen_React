@@ -21,7 +21,7 @@ export const getImageUrl = (url) => {
  * 401 gelirse localStorage temizleyip login'e yönlendirir.
  */
 export async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   const isFormData = options.body instanceof FormData;
   const headers = {
@@ -35,11 +35,21 @@ export async function apiFetch(path, options = {}) {
     headers,
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && path !== "/api/auth/login") {
     // Token süresi dolmuş veya geçersiz
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("userRole");
+    
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("userRole");
+
+    // Yönlendirme yap (Eğer zaten login sayfasında değilsek)
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login?expired=true";
+    }
+    
     return response;
   }
 
