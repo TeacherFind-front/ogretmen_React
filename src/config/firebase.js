@@ -13,36 +13,50 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase Authentication
-export const auth = getAuth(app);
-
-// Initialize Firestore
-export const db = getFirestore(app);
-
-// Initialize Analytics (Only if supported in the current environment e.g. browser)
+let app = null;
+let auth = null;
+let db = null;
 let analytics = null;
-isAnalyticsSupported().then((supported) => {
-  if (supported) {
-    analytics = getAnalytics(app);
-  }
-});
-export { analytics };
-
-// Initialize Firebase Cloud Messaging
 let messaging = null;
-isMessagingSupported().then((supported) => {
-  if (supported) {
-    messaging = getMessaging(app);
+
+const hasFirebaseConfig =
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.appId;
+
+try {
+  if (hasFirebaseConfig) {
+    // Initialize Firebase
+    app = initializeApp(firebaseConfig);
+
+    // Initialize Firebase Authentication
+    auth = getAuth(app);
+
+    // Initialize Firestore
+    db = getFirestore(app);
+
+    // Initialize Analytics
+    isAnalyticsSupported().then((supported) => {
+      if (supported) {
+        analytics = getAnalytics(app);
+      }
+    });
+
+    // Initialize Firebase Cloud Messaging
+    isMessagingSupported().then((supported) => {
+      if (supported) {
+        messaging = getMessaging(app);
+      }
+    });
+  } else {
+    console.warn("Firebase frontend config eksik. Auth, Firestore ve Messaging devre dışı. Lütfen .env dosyasını kontrol edip sunucuyu yeniden başlatın.");
   }
-});
-export { messaging };
-
-
+} catch (error) {
+  console.error("Firebase başlatılamadı:", error);
+}
 
 // Setup Providers
 export const googleProvider = new GoogleAuthProvider();
 
-export default app;
+export { app as default, auth, db, analytics, messaging };
