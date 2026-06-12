@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useSearchParams } from "react-router-dom";
-import { getConversations, getMessages, sendMessage, deleteMessages } from "@/services/messageService";
+import { getConversations, getMessages, sendMessage, deleteMessages, deleteConversation } from "@/services/messageService";
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
 import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, ArrowLeft, Trash2, CornerUpLeft, X, Circle, CheckCircle2, Reply } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
@@ -214,6 +214,7 @@ export default function StudentMessages() {
           {conversations.map(conv => (
             <ConversationCard 
               key={conv.conversationId} 
+              className="group"
               $active={selectedConv?.otherUserId === conv.otherUserId}
               onClick={() => setSelectedConv(conv)}
             >
@@ -235,6 +236,26 @@ export default function StudentMessages() {
               {conv.unreadCount > 0 && (
                 <UnreadBadge>{conv.unreadCount}</UnreadBadge>
               )}
+              <button 
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (window.confirm(`${conv.otherUserName || "Kullanıcı"} adlı kişiyle olan tüm konuşmayı silmek istediğinize emin misiniz?`)) {
+                    try {
+                      await deleteConversation(conv.otherUserId);
+                      setConversations(prev => prev.filter(c => c.otherUserId !== conv.otherUserId));
+                      if (selectedConv?.otherUserId === conv.otherUserId) {
+                        setSelectedConv(null);
+                      }
+                    } catch (err) {
+                      alert(err.message);
+                    }
+                  }
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg ml-2"
+                title="Konuşmayı Sil"
+              >
+                <Trash2 size={16} />
+              </button>
             </ConversationCard>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { getConversations, getMessages, sendMessage, deleteMessages } from "@/services/messageService";
+import { getConversations, getMessages, sendMessage, deleteMessages, deleteConversation } from "@/services/messageService";
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
 import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Trash2, CheckCircle2, Reply, CornerUpLeft, X } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
@@ -190,9 +190,10 @@ export default function TutorMessages() {
                 <div className="p-10 text-center text-gray-400 text-sm">Henüz bir mesajınız bulunmuyor.</div>
               ) : (
                 conversations.map((conv) => (
-                  <ConversationItem 
+                  <ConversationCard 
                     key={conv.conversationId} 
-                    $active={selectedConv?.conversationId === conv.conversationId}
+                    className="group"
+                    $active={selectedConv?.otherUserId === conv.otherUserId}
                     onClick={() => setSelectedConv(conv)}
                   >
                     <div className="relative">
@@ -209,9 +210,29 @@ export default function TutorMessages() {
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500 dark:text-slate-400 truncate">{conv.lastMessage}</span>
                         {conv.unreadCount > 0 && <UnreadBadge>{conv.unreadCount}</UnreadBadge>}
+                        <button 
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`${conv.otherUserName || "Kullanıcı"} adlı kişiyle olan tüm konuşmayı silmek istediğinize emin misiniz?`)) {
+                              try {
+                                await deleteConversation(conv.otherUserId);
+                                setConversations(prev => prev.filter(c => c.otherUserId !== conv.otherUserId));
+                                if (selectedConv?.otherUserId === conv.otherUserId) {
+                                  setSelectedConv(null);
+                                }
+                              } catch (err) {
+                                alert(err.message);
+                              }
+                            }
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg ml-2"
+                          title="Konuşmayı Sil"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </div>
-                  </ConversationItem>
+                  </ConversationCard>
                 ))
               )}
             </div>

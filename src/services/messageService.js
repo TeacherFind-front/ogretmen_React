@@ -86,3 +86,20 @@ export async function deleteMessages(messageIds) {
 
   return res.json();
 }
+
+/**
+ * Bir kişiyle olan tüm konuşmayı sil (gizle)
+ * @param {string} otherUserId - Konuşmanın silineceği kullanıcının ID'si
+ */
+export async function deleteConversation(otherUserId) {
+  const res = await apiFetch(`/api/messages/conversation/${otherUserId}`, {
+    method: "DELETE",
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err?.message || "Konuşma silinemedi.");
+  }
+
+  return res.json();
+}
