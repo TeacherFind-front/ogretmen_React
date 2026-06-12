@@ -38,9 +38,41 @@ export default function TutorAvailability() {
         const data = await getMyProfile();
         if (data) {
           // Backend dictionary format: { "Day-Slot": "type" }
-          // If availability comes as an array, we might need to convert it,
-          // but based on current code it's expected as an object.
-          setAvailability(data.availability || {});
+          // Backend dictionary format: { "Day-Slot": "type" }
+          // Backend returns data.availabilities as an array of { day, start, end, type }
+          let availabilityObj = {};
+          
+          const availabilitiesArray = data.availabilities || data.Availabilities;
+          console.log("availabilitiesArray:", availabilitiesArray);
+          
+          if (availabilitiesArray && Array.isArray(availabilitiesArray)) {
+            availabilitiesArray.forEach(item => {
+              const startRaw = item.start || item.Start;
+              const dayRaw = item.day || item.Day || "";
+              const type = item.type || item.Type;
+              
+              // start string might be "09:00", "09:00:00", or "9:00"
+              const start = startRaw ? startRaw.substring(0, 5) : ""; 
+              
+              let slot = "Sabah";
+              if (start === "12:00") slot = "Öğle";
+              else if (start === "15:00") slot = "Öğleden Sonra";
+              else if (start === "18:00") slot = "Akşam";
+              
+              // Ensure day matches exactly with DAYS array (e.g., "pazartesi" -> "Pazartesi", "çarşamba" -> "Çarşamba")
+              const day = dayRaw ? dayRaw.charAt(0).toLocaleUpperCase('tr-TR') + dayRaw.slice(1).toLocaleLowerCase('tr-TR') : "";
+              
+              console.log(`Parsing item: dayRaw=${dayRaw} -> ${day}, startRaw=${startRaw} -> slot=${slot}, type=${type}`);
+              
+              if (day && type) {
+                availabilityObj[`${day}-${slot}`] = type;
+              }
+            });
+            console.log("Final availabilityObj:", availabilityObj);
+            setAvailability(availabilityObj);
+          } else {
+            setAvailability(data.availability || {});
+          }
         }
       } catch (err) {
         console.error("Load error", err);
