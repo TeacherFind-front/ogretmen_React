@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 import { getMe, sendHeartbeat } from "@/services/authService";
-import { stopChatConnection } from "@/services/chatService";
+import { stopChatConnection, registerDeviceToken } from "@/services/chatService";
+import { messaging } from "@/config/firebase";
+import { getToken } from "firebase/messaging";
 
 /**
  * Auth Context
@@ -97,6 +99,32 @@ export function AuthProvider({ children }) {
     }, 60000);
 
     return () => clearInterval(interval);
+  }, [user]);
+
+  // FCM Push Notification Request
+  useEffect(() => {
+    if (!user || !messaging) return;
+
+    const requestPermissionAndGetToken = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+          const currentToken = await getToken(messaging, { vapidKey });
+          
+          if (currentToken) {
+            console.log("FCM Token alındı, sunucuya kaydediliyor...");
+            await registerDeviceToken(currentToken);
+          } else {
+            console.log("FCM Token alınamadı, izin verilmiş olabilir ama token dönmedi.");
+          }
+        }
+      } catch (err) {
+        console.error("FCM Token alınırken hata oluştu:", err);
+      }
+    };
+
+    requestPermissionAndGetToken();
   }, [user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

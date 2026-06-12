@@ -39,18 +39,35 @@ export const startChatConnection = async () => {
  * Mesaj gönderir.
  */
 export const sendMessageLive = async (receiverId, content, replyToMessageId = null) => {
-  if (connection && connection.state === signalR.HubConnectionState.Connected) {
-    try {
-      const payload = { receiverId, content };
-      if (replyToMessageId) payload.replyToMessageId = replyToMessageId;
-      await connection.invoke("SendMessage", payload);
-      return true;
-    } catch (err) {
-      console.error("SendMessage Error: ", err);
-      return false;
+  try {
+    if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+      console.warn("SignalR not connected. Trying to reconnect...");
+      await startChatConnection();
     }
+    const payload = { receiverId, content };
+    if (replyToMessageId) payload.replyToMessageId = replyToMessageId;
+    await connection.invoke("SendMessage", payload);
+    return true;
+  } catch (err) {
+    console.error("SignalR SendMessage error:", err);
+    return false;
   }
-  return false;
+};
+
+/**
+ * Cihaz token'ını (FCM) bildirimler için kaydeder
+ */
+export const registerDeviceToken = async (fcmToken) => {
+  try {
+    const response = await api.post("/devices/register", {
+      fcmToken,
+      platform: "web"
+    });
+    return response.data;
+  } catch (err) {
+    console.error("Device token register failed", err);
+    throw err;
+  }
 };
 
 /**
