@@ -138,15 +138,7 @@ export default function TutorDashboard() {
             <span className="text-white font-black underline decoration-blue-400 underline-offset-4"> {pendingRequests.length} bekleyen talebiniz</span> var.
           </p>
         </div>
-        <div className="flex gap-2 relative z-10 w-full md:w-auto mt-4 md:mt-0">
-          <Button 
-            variant="outline" 
-            className="h-10 px-4 rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white font-bold backdrop-blur-md text-xs w-full md:w-auto"
-            onClick={() => navigate("/tutor/schedule")}
-          >
-            Takvimim
-          </Button>
-        </div>
+
       </header>
 
 
