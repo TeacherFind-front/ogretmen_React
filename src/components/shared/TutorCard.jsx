@@ -6,6 +6,7 @@ import { Star, MessageCircle, Heart, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toggleFavorite } from "@/services/favoriteService";
 import BASE_URL, { getImageUrl } from "@/services/api";
+import { toPlainText, resolveMediaUrl } from "@/utils/helpers";
 
 /**
  * TutorCard - Backend TutorListItemDto alanlarını kullanır:
@@ -57,12 +58,21 @@ export function TutorCard({ tutor }) {
   const name = tutor.teacherName || tutor.name || tutor.teacherListing?.teacherName || tutor.fullName || "Eğitmen";
   
   // Önce isMain olan fotoğrafı bul, yoksa ilk fotoğrafı al, o da yoksa avatarUrl'e bak
-  const mainPhoto = tutor.photos?.find(p => p.isMain)?.photoUrl || tutor.photos?.[0]?.photoUrl;
+  const imageUrl =
+    tutor.photos?.find(p => p.isMain)?.photoUrl ||
+    tutor.photos?.[0]?.photoUrl ||
+    tutor.photoUrl ||
+    tutor.profileImageUrl ||
+    tutor.avatarUrl;
 
-  const avatar = getImageUrl(mainPhoto) || getImageUrl(tutor.avatarUrl) || getImageUrl(tutor.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`;
+  const avatar = imageUrl
+    ? resolveMediaUrl(imageUrl)
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`;
   
-  const headline = tutor.title || tutor.headline || "";
-  const description = tutor.description || tutor.bio || "";
+  const headline = toPlainText(tutor.title || tutor.headline || "");
+  const rawDescription = tutor.description || tutor.bio || "";
+  const cleanDescription = toPlainText(rawDescription);
+  const description = cleanDescription.length > 180 ? cleanDescription.substring(0, 180) + "..." : cleanDescription;
   const price = tutor.price || tutor.hourlyRate || 0;
   const rating = tutor.rating ?? 0;
   const reviewCount = tutor.reviewCount || tutor.reviews || 0;

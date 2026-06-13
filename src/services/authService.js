@@ -143,10 +143,10 @@ export async function forgotPassword(email) {
 /**
  * E-posta değişikliği için kod talep et
  */
-export async function requestEmailChange(password, newEmail) {
+export async function requestEmailChange(newEmail) {
   const res = await apiFetch("/api/auth/request-email-change", {
     method: "POST",
-    body: JSON.stringify({ password, newEmail }),
+    body: JSON.stringify({ newEmail }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

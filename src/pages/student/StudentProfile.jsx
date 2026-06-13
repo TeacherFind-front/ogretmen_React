@@ -136,10 +136,10 @@ export default function StudentProfile() {
     setEmailChangeError("");
     setEmailChangeLoading(true);
     try {
-      await requestEmailChange(currentPassword, newEmail);
+      await requestEmailChange(newEmail);
       setEmailStep(2);
     } catch (err) {
-      setEmailChangeError(err.message || "Kod gönderilemedi. Lütfen şifrenizi kontrol edin.");
+      setEmailChangeError(err.message || "Kod gönderilemedi. Lütfen e-posta adresinizi kontrol edin.");
     } finally {
       setEmailChangeLoading(false);
     }
@@ -151,13 +151,13 @@ export default function StudentProfile() {
     setEmailChangeLoading(true);
     try {
       await verifyEmailChange(newEmail, emailCode);
-      setStatus({ type: "success", message: "E-postanız başarıyla değiştirildi! Güvenliğiniz için çıkış yapılıyor..." });
+      toast.success("E-posta adresiniz başarıyla değiştirildi.");
+      setStatus({ type: "success", message: "E-posta adresiniz başarıyla değiştirildi." });
+      setProfile(prev => ({ ...prev, email: newEmail }));
       setShowEmailModal(false);
-      setTimeout(() => {
-        logout();
-      }, 3000);
+      loadProfileData();
     } catch (err) {
-      setEmailChangeError(err.message || "Kod doğrulanamadı.");
+      setEmailChangeError(err.message || "Kod doğrulanamadı. Kod hatalı veya süresi dolmuş olabilir.");
     } finally {
       setEmailChangeLoading(false);
     }
@@ -345,16 +345,6 @@ export default function StudentProfile() {
 
             {emailStep === 1 ? (
               <form onSubmit={handleRequestEmailChange}>
-                <FormGroup className="mb-4">
-                  <label>Mevcut Şifreniz</label>
-                  <input
-                    type="password"
-                    required
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Güvenlik için mevcut şifreniz"
-                  />
-                </FormGroup>
                 <FormGroup className="mb-6">
                   <label>Yeni E-posta Adresi</label>
                   <input
@@ -373,7 +363,7 @@ export default function StudentProfile() {
                   >
                     İptal
                   </button>
-                  <SaveButton type="submit" disabled={emailChangeLoading || !newEmail || !currentPassword}>
+                  <SaveButton type="submit" disabled={emailChangeLoading || !newEmail}>
                     {emailChangeLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Kod Gönder"}
                   </SaveButton>
                 </div>

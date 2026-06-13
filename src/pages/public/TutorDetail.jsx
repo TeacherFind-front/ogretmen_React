@@ -45,6 +45,7 @@ import { sendMessage } from "@/services/messageService";
 import styled, { keyframes, css } from "styled-components";
 import toast from "react-hot-toast";
 import BASE_URL, { getImageUrl } from "@/services/api";
+import { resolveMediaUrl } from "@/utils/helpers";
 
 function TutorDetail() {
   const { id } = useParams();
@@ -240,7 +241,7 @@ function TutorDetail() {
               <img
                 src={
                   tutor.avatarUrl
-                    ? getImageUrl(tutor.avatarUrl)
+                    ? resolveMediaUrl(tutor.avatarUrl)
                     : `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.teacherName)}&background=2d79f3&color=fff&size=200`
                 }
                 alt={tutor.teacherName}
@@ -687,7 +688,7 @@ function TutorDetail() {
                       }}
                     >
                       <img
-                        src={p.photoUrl ? getImageUrl(p.photoUrl) : ""}
+                        src={p.photoUrl ? resolveMediaUrl(p.photoUrl) : ""}
                         alt="Eğitmen Fotoğrafı"
                       />
                       <div className="card-hover-overlay">
@@ -1074,7 +1075,7 @@ function TutorDetail() {
             <img
               src={
                 photos[lightboxIndex]?.photoUrl
-                  ? getImageUrl(photos[lightboxIndex].photoUrl)
+                  ? resolveMediaUrl(photos[lightboxIndex].photoUrl)
                   : ""
               }
               alt="Lightbox"

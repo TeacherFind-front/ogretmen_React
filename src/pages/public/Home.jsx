@@ -21,6 +21,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getTutors } from "@/services/tutorService";
 import { getCategories } from "@/services/locationService";
 import BASE_URL, { getImageUrl } from "@/services/api";
+import { toPlainText, resolveMediaUrl } from "@/utils/helpers";
 
 // ─── Categories ──────────────────────────────────────────────────────────────
 const CATEGORY_ICONS = {
@@ -289,18 +290,34 @@ export default function Home() {
         setTotalTutors(response.totalCount);
       }
 
-      const realTutors = (response.items || []).map((tutor) => ({
-        id: tutor.id,
-        teacherName: tutor.teacherName,
-        headline: tutor.title,
-        rating: tutor.rating,
-        about: tutor.description,
-        price: tutor.price,
-        imageUrl:
-          tutor.photos && tutor.photos.length > 0
-            ? getImageUrl(tutor.photos[0].photoUrl)
-            : `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.teacherName || "Öğretmen")}&background=2d79f3&color=fff&size=512`,
-      }));
+      const realTutors = (response.items || []).map((tutor) => {
+        const name = tutor.teacherName || tutor.name || "Öğretmen";
+        
+        // Fotoğraf seçme sırası
+        const imageUrl =
+          tutor.photos?.find(p => p.isMain)?.photoUrl ||
+          tutor.photos?.[0]?.photoUrl ||
+          tutor.photoUrl ||
+          tutor.profileImageUrl ||
+          tutor.avatarUrl;
+
+        const resolvedImg = imageUrl
+          ? resolveMediaUrl(imageUrl)
+          : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff&size=512`;
+
+        const plainAbout = toPlainText(tutor.description || tutor.bio || "");
+        const truncatedAbout = plainAbout.length > 120 ? plainAbout.substring(0, 120) + "..." : plainAbout;
+
+        return {
+          id: tutor.id,
+          teacherName: name,
+          headline: toPlainText(tutor.title || "Eğitmen"),
+          rating: tutor.rating,
+          about: truncatedAbout,
+          price: tutor.price,
+          imageUrl: resolvedImg,
+        };
+      });
 
       setTutors(realTutors);
     } catch (err) {
