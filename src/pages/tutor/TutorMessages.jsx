@@ -479,6 +479,39 @@ const OnlineStatus = styled.div`
   }
 `;
 
+const ConversationCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0 4px;
+  
+  ${props => props.$active ? `
+    background: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.04);
+    border: 1px solid #f1f5f9;
+
+    .dark & {
+      background: #1e293b;
+      border-color: #334155;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+  ` : `
+    &:hover { 
+      background: rgba(255,255,255,0.5); 
+      .dark & { background: rgba(255,255,255,0.05); }
+    }
+  `}
+
+  .dark & {
+    h4 { color: #f1f5f9 !important; }
+    p { color: #94a3b8 !important; }
+  }
+`;
+
 const Avatar = styled.div`
   width: ${props => props.$large ? '48px' : '40px'};
   height: ${props => props.$large ? '48px' : '40px'};

@@ -22,6 +22,11 @@ export default function StudentLayout() {
 
   const navLinks = [
     {
+      to: "/",
+      label: "Ana Sayfa",
+      icon: <Home size={18} />,
+    },
+    {
       to: "/student/dashboard",
       label: "Panel",
       icon: <LayoutDashboard size={18} />,
@@ -32,7 +37,7 @@ export default function StudentLayout() {
       icon: <MessageCircle size={18} />,
     },
     { to: "/student/profile", label: "Profilim", icon: <User size={18} /> },
-    { to: "/student/security", label: "Güvenlik", icon: <Shield size={18} /> },
+    { to: "/student/security", label: "Şifreyi Değiştir", icon: <Shield size={18} /> },
   ];
 
   return (
@@ -41,11 +46,13 @@ export default function StudentLayout() {
       <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
         <div className="flex h-16 items-center px-6 border-b">
           <div className="flex items-center">
-            <img
-              src="/logo.png"
-              alt="Özel Ders VIP"
-              className="h-14 w-auto object-contain"
-            />
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="Özel Ders VIP"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
           </div>
         </div>
         <nav className="p-4 space-y-1">
@@ -76,11 +83,13 @@ export default function StudentLayout() {
       <MobileSidebar $isOpen={isMenuOpen}>
         <div className="flex h-12 items-center px-6 border-b justify-between">
           <div className="flex items-center">
-            <img
-              src="/logo.png"
-              alt="Özel Ders VIP"
-              className="h-14 w-auto object-contain"
-            />
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="Özel Ders VIP"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
           </div>
           <button
             onClick={() => setIsMenuOpen(false)}
@@ -115,22 +124,18 @@ export default function StudentLayout() {
           <div className="flex items-center gap-4">
             <div className="md:hidden">
               <div className="flex items-center">
-                <img
-                  src="/logo.png"
-                  alt="Özel Ders VIP"
-                  className="h-10 w-auto object-contain"
-                />
+                <Link to="/">
+                  <img
+                    src="/logo.png"
+                    alt="Özel Ders VIP"
+                    className="h-10 w-auto object-contain"
+                  />
+                </Link>
               </div>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <ThemeSwitch />
-            <Link
-              to="/"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
-            >
-              <Home size={14} /> Ana Sayfa
-            </Link>
             <NotificationDropdown />
             <div className="hidden sm:flex flex-col items-end mr-1">
               <span className="text-xs font-bold text-gray-900 dark:text-slate-100">

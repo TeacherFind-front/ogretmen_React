@@ -38,46 +38,46 @@ const CATEGORY_ICONS = {
 
 const CATEGORIES = [
   {
+    id: "Türkçe",
+    label: "Türkçe ve Edebiyat",
+    sub: "Diksiyon (Her Seviye)",
+    icon: BookOpen,
+    queryValue: "Türkçe ve Edebiyat",
+  },
+  {
     id: "Matematik",
     label: "Matematik",
-    sub: "Bilgisayarlı (TYT/AYT)",
+    sub: "Analitik Geometri (DGS, KPSS)",
     icon: Calculator,
     queryValue: "Matematik",
   },
   {
-    id: "Fen Bilimleri",
-    label: "Fen Bilimleri",
-    sub: "Rasyonel Fizik/Açık lise",
-    icon: FlaskConical,
-    queryValue: "Fen Bilimleri",
-  },
-  {
-    id: "Yazılım",
-    label: "Yazılım & Kodlama",
-    sub: "Vector & Seans Kodlamanız",
-    icon: Code,
-    queryValue: "Yazılım",
-  },
-  {
-    id: "Dil",
-    label: "Dil Kursları",
-    sub: "Seviye Tespit Sınavları ve Kurslar",
+    id: "İngilizce",
+    label: "İngilizce",
+    sub: "Yabancı Dil Eğitimleri",
     icon: Languages,
-    queryValue: "Yabancı Dil",
+    queryValue: "İngilizce",
   },
   {
-    id: "Sinav",
-    label: "YKS/LGS Hazırlık",
-    sub: "LGS, YGS ve TYT Hazırlık",
-    icon: GraduationCap,
-    queryValue: "Sınav Hazırlık",
+    id: "Fizik",
+    label: "Fizik",
+    sub: "Akışkanlar Mekaniği",
+    icon: FlaskConical,
+    queryValue: "Fizik",
   },
   {
-    id: "Muzik",
-    label: "Müzik & Sanat",
-    sub: "Bateri, Piyano vb. İnceleme ve Kurslar",
-    icon: Music,
-    queryValue: "Müzik",
+    id: "Almanca",
+    label: "Almanca Sınavları",
+    sub: "Abitur Hazırlık (Lise)",
+    icon: BookOpen,
+    queryValue: "Almanca Sınavları",
+  },
+  {
+    id: "Akıl Zeka",
+    label: "Akıl ve Zeka Oyunları",
+    sub: "Akıl ve Zeka Oyunları (Başlangıç)",
+    icon: BookOpen,
+    queryValue: "Akıl ve Zeka Oyunları",
   },
 ];
 
@@ -166,6 +166,50 @@ export default function Home() {
 
   const [gridCategories, setGridCategories] = useState(CATEGORIES);
   const [allCategories, setAllCategories] = useState([]);
+
+  // Combobox state for subject search
+  const [subjectSearch, setSubjectSearch] = useState("");
+  const [subjectOpen, setSubjectOpen] = useState(false);
+  const [subjectFocused, setSubjectFocused] = useState(false);
+  const subjectRef = useRef(null);
+
+  // Combobox state for location
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [locationFocused, setLocationFocused] = useState(false);
+  const locationRef = useRef(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (subjectRef.current && !subjectRef.current.contains(e.target)) {
+        setSubjectOpen(false);
+        setSubjectFocused(false);
+      }
+      if (locationRef.current && !locationRef.current.contains(e.target)) {
+        setLocationOpen(false);
+        setLocationFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const LOCATION_OPTIONS = [
+    { value: "", label: "Hepsi" },
+    { value: "online", label: "Online" },
+    { value: "yuz-yuze", label: "Yüz Yüze" },
+    { value: "her-ikisi", label: "Her İkisi" },
+  ];
+
+  const selectedLocationLabel = LOCATION_OPTIONS.find(o => o.value === selectedLocation)?.label || "Ders türü seçin...";
+
+  const subjectOptions = allCategories.length > 0
+    ? allCategories.map(c => c.category)
+    : ["Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca"];
+
+  const filteredSubjects = subjectOptions.filter(s =>
+    s.toLocaleLowerCase("tr-TR").includes(subjectSearch.toLocaleLowerCase("tr-TR"))
+  );
 
   useEffect(() => {
     fetchTutors();
@@ -290,58 +334,105 @@ export default function Home() {
 
           {/* Search Bar */}
           <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] md:rounded-full p-2 flex flex-col md:flex-row items-center w-full max-w-4xl shadow-2xl mx-auto gap-2 transition-colors duration-300">
-            {/* Ders Seçin */}
-            <div className="flex-[1.2] flex items-center gap-4 px-6 py-3 w-full border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#334155]">
-              <BookOpen className="w-5 h-5 text-gray-400 dark:text-blue-400 shrink-0" />
-              <div className="text-left flex-1">
+
+            {/* Ders Seçin — Modern Combobox */}
+            <div
+              className="flex-[1.2] flex items-center gap-4 px-6 py-3 w-full border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#334155] relative"
+              ref={subjectRef}
+            >
+              <BookOpen className={`w-5 h-5 shrink-0 transition-colors ${subjectFocused ? "text-blue-500" : "text-gray-400 dark:text-blue-400"}`} />
+              <div className="text-left flex-1 min-w-0">
                 <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-0.5">
                   DERS SEÇİN
                 </p>
-                <select
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  className="w-full bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100 font-semibold focus:outline-none appearance-none cursor-pointer text-sm"
-                  style={{ colorScheme: 'dark' }}
-                >
-                  <option value="" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Seçiniz</option>
-                  {allCategories.length > 0 ? (
-                    allCategories.map(cat => (
-                      <option key={cat.category} value={cat.category} className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">
-                        {cat.category}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="Matematik" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Matematik</option>
-                      <option value="İngilizce" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">İngilizce</option>
-                      <option value="Yazılım" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Yazılım</option>
-                      <option value="Fen Bilimleri" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Fen Bilimleri</option>
-                      <option value="Yabancı Dil" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Yabancı Dil</option>
-                    </>
-                  )}
-                </select>
+                <input
+                  type="text"
+                  value={subjectSearch || selectedSubject}
+                  onChange={(e) => {
+                    setSubjectSearch(e.target.value);
+                    setSelectedSubject("");
+                    setSubjectOpen(true);
+                  }}
+                  onFocus={() => { setSubjectOpen(true); setSubjectFocused(true); setSubjectSearch(""); }}
+                  placeholder={selectedSubject || "Ders ara..."}
+                  className="w-full bg-transparent text-gray-800 dark:text-slate-100 font-semibold focus:outline-none text-sm placeholder:text-gray-400 dark:placeholder:text-slate-500"
+                />
               </div>
+
+              {/* Dropdown */}
+              {subjectOpen && (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-72 overflow-y-auto animate-in">
+                  {filteredSubjects.length === 0 ? (
+                    <div className="px-5 py-4 text-sm text-gray-400 text-center">Sonuç bulunamadı</div>
+                  ) : (
+                    filteredSubjects.map((s) => (
+                      <button
+                        key={s}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setSelectedSubject(s);
+                          setSubjectSearch(s);
+                          setSubjectOpen(false);
+                          setSubjectFocused(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b border-gray-50 dark:border-[#334155] last:border-0 ${
+                          selectedSubject === s
+                            ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                            : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-slate-200"
+                        }`}
+                      >
+                        <Search className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
+                        {s}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Ders Nerede Yapılsın */}
-            <div className="flex-1 flex items-center gap-4 px-6 py-3 w-full">
-              <MapPin className="w-5 h-5 text-gray-400 dark:text-blue-400 shrink-0" />
-              <div className="text-left flex-1">
+            {/* Ders Nerede Yapılsın — Modern Combobox */}
+            <div
+              className="flex-1 flex items-center gap-4 px-6 py-3 w-full relative"
+              ref={locationRef}
+            >
+              <MapPin className={`w-5 h-5 shrink-0 transition-colors ${locationFocused ? "text-blue-500" : "text-gray-400 dark:text-blue-400"}`} />
+              <div className="text-left flex-1 min-w-0">
                 <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-0.5">
                   DERS NEREDE YAPILSIN
                 </p>
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100 font-semibold focus:outline-none appearance-none cursor-pointer text-sm"
-                  style={{ colorScheme: 'dark' }}
+                <button
+                  type="button"
+                  onClick={() => { setLocationOpen(o => !o); setLocationFocused(true); }}
+                  className="w-full bg-transparent text-left font-semibold focus:outline-none text-sm text-gray-800 dark:text-slate-100"
                 >
-                  <option value="" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Seçiniz</option>
-                  <option value="online" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Online</option>
-                  <option value="yuz-yuze" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Yüz Yüze</option>
-                  <option value="her-ikisi" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Her İkisi</option>
-                </select>
+                  {selectedLocationLabel}
+                </button>
               </div>
+
+              {/* Location Dropdown */}
+              {locationOpen && (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden animate-in">
+                  {LOCATION_OPTIONS.filter(o => o.value !== "").map((opt) => (
+                    <button
+                      key={opt.value}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setSelectedLocation(opt.value);
+                        setLocationOpen(false);
+                        setLocationFocused(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b border-gray-50 dark:border-[#334155] last:border-0 ${
+                        selectedLocation === opt.value
+                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                          : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-slate-200"
+                      }`}
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Ara Butonu */}
@@ -470,10 +561,14 @@ export default function Home() {
             hedeflerinize bir adım daha yaklaşın.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="w-full sm:w-auto bg-[#002e47] dark:bg-blue-600 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-[#003d5c] dark:hover:bg-blue-700 transition-all text-sm md:text-base">
+            <button 
+              onClick={() => navigate('/tutors')}
+              className="w-full sm:w-auto bg-[#002e47] dark:bg-blue-600 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-[#003d5c] dark:hover:bg-blue-700 transition-all text-sm md:text-base">
               Öğretmen Bul
             </button>
-            <button className="w-full sm:w-auto bg-white dark:bg-[#1e293b] text-[#002e47] dark:text-white border-2 border-[#002e47] dark:border-[#334155] px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-[#334155] transition-all text-sm md:text-base">
+            <button 
+              onClick={() => navigate('/sss')}
+              className="w-full sm:w-auto bg-white dark:bg-[#1e293b] text-[#002e47] dark:text-white border-2 border-[#002e47] dark:border-[#334155] px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-[#334155] transition-all text-sm md:text-base">
               Nasıl Çalışır?
             </button>
           </div>

@@ -31,6 +31,8 @@ import {
 } from "@/services/tutorService";
 import BASE_URL, { getImageUrl } from "@/services/api";
 import { getUniversities, getDepartments } from "@/services/educationService";
+import { requestEmailChange, verifyEmailChange } from "@/services/authService";
+import { useAuth } from "@/store/AuthContext";
 
 export default function TutorProfile() {
   const [loading, setLoading] = useState(true);
@@ -38,6 +40,15 @@ export default function TutorProfile() {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [status, setStatus] = useState({ type: null, message: "" });
   const fileInputRef = React.useRef(null);
+  const { logout } = useAuth();
+
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailStep, setEmailStep] = useState(1);
+  const [newEmail, setNewEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  const [emailChangeError, setEmailChangeError] = useState("");
 
   const [profile, setProfile] = useState({
     fullName: "",
@@ -173,6 +184,38 @@ export default function TutorProfile() {
     }
   };
 
+  const handleRequestEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailChangeError("");
+    setEmailChangeLoading(true);
+    try {
+      await requestEmailChange(currentPassword, newEmail);
+      setEmailStep(2);
+    } catch (err) {
+      setEmailChangeError(err.message || "Kod gönderilemedi. Lütfen şifrenizi kontrol edin.");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
+  const handleVerifyEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailChangeError("");
+    setEmailChangeLoading(true);
+    try {
+      await verifyEmailChange(newEmail, emailCode);
+      setStatus({ type: "success", message: "E-postanız başarıyla değiştirildi! Güvenliğiniz için çıkış yapılıyor..." });
+      setShowEmailModal(false);
+      setTimeout(() => {
+        logout();
+      }, 3000);
+    } catch (err) {
+      setEmailChangeError(err.message || "Kod doğrulanamadı.");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -269,16 +312,45 @@ export default function TutorProfile() {
                       required
                     />
                   </FormGroup>
-                  <FormGroup className="opacity-70">
-                    <label>E-posta Adresi (Salt Okunur)</label>
-                    <input type="email" value={profile.email} readOnly disabled />
+                  <FormGroup className="opacity-90">
+                    <label>E-posta Adresi</label>
+                    <div className="flex gap-3">
+                      <input type="email" value={profile.email} readOnly disabled className="bg-gray-100 w-full" />
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setShowEmailModal(true);
+                          setEmailStep(1);
+                          setNewEmail("");
+                          setCurrentPassword("");
+                          setEmailCode("");
+                          setEmailChangeError("");
+                        }}
+                        className="px-5 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-colors whitespace-nowrap dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700"
+                      >
+                        Değiştir
+                      </button>
+                    </div>
                   </FormGroup>
                   <FormGroup>
                     <label>Telefon Numarası</label>
                     <input
                       type="text"
                       value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                      placeholder="(5XX) XXX XX XX"
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, "");
+                        if (val.length > 10) val = val.slice(0, 10);
+                        let formatted = val;
+                        if (val.length > 6) {
+                          formatted = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6, 8)} ${val.slice(8)}`;
+                        } else if (val.length > 3) {
+                          formatted = `(${val.slice(0, 3)}) ${val.slice(3)}`;
+                        } else if (val.length > 0) {
+                          formatted = `(${val}`;
+                        }
+                        setProfile({ ...profile, phone: formatted });
+                      }}
                     />
                   </FormGroup>
                   <FormGroup>
@@ -444,6 +516,95 @@ export default function TutorProfile() {
           </Card>
         </div>
       </div>
+
+      {showEmailModal && (
+        <ModalOverlay onClick={() => setShowEmailModal(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-gray-900 dark:text-white">
+                E-posta Adresini Değiştir
+              </h3>
+              <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <span className="text-3xl font-light">&times;</span>
+              </button>
+            </div>
+
+            {emailChangeError && (
+              <AlertBox $type="error">
+                <AlertCircle className="w-5 h-5" />
+                <span>{emailChangeError}</span>
+              </AlertBox>
+            )}
+
+            {emailStep === 1 ? (
+              <form onSubmit={handleRequestEmailChange}>
+                <FormGroup className="mb-4">
+                  <label>Mevcut Şifreniz</label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Güvenlik için mevcut şifreniz"
+                  />
+                </FormGroup>
+                <FormGroup className="mb-6">
+                  <label>Yeni E-posta Adresi</label>
+                  <input
+                    type="email"
+                    required
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Yeni e-posta adresinizi girin"
+                  />
+                </FormGroup>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(false)}
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
+                  >
+                    İptal
+                  </button>
+                  <SaveButton type="submit" disabled={emailChangeLoading || !newEmail || !currentPassword}>
+                    {emailChangeLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Kod Gönder"}
+                  </SaveButton>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyEmailChange}>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-medium">
+                  <strong>{newEmail}</strong> adresine gönderilen 6 haneli doğrulama kodunu girin.
+                </p>
+                <FormGroup className="mb-6">
+                  <label>Doğrulama Kodu</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Örn: 123456"
+                    className="text-center text-2xl tracking-[0.5em] font-black py-4"
+                  />
+                </FormGroup>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setEmailStep(1)}
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
+                  >
+                    Geri Dön
+                  </button>
+                  <SaveButton type="submit" disabled={emailChangeLoading || emailCode.length < 6}>
+                    {emailChangeLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Onayla"}
+                  </SaveButton>
+                </div>
+              </form>
+            )}
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Container>
   );
 }
@@ -704,5 +865,31 @@ const PasswordChangeLink = styled(Link)`
     color: #2d79f3;
     background: #f3f7ff;
     transform: translateX(4px);
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 32px;
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  .dark & {
+    background: #1e293b;
+    border: 1px solid #334155;
   }
 `;

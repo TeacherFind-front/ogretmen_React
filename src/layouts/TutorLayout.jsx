@@ -25,6 +25,7 @@ export default function TutorLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
+    { to: "/", label: "Ana Sayfa", icon: <Home size={16} /> },
     { to: "/tutor/dashboard", label: "Panel", icon: "📊" },
     { to: "/tutor/create-listing", label: "İlan Ver", icon: "➕" },
     { to: "/tutor/availability", label: "Müsaitlik Ayarları", icon: "⏰" },
@@ -32,7 +33,7 @@ export default function TutorLayout() {
     { to: "/tutor/profile", label: "Profilim", icon: "👤" },
     { to: "/tutor/social-media", label: "Sosyal Medya", icon: "🔗" },
     { to: "/tutor/messages", label: "Mesajlar", icon: "💬" },
-    { to: "/tutor/change-password", label: "Güvenlik", icon: "🛡️" },
+    { to: "/tutor/change-password", label: "Şifreyi Değiştir", icon: "🛡️" },
   ];
 
   return (
@@ -41,7 +42,9 @@ export default function TutorLayout() {
       <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
         <div className="flex h-14 items-center px-6">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+            <Link to="/">
+              <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+            </Link>
           </div>
         </div>
         <nav className="px-3 py-4 space-y-1">
@@ -70,7 +73,9 @@ export default function TutorLayout() {
       <MobileSidebar $isOpen={isMenuOpen}>
         <div className="flex h-14 items-center px-6 border-b justify-between">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+            <Link to="/">
+              <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+            </Link>
           </div>
           <button
             onClick={() => setIsMenuOpen(false)}
@@ -103,18 +108,14 @@ export default function TutorLayout() {
           <div className="flex items-center gap-4">
             <div className="md:hidden">
               <div className="flex items-center">
-                <img src="/logo.png" alt="Özel Ders VIP" className="h-10 w-auto object-contain" />
+                <Link to="/">
+                  <img src="/logo.png" alt="Özel Ders VIP" className="h-10 w-auto object-contain" />
+                </Link>
               </div>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <ThemeSwitch />
-            <Link
-              to="/"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
-            >
-              <Home size={12} /> Ana Sayfa
-            </Link>
             <NotificationDropdown />
             <div className="hidden sm:flex flex-col items-end mr-1">
               <span className="text-[11px] font-bold text-gray-900 dark:text-slate-100">

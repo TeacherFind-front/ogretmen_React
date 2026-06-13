@@ -141,6 +141,36 @@ export async function forgotPassword(email) {
 }
 
 /**
+ * E-posta değişikliği için kod talep et
+ */
+export async function requestEmailChange(password, newEmail) {
+  const res = await apiFetch("/api/auth/request-email-change", {
+    method: "POST",
+    body: JSON.stringify({ password, newEmail }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "E-posta doğrulama kodu gönderilemedi.");
+  }
+  return res.json();
+}
+
+/**
+ * Gelen kod ile e-postayı kalıcı olarak değiştir
+ */
+export async function verifyEmailChange(newEmail, code) {
+  const res = await apiFetch("/api/auth/verify-email-change", {
+    method: "POST",
+    body: JSON.stringify({ newEmail, code }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Doğrulama başarısız. Kod hatalı veya süresi dolmuş.");
+  }
+  return res.json();
+}
+
+/**
  * Şifre sıfırlama işlemi (yeni şifre belirleme)
  */
 export async function resetPassword(email, code, newPassword) {

@@ -41,34 +41,43 @@ export default function TutorAvailability() {
           // Backend dictionary format: { "Day-Slot": "type" }
           // Backend returns data.availabilities as an array of { day, start, end, type }
           let availabilityObj = {};
-          
-          const availabilitiesArray = data.availabilities || data.Availabilities;
-          console.log("availabilitiesArray:", availabilitiesArray);
-          
+
+          const availabilitiesArray =
+            data.availabilities || data.Availabilities;
+          console.log("Bulletproof Parser - Input:", availabilitiesArray);
+
           if (availabilitiesArray && Array.isArray(availabilitiesArray)) {
-            availabilitiesArray.forEach(item => {
-              const startRaw = item.start || item.Start;
-              const dayRaw = item.day || item.Day || "";
-              const type = item.type || item.Type;
-              
-              // start string might be "09:00", "09:00:00", or "9:00"
-              const start = startRaw ? startRaw.substring(0, 5) : ""; 
-              
+            availabilitiesArray.forEach((item) => {
+              const startRaw = String(item.start || item.Start || "").trim();
+              const dayRaw = String(item.day || item.Day || "").trim();
+              let type = String(item.type || item.Type || "").trim().toLowerCase();
+
+              // Fallback to empty if it says null or undefined string
+              if (type === "null" || type === "undefined") type = "";
+
+              const start = startRaw.substring(0, 5);
+
               let slot = "Sabah";
               if (start === "12:00") slot = "Öğle";
               else if (start === "15:00") slot = "Öğleden Sonra";
               else if (start === "18:00") slot = "Akşam";
-              
+
               // Ensure day matches exactly with DAYS array (e.g., "pazartesi" -> "Pazartesi", "çarşamba" -> "Çarşamba")
-              const day = dayRaw ? dayRaw.charAt(0).toLocaleUpperCase('tr-TR') + dayRaw.slice(1).toLocaleLowerCase('tr-TR') : "";
-              
-              console.log(`Parsing item: dayRaw=${dayRaw} -> ${day}, startRaw=${startRaw} -> slot=${slot}, type=${type}`);
-              
+              let day = "";
+              if (dayRaw) {
+                // Lowercase the whole string taking Turkish characters into account
+                let lowerDay = dayRaw.toLocaleLowerCase("tr-TR");
+                // Capitalize first letter taking Turkish into account
+                day = lowerDay.charAt(0).toLocaleUpperCase("tr-TR") + lowerDay.slice(1);
+              }
+
               if (day && type) {
                 availabilityObj[`${day}-${slot}`] = type;
               }
             });
-            console.log("Final availabilityObj:", availabilityObj);
+
+            console.log("Bulletproof Parser - Output:", availabilityObj);
+
             setAvailability(availabilityObj);
           } else {
             setAvailability(data.availability || {});
@@ -294,7 +303,10 @@ const HeaderCard = styled.div`
       justify-content: center;
       color: #2d79f3;
 
-      svg { width: 24px; height: 24px; }
+      svg {
+        width: 24px;
+        height: 24px;
+      }
 
       .dark & {
         background: #1e3a8a30;
@@ -308,14 +320,18 @@ const HeaderCard = styled.div`
       color: #0f172a;
       margin: 0;
       letter-spacing: -0.5px;
-      .dark & { color: #f1f5f9; }
+      .dark & {
+        color: #f1f5f9;
+      }
     }
     p {
       color: #64748b;
       font-weight: 600;
       margin-top: 4px;
       font-size: 14px;
-      .dark & { color: #94a3b8; }
+      .dark & {
+        color: #94a3b8;
+      }
     }
   }
 
@@ -350,7 +366,9 @@ const GridCard = styled.div`
     background: #f8fafc;
     border-radius: 16px;
 
-    .dark & { background: #0f172a50; }
+    .dark & {
+      background: #0f172a50;
+    }
 
     .legend-item {
       display: flex;
@@ -361,7 +379,9 @@ const GridCard = styled.div`
       color: #334155;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      .dark & { color: #f1f5f9; }
+      .dark & {
+        color: #f1f5f9;
+      }
 
       .box {
         width: 24px;
@@ -379,7 +399,10 @@ const GridCard = styled.div`
         &.empty {
           background: white;
           border: 2px solid #e2e8f0;
-          .dark & { background: #0f172a; border-color: #334155; }
+          .dark & {
+            background: #0f172a;
+            border-color: #334155;
+          }
         }
       }
     }
@@ -421,7 +444,10 @@ const Table = styled.table`
       border-radius: 12px;
       white-space: nowrap;
       text-align: center;
-      .dark & { background: #334155; color: #f1f5f9; }
+      .dark & {
+        background: #334155;
+        color: #f1f5f9;
+      }
     }
   }
 `;
@@ -440,7 +466,9 @@ const Cell = styled.div`
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   color: white;
 
-  .dark & { border-color: #334155; }
+  .dark & {
+    border-color: #334155;
+  }
 
   &:hover {
     transform: scale(1.08);
@@ -451,10 +479,14 @@ const Cell = styled.div`
 
   &.empty {
     background: white;
-    .dark & { background: #0f172a; }
+    .dark & {
+      background: #0f172a;
+    }
     &:hover {
       background: #f8fafc;
-      .dark & { background: #1e293b; }
+      .dark & {
+        background: #1e293b;
+      }
     }
   }
 
@@ -520,7 +552,9 @@ const ClearButton = styled.button`
   &:hover {
     background: #fef2f2;
     border-color: #ef4444;
-    .dark & { background: #450a0a40; }
+    .dark & {
+      background: #450a0a40;
+    }
   }
 `;
 

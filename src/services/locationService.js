@@ -132,6 +132,28 @@ export async function getCategories() {
           }));
 
           console.log(`Kategoriler ${path} üzerinden alındı:`, normalizedData.length, "adet");
+          
+          // İstenen özel sıralama
+          const preferredOrder = ["türkçe", "matematik", "ingilizce", "fizik", "almanca"];
+          
+          const normalizeStr = (str) => (str || "").replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
+          
+          normalizedData.sort((a, b) => {
+            const catA = normalizeStr(a.category);
+            const catB = normalizeStr(b.category);
+            
+            const indexA = preferredOrder.findIndex(p => catA.includes(p));
+            const indexB = preferredOrder.findIndex(p => catB.includes(p));
+            
+            if (indexA !== -1 && indexB !== -1) {
+              if (indexA === indexB) return catA.localeCompare(catB, 'tr-TR');
+              return indexA - indexB;
+            }
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return catA.localeCompare(catB, 'tr-TR');
+          });
+
           return normalizedData;
         }
       }

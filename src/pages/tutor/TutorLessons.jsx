@@ -69,7 +69,8 @@ export default function TutorLessons() {
           getCategories(),
           getMyProfile(),
         ]);
-        setMyCourses(listings);
+        // Backend'den silinmiş (isActive = false) ilanları filtrele
+        setMyCourses(listings.filter(c => c.isActive !== false));
         setCategories(cats);
         setProfile(profileData);
       } catch (err) {
@@ -84,7 +85,8 @@ export default function TutorLessons() {
   const fetchListings = async () => {
     try {
       const data = await getMyListings();
-      setMyCourses(data);
+      // Backend'den silinmiş (isActive = false) ilanları filtrele
+      setMyCourses(data.filter(c => c.isActive !== false));
     } catch (err) {
       console.error(err);
     }

@@ -26,6 +26,7 @@ export default function AdminLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
+    { to: "/", label: "Ana Sayfa", icon: <Home size={20} /> },
     { to: "/admin/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
     { to: "/admin/users", label: "Kullanıcı Yönetimi", icon: <Users size={20} /> },
     { to: "/admin/tutors", label: "Eğitmen Onayları", icon: <UserCheck size={20} /> },
@@ -37,7 +38,7 @@ export default function AdminLayout() {
       {/* Premium Sidebar */}
       <aside className="w-80 bg-[#0f172a] text-slate-300 hidden lg:flex flex-col border-r border-white/5">
         <div className="p-8">
-          <Link to="/admin/dashboard" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">
                <Shield className="text-white w-6 h-6" />
             </div>
@@ -83,16 +84,16 @@ export default function AdminLayout() {
 
       {/* Mobile Nav */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#0f172a] z-50 flex items-center px-6 justify-between border-b border-white/5">
-         <div className="flex items-center gap-2">
+         <Link to="/" className="flex items-center gap-2">
            <Shield className="text-blue-500 w-8 h-8" />
            <span className="text-white font-bold tracking-widest text-sm uppercase">Admin Panel</span>
-         </div>
+         </Link>
          <ThemeSwitch />
       </div>
 
       <MobileSidebar $isOpen={isMenuOpen}>
          <div className="p-8 flex justify-between items-center border-b border-white/5">
-            <h1 className="text-white font-black text-xl">AdminPanel</h1>
+            <Link to="/"><h1 className="text-white font-black text-xl">AdminPanel</h1></Link>
             <button onClick={() => setIsMenuOpen(false)} className="text-slate-400"><X /></button>
          </div>
          <nav className="p-6 space-y-4">
@@ -121,12 +122,6 @@ export default function AdminLayout() {
             <div className="flex-1"></div>
            <div className="ml-auto flex items-center gap-4">
               <ThemeSwitch />
-              <Link
-                to="/"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-              >
-                <Home size={14} /> Ana Sayfa
-              </Link>
               <button className="relative w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all group">
                  <Bell size={18} />
                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1e293b] group-hover:scale-110 transition-transform"></span>

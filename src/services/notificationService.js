@@ -39,3 +39,18 @@ export async function markAllAsRead() {
   });
   return res && res.ok;
 }
+
+/**
+ * Tüm bildirimleri sil (Backend eklendiğinde çalışacak)
+ */
+export async function clearAllNotifications() {
+  try {
+    const res = await apiFetch("/api/notifications/clear", {
+      method: "DELETE"
+    });
+    return res && res.ok;
+  } catch (err) {
+    console.error("Notifications Clear Error:", err);
+    return false;
+  }
+}

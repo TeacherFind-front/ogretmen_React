@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TutorCard } from "@/components/shared/TutorCard";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +15,7 @@ import {
   DollarSign,
   SortAsc,
   LayoutGrid,
+  ChevronDown,
 } from "lucide-react";
 
 export default function TutorsList() {
@@ -40,6 +41,33 @@ export default function TutorsList() {
 
   const [cities, setCities] = useState([]);
   const [categories, setCategories] = useState([]);
+
+  // Combobox states
+  const [catOpen, setCatOpen] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+  const [serviceOpen, setServiceOpen] = useState(false);
+  const [catSearch, setCatSearch] = useState("");
+  const [citySearch, setCitySearch] = useState("");
+  const catRef = useRef(null);
+  const cityRef = useRef(null);
+  const serviceRef = useRef(null);
+
+  const SERVICE_OPTIONS = [
+    { value: "", label: "Tümü" },
+    { value: "1", label: "Online" },
+    { value: "2", label: "Yüz Yüze" },
+    { value: "3", label: "Her İkisi" },
+  ];
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (catRef.current && !catRef.current.contains(e.target)) setCatOpen(false);
+      if (cityRef.current && !cityRef.current.contains(e.target)) setCityOpen(false);
+      if (serviceRef.current && !serviceRef.current.contains(e.target)) setServiceOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     getCities()
@@ -185,61 +213,151 @@ export default function TutorsList() {
               </div>
             </div>
 
-            {/* Kategori */}
+            {/* Kategori - Modern Combobox */}
             <div className="space-y-3">
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
                 <Book className="w-3 h-3" /> Kategori
               </label>
-              <select
-                className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 text-sm font-semibold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white dark:focus:bg-[#0f172a] transition-all"
-                value={filters.category}
-                onChange={(e) => handleFilterChange("category", e.target.value)}
-              >
-                <option value="">Tüm Kategoriler</option>
-                {categories.map((cat) => (
-                  <option key={cat.category} value={cat.category}>
-                    {cat.category}
-                  </option>
-                ))}
-              </select>
+              <div className="relative" ref={catRef}>
+                <div
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  onClick={() => { setCatOpen(o => !o); setCatSearch(""); }}
+                >
+                  <span className={filters.category ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                    {filters.category || "Tüm Kategoriler"}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${catOpen ? "rotate-180" : ""}`} />
+                </div>
+                {catOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-64 flex flex-col">
+                    <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Ara..."
+                        value={catSearch}
+                        onChange={e => setCatSearch(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
+                      />
+                    </div>
+                    <div className="overflow-y-auto max-h-48">
+                      <button
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => { handleFilterChange("category", ""); setCatOpen(false); }}
+                        className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
+                          !filters.category ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-600 dark:text-gray-300"
+                        }`}
+                      >Tüm Kategoriler</button>
+                      {categories
+                        .filter(c => c.category.toLocaleLowerCase("tr-TR").includes(catSearch.toLocaleLowerCase("tr-TR")))
+                        .map(cat => (
+                          <button
+                            key={cat.category}
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => { handleFilterChange("category", cat.category); setCatOpen(false); }}
+                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[#334155] ${
+                              filters.category === cat.category ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                            }`}
+                          >
+                            <Book className="w-3 h-3 shrink-0 text-gray-300" />
+                            {cat.category}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Şehir */}
+            {/* Şehir - Modern Combobox */}
             <div className="space-y-3">
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
                 <MapPin className="w-3 h-3" /> Konum
               </label>
-              <select
-                className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 text-sm font-semibold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white dark:focus:bg-[#0f172a] transition-all"
-                value={filters.cityId}
-                onChange={(e) => handleFilterChange("cityId", e.target.value)}
-              >
-                <option value="">Fark Etmez</option>
-                {cities.map((city) => (
-                  <option key={city.id} value={city.id}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative" ref={cityRef}>
+                <div
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  onClick={() => { setCityOpen(o => !o); setCitySearch(""); }}
+                >
+                  <span className={filters.cityId ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                    {cities.find(c => String(c.id) === String(filters.cityId))?.name || "Fark Etmez"}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${cityOpen ? "rotate-180" : ""}`} />
+                </div>
+                {cityOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-64 flex flex-col">
+                    <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="şehir ara..."
+                        value={citySearch}
+                        onChange={e => setCitySearch(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
+                      />
+                    </div>
+                    <div className="overflow-y-auto max-h-48">
+                      <button
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => { handleFilterChange("cityId", ""); setCityOpen(false); }}
+                        className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
+                          !filters.cityId ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-600 dark:text-gray-300"
+                        }`}
+                      >Fark Etmez</button>
+                      {cities
+                        .filter(c => c.name.toLocaleLowerCase("tr-TR").includes(citySearch.toLocaleLowerCase("tr-TR")))
+                        .map(city => (
+                          <button
+                            key={city.id}
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => { handleFilterChange("cityId", city.id); setCityOpen(false); }}
+                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[#334155] ${
+                              String(filters.cityId) === String(city.id) ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                            }`}
+                          >
+                            <MapPin className="w-3 h-3 shrink-0 text-gray-300" />
+                            {city.name}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Ders Tipi */}
+            {/* Ders Tipi - Modern Combobox */}
             <div className="space-y-3">
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
                 <LayoutGrid className="w-3 h-3" /> Ders Tipi
               </label>
-              <select
-                className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 text-sm font-semibold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white dark:focus:bg-[#0f172a] transition-all"
-                value={filters.serviceType}
-                onChange={(e) =>
-                  handleFilterChange("serviceType", e.target.value)
-                }
-              >
-                <option value="">Tümü</option>
-                <option value="1">Çevrimiçi</option>
-                <option value="2">Yüz Yüze</option>
-                <option value="3">Her İkisi</option>
-              </select>
+              <div className="relative" ref={serviceRef}>
+                <div
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  onClick={() => setServiceOpen(o => !o)}
+                >
+                  <span className={filters.serviceType ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                    {SERVICE_OPTIONS.find(o => o.value === filters.serviceType)?.label || "Tümü"}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${serviceOpen ? "rotate-180" : ""}`} />
+                </div>
+                {serviceOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden">
+                    {SERVICE_OPTIONS.map(opt => (
+                      <button
+                        key={opt.value}
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => { handleFilterChange("serviceType", opt.value); setServiceOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors border-b border-gray-50 dark:border-[#334155] last:border-0 ${
+                          filters.serviceType === opt.value ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                        }`}
+                      >
+                        <LayoutGrid className="w-3 h-3 shrink-0 text-gray-300" />
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Fiyat Aralığı */}

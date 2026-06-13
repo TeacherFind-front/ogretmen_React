@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 import { Bell, MessageCircle, BookOpen, CheckCircle, Info, X, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getNotifications, markAsRead, markAllAsRead } from "@/services/notificationService";
+import { getNotifications, markAsRead, markAllAsRead, clearAllNotifications } from "@/services/notificationService";
 import { startChatConnection } from "@/services/chatService";
+import { useAuth } from "@/store/AuthContext";
 
 export default function NotificationDropdown() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -59,16 +61,29 @@ export default function NotificationDropdown() {
         console.error("Okundu işaretlenemedi", err);
       }
     }
-    if (notif.link) navigate(notif.link);
+    
+    if (notif.link) {
+      let finalLink = notif.link;
+      if (finalLink.startsWith("/messages")) {
+        const rolePrefix = user?.role?.toLowerCase() === "tutor" ? "/tutor" : "/student";
+        finalLink = rolePrefix + finalLink;
+      }
+      navigate(finalLink);
+    }
   };
 
-  const handleMarkAllAsRead = async () => {
+  const handleClearAll = async () => {
+    const confirmed = window.confirm(
+      "Tüm bildirimler kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?"
+    );
+    if (!confirmed) return;
+
     try {
-      await markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      await clearAllNotifications();
+      setNotifications([]);
       setUnreadCount(0);
     } catch (err) {
-      console.error("Tümü okundu işaretlenemedi", err);
+      console.error("Bildirimler temizlenemedi", err);
     }
   };
 
@@ -101,7 +116,7 @@ export default function NotificationDropdown() {
               {unreadCount > 0 && <span className="text-[9px] font-black bg-blue-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-sm">Yeni</span>}
             </div>
             {notifications.length > 0 && (
-              <ClearAllButton onClick={handleMarkAllAsRead}>
+              <ClearAllButton onClick={handleClearAll}>
                 Hepsini Temizle
               </ClearAllButton>
             )}
@@ -137,10 +152,6 @@ export default function NotificationDropdown() {
               ))
             )}
           </List>
-
-          <Footer onClick={() => navigate("/notifications")}>
-            Tümünü Gör
-          </Footer>
         </Dropdown>
       )}
     </div>
@@ -330,29 +341,6 @@ const EmptyState = styled.div`
   font-weight: 600;
 `;
 
-const Footer = styled.button`
-  width: 100%;
-  padding: 16px;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 800;
-  transition: all 0.2s;
-  border: none;
-  border-top: 1px solid #f1f5f9;
-
-  .dark & {
-    background: #1e293b;
-    color: #94a3b8;
-    border-color: #334155;
-    &:hover { color: #3b82f6; background: #334155; }
-  }
-
-  &:hover {
-    color: #2d79f3;
-    background: #f1f5f9;
-  }
-`;
 
 const ClearAllButton = styled.button`
   font-size: 11px;

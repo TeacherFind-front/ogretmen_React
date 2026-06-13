@@ -107,13 +107,6 @@ export default function StudentDashboard() {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto mt-4 md:mt-0">
           <Button 
-            variant="outline"
-            className="w-full sm:w-auto h-14 px-8 rounded-2xl font-bold bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white backdrop-blur-md"
-            onClick={() => navigate("/student/favorites")}
-          >
-            ❤️ Favori Hocalarım
-          </Button>
-          <Button 
             className="w-full sm:w-auto h-14 px-8 rounded-2xl font-bold bg-white text-violet-600 hover:bg-purple-50 shadow-xl"
             onClick={() => navigate("/tutors")}
           >
@@ -123,7 +116,7 @@ export default function StudentDashboard() {
       </header>
 
       {/* Stats row */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-3">
         <StatCard
           title="Mesajlarım"
           value={stats?.totalMessages || 0}
@@ -147,14 +140,6 @@ export default function StudentDashboard() {
           icon={<UserCheck className="h-6 w-6 text-emerald-500" />}
           trend="Süper"
           color="#10b981"
-        />
-        <StatCard
-          title="Sistem Puanı"
-          value="4.9"
-          sub="Güvenilir öğrenci"
-          icon={<Star className="h-6 w-6 text-amber-500" />}
-          trend="Harika"
-          color="#f59e0b"
         />
       </div>
 
