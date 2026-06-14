@@ -14,6 +14,7 @@ import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
 export default function StudentLayout() {
   const { user, logout } = useAuth();
@@ -42,6 +43,7 @@ export default function StudentLayout() {
 
   return (
     <div className="flex min-h-screen bg-muted/20 dark:bg-[#0f172a] transition-colors duration-300">
+      <ScrollToTop />
       {/* Desktop Sidebar */}
       <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
         <div className="flex h-16 items-center px-6 border-b">

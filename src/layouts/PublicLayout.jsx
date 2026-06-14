@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/store/AuthContext";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import BottomNav from "@/components/BottomNav";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
 export default function PublicLayout() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export default function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fcfdff] text-[#0f172a] dark:bg-[#0f172a] dark:text-slate-100 transition-colors duration-300">
+      <ScrollToTop />
       {/* Premium Navbar */}
       <nav className="sticky top-0 z-[90] w-full border-b border-gray-100 dark:border-[#1e293b] bg-white/70 dark:bg-[#0f172a]/80 backdrop-blur-2xl transition-colors duration-300">
         <div className="container mx-auto h-20 flex items-center justify-between px-6">

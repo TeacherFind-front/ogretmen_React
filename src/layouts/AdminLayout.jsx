@@ -18,6 +18,7 @@ import {
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -35,6 +36,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] transition-colors">
+      <ScrollToTop />
       {/* Premium Sidebar */}
       <aside className="w-80 bg-[#0f172a] text-slate-300 hidden lg:flex flex-col border-r border-white/5">
         <div className="p-8">
