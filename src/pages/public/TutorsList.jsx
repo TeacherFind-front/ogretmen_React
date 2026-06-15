@@ -284,7 +284,7 @@ export default function TutorsList() {
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${catOpen ? "rotate-180" : ""}`} />
                 </div>
                 {catOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-64 flex flex-col">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-[360px] flex flex-col">
                     <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
                       <input
                         autoFocus
@@ -295,7 +295,7 @@ export default function TutorsList() {
                         className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
                       />
                     </div>
-                    <div className="overflow-y-auto max-h-48">
+                    <div className="overflow-y-auto max-h-[290px]">
                       <button
                         onMouseDown={e => e.preventDefault()}
                         onClick={() => { handleFilterChange("category", ""); setCatOpen(false); }}
@@ -340,7 +340,7 @@ export default function TutorsList() {
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${subOpen ? "rotate-180" : ""}`} />
                 </div>
                 {subOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-64 flex flex-col">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-[360px] flex flex-col">
                     <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
                       <input
                         autoFocus
@@ -351,7 +351,7 @@ export default function TutorsList() {
                         className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
                       />
                     </div>
-                    <div className="overflow-y-auto max-h-48">
+                    <div className="overflow-y-auto max-h-[290px]">
                       <button
                         onMouseDown={e => e.preventDefault()}
                         onClick={handleSubjectClear}
@@ -396,7 +396,7 @@ export default function TutorsList() {
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${cityOpen ? "rotate-180" : ""}`} />
                 </div>
                 {cityOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-64 flex flex-col">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-[360px] flex flex-col">
                     <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
                       <input
                         autoFocus
@@ -407,7 +407,7 @@ export default function TutorsList() {
                         className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
                       />
                     </div>
-                    <div className="overflow-y-auto max-h-48">
+                    <div className="overflow-y-auto max-h-[290px]">
                       <button
                         onMouseDown={e => e.preventDefault()}
                         onClick={() => { handleFilterChange("cityId", ""); setCityOpen(false); }}
