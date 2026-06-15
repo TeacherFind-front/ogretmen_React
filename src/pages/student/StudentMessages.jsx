@@ -5,6 +5,7 @@ import { getConversations, getMessages, sendMessage, deleteMessages, deleteConve
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
 import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, ArrowLeft, Trash2, CornerUpLeft, X, Circle, CheckCircle2, Reply } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
+import { resolveMediaUrl } from "@/utils/helpers";
 
 export default function StudentMessages() {
   const { user } = useAuth();
@@ -161,24 +162,34 @@ export default function StudentMessages() {
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newMsg.trim() || !selectedConv) return;
-    try {
-      const sent = await sendMessage({ 
-        receiverId: selectedConv.otherUserId, 
-        content: newMsg.trim(),
-        replyToMessageId: replyTo?.id 
-      });
-      setNewMsg("");
-      setReplyTo(null);
 
-      const success = await sendMessageLive(selectedConv.otherUserId, newMsg.trim(), replyTo?.id);
+    const msgContent = newMsg.trim();
+    setNewMsg("");
+    const replyId = replyTo?.id;
+    setReplyTo(null);
+
+    try {
+      // Önce SignalR canlı mesajı dener (Hub otomatik olarak veritabanına kaydeder)
+      const success = await sendMessageLive(selectedConv.otherUserId, msgContent, replyId);
+      
       if (!success) {
+        // SignalR başarısızsa veya bağlı değilse HTTP API ile gönderir
+        const sent = await sendMessage({ 
+          receiverId: selectedConv.otherUserId, 
+          content: msgContent,
+          replyToMessageId: replyId 
+        });
         
-        // Eğer bu yeni bir konuşmaysa, conversationId'yi güncelle
         if (selectedConv.conversationId === "new") {
           fetchConversations();
         }
         
         setMessages(prev => [...prev, sent]);
+      } else {
+        if (selectedConv.conversationId === "new") {
+          // Yeni bir konuşma ise konuşma listesini tazeleyerek "new" durumundan kurtarır
+          fetchConversations();
+        }
       }
     } catch (err) {
       alert(err.message);
@@ -219,8 +230,12 @@ export default function StudentMessages() {
               onClick={() => setSelectedConv(conv)}
             >
               <div className="relative">
-                 <Avatar>
-                   {conv.otherUserName?.charAt(0)}
+                 <Avatar $hasImage={!!conv.otherUserAvatarUrl}>
+                   {conv.otherUserAvatarUrl ? (
+                     <img src={resolveMediaUrl(conv.otherUserAvatarUrl)} alt={conv.otherUserName} className="w-full h-full object-cover" />
+                   ) : (
+                     conv.otherUserName?.charAt(0)
+                   )}
                  </Avatar>
                  {conv.otherUserIsOnline && <OnlineStatus />}
               </div>
@@ -274,8 +289,12 @@ export default function StudentMessages() {
                   >
                     <ArrowLeft size={24} />
                   </button>
-                  <Avatar $small>
-                    {selectedConv.otherUserName?.charAt(0)}
+                  <Avatar $small $hasImage={!!selectedConv.otherUserAvatarUrl}>
+                    {selectedConv.otherUserAvatarUrl ? (
+                      <img src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} alt={selectedConv.otherUserName} className="w-full h-full object-cover" />
+                    ) : (
+                      selectedConv.otherUserName?.charAt(0)
+                    )}
                   </Avatar>
                   <div>
                      <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName || "Kullanıcı"}</h3>
@@ -499,7 +518,7 @@ const Avatar = styled.div`
   width: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
   height: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
   border-radius: ${props => props.$large ? '20px' : '14px'};
-  background: linear-gradient(135deg, #2d79f3 0%, #1e40af 100%);
+  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #2d79f3 0%, #1e40af 100%)'};
   color: white;
   display: flex;
   align-items: center;
@@ -507,7 +526,8 @@ const Avatar = styled.div`
   font-weight: 900;
   font-size: ${props => props.$large ? '20px' : props.$small ? '12px' : '16px'};
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(45, 121, 243, 0.15);
+  box-shadow: ${props => props.$hasImage ? 'none' : '0 4px 12px rgba(45, 121, 243, 0.15)'};
+  overflow: hidden;
 `;
 
 const OnlineStatus = styled.div`

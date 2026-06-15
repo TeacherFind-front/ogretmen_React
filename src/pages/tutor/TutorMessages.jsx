@@ -4,6 +4,7 @@ import { getConversations, getMessages, sendMessage, deleteMessages, deleteConve
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
 import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Trash2, CheckCircle2, Reply, CornerUpLeft, X } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
+import { resolveMediaUrl } from "@/utils/helpers";
 
 export default function TutorMessages() {
   const { user } = useAuth();
@@ -197,7 +198,13 @@ export default function TutorMessages() {
                     onClick={() => setSelectedConv(conv)}
                   >
                     <div className="relative">
-                      <Avatar>{conv.otherUserName?.charAt(0) || "U"}</Avatar>
+                      <Avatar $hasImage={!!conv.otherUserAvatarUrl}>
+                        {conv.otherUserAvatarUrl ? (
+                          <img src={resolveMediaUrl(conv.otherUserAvatarUrl)} alt={conv.otherUserName} className="w-full h-full object-cover" />
+                        ) : (
+                          conv.otherUserName?.charAt(0) || "U"
+                        )}
+                      </Avatar>
                       {conv.otherUserIsOnline && <OnlineStatus />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -246,7 +253,13 @@ export default function TutorMessages() {
               <>
                 <div className="p-5 border-b dark:border-slate-700 flex items-center justify-between bg-white dark:bg-[#1e293b] z-10">
                   <div className="flex items-center gap-4">
-                    <Avatar $large>{selectedConv.otherUserName?.charAt(0) || "U"}</Avatar>
+                    <Avatar $large $hasImage={!!selectedConv.otherUserAvatarUrl}>
+                      {selectedConv.otherUserAvatarUrl ? (
+                        <img src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} alt={selectedConv.otherUserName} className="w-full h-full object-cover" />
+                      ) : (
+                        selectedConv.otherUserName?.charAt(0) || "U"
+                      )}
+                    </Avatar>
                     <div>
                       <h3 className="font-bold text-gray-900 dark:text-white">{selectedConv.otherUserName || "Kullanıcı"}</h3>
                       {selectedConv.otherUserIsOnline ? (
@@ -516,7 +529,7 @@ const Avatar = styled.div`
   width: ${props => props.$large ? '48px' : '40px'};
   height: ${props => props.$large ? '48px' : '40px'};
   border-radius: 14px;
-  background: linear-gradient(135deg, #2d79f3 0%, #1e40af 100%);
+  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #2d79f3 0%, #1e40af 100%)'};
   color: white;
   display: flex;
   align-items: center;
@@ -524,7 +537,8 @@ const Avatar = styled.div`
   font-weight: 800;
   font-size: ${props => props.$large ? '18px' : '15px'};
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(45, 121, 243, 0.2);
+  box-shadow: ${props => props.$hasImage ? 'none' : '0 4px 10px rgba(45, 121, 243, 0.2)'};
+  overflow: hidden;
 `;
 
 const UnreadBadge = styled.span`
