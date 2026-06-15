@@ -1,5 +1,5 @@
 import * as signalR from "@microsoft/signalr";
-import BASE_URL from "./api";
+import BASE_URL, { apiFetch } from "./api";
 
 let connection = null;
 
@@ -59,11 +59,19 @@ export const sendMessageLive = async (receiverId, content, replyToMessageId = nu
  */
 export const registerDeviceToken = async (fcmToken) => {
   try {
-    const response = await api.post("/devices/register", {
-      fcmToken,
-      platform: "web"
+    const response = await apiFetch("/api/devices/register", {
+      method: "POST",
+      body: JSON.stringify({
+        fcmToken,
+        platform: "web",
+      }),
     });
-    return response.data;
+
+    if (!response || !response.ok) {
+      throw new Error("Cihaz token kaydı başarısız.");
+    }
+
+    return await response.json();
   } catch (err) {
     console.error("Device token register failed", err);
     throw err;

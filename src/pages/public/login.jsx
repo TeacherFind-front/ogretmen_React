@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import styled from "styled-components";
@@ -14,7 +14,21 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  // Giriş sonrası nereye gidileceğini belirler
+  const getRedirectPath = (role) => {
+    // Eğer mesaj / korumalı sayfadan gelindiyse oraya geri dön
+    const fromPath = location.state?.from?.pathname;
+    if (fromPath && fromPath !== "/login") return fromPath;
+
+    // Rol bazı yönlendirme
+    const r = role?.toString().toLowerCase();
+    if (r === "2" || r === "tutor") return "/tutor/dashboard";
+    if (r === "3" || r === "admin" || r === "4" || r === "superadmin") return "/admin/dashboard";
+    return "/student/dashboard";
+  };
 
   const [data, setData] = useState({
     email: "",
@@ -92,9 +106,9 @@ export default function Login() {
 
       toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
 
-      // React Router navigate ile yönlendir
+      // from state varsa oraya, yoksa rol bazı dashboard'a git
       setTimeout(() => {
-        navigate("/");
+        navigate(getRedirectPath(result.role));
       }, 500);
     } catch (err) {
       const errorMessage = err.message || "";

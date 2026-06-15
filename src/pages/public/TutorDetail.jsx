@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/store/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -50,6 +51,8 @@ import { resolveMediaUrl } from "@/utils/helpers";
 function TutorDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
 
   const [tutor, setTutor] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -115,7 +118,9 @@ function TutorDetail() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
-    const targetId = tutor.teacherUserId;
+    const targetId = tutor?.teacherUserId || tutor?.tutorUserId;
+    const tutorName = encodeURIComponent(tutor?.teacherName || "Öğretmen");
+
     if (!targetId) {
       toast.error(
         "Öğretmen kullanıcı bilgisi bulunamadı. Lütfen daha sonra tekrar deneyin.",
@@ -123,10 +128,22 @@ function TutorDetail() {
       return;
     }
 
-    // Direct to messages screen
-    navigate(
-      `/student/messages?tutorId=${targetId}&tutorName=${encodeURIComponent(tutor.teacherName)}`,
-    );
+    // Giriş yapılmamışsa → login'e yönlendir, geri dönüş student/messages olsun
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: {
+          from: { pathname: `/student/messages?tutorId=${targetId}&tutorName=${tutorName}` },
+        },
+      });
+      return;
+    }
+
+    // Giriş yapılmışsa → role göre doğru mesaj sayfasına git
+    const userRole = user?.role?.toString().toLowerCase();
+    const istutor = userRole === "2" || userRole === "tutor";
+    const messagesPath = istutor ? "/tutor/messages" : "/student/messages";
+
+    navigate(`${messagesPath}?tutorId=${targetId}&tutorName=${tutorName}`);
   };
 
   const handleSubmitReview = async (e) => {
