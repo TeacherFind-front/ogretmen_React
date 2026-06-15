@@ -30,6 +30,7 @@ export default function TutorsList() {
   const [filters, setFilters] = useState({
     search: searchParams.get("search") || "",
     category: searchParams.get("category") || "",
+    subjectId: searchParams.get("subjectId") || "",
     cityId: searchParams.get("cityId") || "",
     minPrice: searchParams.get("minPrice") || "",
     maxPrice: searchParams.get("maxPrice") || "",
@@ -44,11 +45,14 @@ export default function TutorsList() {
 
   // Combobox states
   const [catOpen, setCatOpen] = useState(false);
+  const [subOpen, setSubOpen] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
   const [serviceOpen, setServiceOpen] = useState(false);
   const [catSearch, setCatSearch] = useState("");
+  const [subSearch, setSubSearch] = useState("");
   const [citySearch, setCitySearch] = useState("");
   const catRef = useRef(null);
+  const subRef = useRef(null);
   const cityRef = useRef(null);
   const serviceRef = useRef(null);
 
@@ -62,6 +66,7 @@ export default function TutorsList() {
   useEffect(() => {
     const handler = (e) => {
       if (catRef.current && !catRef.current.contains(e.target)) setCatOpen(false);
+      if (subRef.current && !subRef.current.contains(e.target)) setSubOpen(false);
       if (cityRef.current && !cityRef.current.contains(e.target)) setCityOpen(false);
       if (serviceRef.current && !serviceRef.current.contains(e.target)) setServiceOpen(false);
     };
@@ -84,6 +89,7 @@ export default function TutorsList() {
       ...prev,
       search: searchParams.get("search") || "",
       category: searchParams.get("category") || "",
+      subjectId: searchParams.get("subjectId") || "",
       cityId: searchParams.get("cityId") || "",
       serviceType: searchParams.get("serviceType") || "",
     }));
@@ -99,6 +105,7 @@ export default function TutorsList() {
           ...filters,
           search: filters.search || undefined,
           category: filters.category || undefined,
+          subjectId: filters.subjectId || undefined,
           cityId: filters.cityId || undefined,
           minPrice: filters.minPrice || undefined,
           maxPrice: filters.maxPrice || undefined,
@@ -122,7 +129,13 @@ export default function TutorsList() {
   }, [filters]);
 
   const handleFilterChange = (key, value) => {
-    const newFilters = { ...filters, [key]: value, page: 1 };
+    let newFilters = { ...filters, [key]: value, page: 1 };
+    
+    // Kategori değiştiğinde branşı sıfırla
+    if (key === "category") {
+      newFilters.subjectId = "";
+    }
+    
     setFilters(newFilters);
 
     // URL'i güncelle
@@ -132,12 +145,54 @@ export default function TutorsList() {
     } else {
       newParams.delete(key);
     }
+    
+    if (key === "category") {
+      newParams.delete("subjectId");
+    }
     setSearchParams(newParams);
+  };
+
+  const handleSubjectSelect = (subject) => {
+    const parentCategory = categories.find(c => 
+      c.subjects?.some(s => String(s.id) === String(subject.id))
+    );
+    
+    const newFilters = { 
+      ...filters, 
+      subjectId: String(subject.id), 
+      page: 1 
+    };
+    
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("subjectId", String(subject.id));
+
+    if (parentCategory) {
+      newFilters.category = parentCategory.category;
+      newParams.set("category", parentCategory.category);
+    }
+    
+    setFilters(newFilters);
+    setSearchParams(newParams);
+    setSubOpen(false);
+  };
+
+  const handleSubjectClear = () => {
+    const newFilters = { ...filters, subjectId: "", page: 1 };
+    setFilters(newFilters);
+    
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("subjectId");
+    setSearchParams(newParams);
+    setSubOpen(false);
   };
 
   const handleLoadMore = () => {
     setFilters((prev) => ({ ...prev, page: prev.page + 1 }));
   };
+
+  const availableSubjects = filters.category
+    ? (categories.find(c => c.category === filters.category)?.subjects || [])
+    : categories.flatMap(c => c.subjects || []);
 
   return (
     <div className="bg-gray-50/50 dark:bg-[#0f172a] min-h-screen transition-colors duration-300">
@@ -261,6 +316,62 @@ export default function TutorsList() {
                           >
                             <Book className="w-3 h-3 shrink-0 text-gray-300" />
                             {cat.category}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Branş - Modern Combobox */}
+            <div className="space-y-3">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <Book className="w-3 h-3" /> Branş / Ders
+              </label>
+              <div className="relative" ref={subRef}>
+                <div
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  onClick={() => { setSubOpen(o => !o); setSubSearch(""); }}
+                >
+                  <span className={filters.subjectId ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                    {availableSubjects.find(s => String(s.id) === String(filters.subjectId))?.name || "Tüm Branşlar"}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${subOpen ? "rotate-180" : ""}`} />
+                </div>
+                {subOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-64 flex flex-col">
+                    <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Branş ara..."
+                        value={subSearch}
+                        onChange={e => setSubSearch(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
+                      />
+                    </div>
+                    <div className="overflow-y-auto max-h-48">
+                      <button
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={handleSubjectClear}
+                        className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
+                          !filters.subjectId ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-600 dark:text-gray-300"
+                        }`}
+                      >Tüm Branşlar</button>
+                      {availableSubjects
+                        .filter(s => s.name.toLocaleLowerCase("tr-TR").includes(subSearch.toLocaleLowerCase("tr-TR")))
+                        .map(sub => (
+                          <button
+                            key={sub.id}
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => handleSubjectSelect(sub)}
+                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[#334155] ${
+                              String(filters.subjectId) === String(sub.id) ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                            }`}
+                          >
+                            <Book className="w-3 h-3 shrink-0 text-gray-300" />
+                            {sub.name}
                           </button>
                         ))}
                     </div>
