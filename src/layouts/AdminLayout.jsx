@@ -13,7 +13,8 @@ import {
   Search,
   ChevronRight,
   Shield,
-  Home
+  Home,
+  MessageSquare
 } from "lucide-react";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import BottomNav from "@/components/BottomNav";
@@ -31,6 +32,7 @@ export default function AdminLayout() {
     { to: "/admin/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
     { to: "/admin/users", label: "Kullanıcı Yönetimi", icon: <Users size={20} /> },
     { to: "/admin/tutors", label: "İlan Yönetimi", icon: <UserCheck size={20} /> },
+    { to: "/admin/messages", label: "Mesajlar", icon: <MessageSquare size={20} /> },
     { to: "/admin/settings", label: "Sistem Ayarları", icon: <Settings size={20} /> },
   ];
 

@@ -41,6 +41,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminTutors from "./pages/admin/AdminTutors";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminMessages from "./pages/admin/AdminMessages";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 
 const router = createBrowserRouter([
@@ -110,6 +111,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "users", element: <AdminUsers /> },
       { path: "tutors", element: <AdminTutors /> },
+      { path: "messages", element: <AdminMessages /> },
       { path: "settings", element: <AdminSettings /> },
     ],
   },

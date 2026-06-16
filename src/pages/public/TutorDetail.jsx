@@ -178,8 +178,11 @@ function TutorDetail() {
       return;
     }
 
-    // İster öğrenci, ister öğretmen, ister admin olsun; ilandan mesaj atıldığında /student/messages'a yönlendirilir
-    navigate(`/student/messages?tutorId=${targetId}&tutorName=${tutorName}`);
+    if (isAdmin) {
+      navigate(`/admin/messages?tutorId=${targetId}&tutorName=${tutorName}`);
+    } else {
+      navigate(`/student/messages?tutorId=${targetId}&tutorName=${tutorName}`);
+    }
   };
 
   const handleSubmitReview = async (e) => {
