@@ -204,7 +204,7 @@ export async function updateMyListing(id, data) {
 }
 
 /**
- * İlan sil (ListingsController kullanıyor olabiliriz veya TutorsController'a eklenmeli)
+ * İlan sil
  */
 export async function deleteListing(id) {
   const res = await apiFetch(`/api/listings/${id}`, {
@@ -214,6 +214,38 @@ export async function deleteListing(id) {
   if (!res || !res.ok) {
     const err = await res?.json().catch(() => ({}));
     throw new Error(err.message || "İlan silinemedi.");
+  }
+
+  return true;
+}
+
+/**
+ * İlanı yayına al
+ */
+export async function publishListing(id) {
+  const res = await apiFetch(`/api/listings/${id}/publish`, {
+    method: "PUT",
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err.message || "İlan yayına alınamadı.");
+  }
+
+  return true;
+}
+
+/**
+ * İlanı yayından kaldır
+ */
+export async function unpublishListing(id) {
+  const res = await apiFetch(`/api/listings/${id}/unpublish`, {
+    method: "PUT",
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err.message || "İlan yayından kaldırılamadı.");
   }
 
   return true;

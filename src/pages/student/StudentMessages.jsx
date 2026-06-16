@@ -232,7 +232,14 @@ export default function StudentMessages() {
               <div className="relative">
                  <Avatar $hasImage={!!conv.otherUserAvatarUrl}>
                    {conv.otherUserAvatarUrl ? (
-                     <img src={resolveMediaUrl(conv.otherUserAvatarUrl)} alt={conv.otherUserName} className="w-full h-full object-cover" />
+                     <img 
+                       src={resolveMediaUrl(conv.otherUserAvatarUrl)} 
+                       alt={conv.otherUserName} 
+                       onError={(e) => {
+                         e.currentTarget.src = "/placeholder-avatar.png";
+                       }}
+                       className="w-full h-full object-cover" 
+                     />
                    ) : (
                      conv.otherUserName?.charAt(0)
                    )}
@@ -291,7 +298,14 @@ export default function StudentMessages() {
                   </button>
                   <Avatar $small $hasImage={!!selectedConv.otherUserAvatarUrl}>
                     {selectedConv.otherUserAvatarUrl ? (
-                      <img src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} alt={selectedConv.otherUserName} className="w-full h-full object-cover" />
+                      <img 
+                        src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} 
+                        alt={selectedConv.otherUserName} 
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder-avatar.png";
+                        }}
+                        className="w-full h-full object-cover" 
+                      />
                     ) : (
                       selectedConv.otherUserName?.charAt(0)
                     )}

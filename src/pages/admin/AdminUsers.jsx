@@ -36,7 +36,10 @@ export default function AdminUsers() {
     }
   }
 
-  async function toggleStatus(userId, currentStatus) {
+  async function toggleStatus(userId, currentStatus, name) {
+    const actionText = currentStatus ? "pasife almak" : "aktif etmek";
+    if (!window.confirm(`${name} isimli kullanıcıyı ${actionText} istediğinize emin misiniz?`)) return;
+
     try {
       await updateUserStatus(userId, !currentStatus);
       setUsers(users.map(u => u.id === userId ? { ...u, isActive: !currentStatus } : u));
@@ -159,7 +162,7 @@ export default function AdminUsers() {
                            <Button 
                              variant="ghost" 
                              size="sm"
-                             onClick={() => toggleStatus(user.id, user.isActive)}
+                             onClick={() => toggleStatus(user.id, user.isActive, user.fullName)}
                              className={`h-9 rounded-xl font-bold ${user.isActive ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'}`}
                            >
                              {user.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}

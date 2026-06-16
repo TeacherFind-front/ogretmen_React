@@ -31,6 +31,10 @@ import {
   ChevronLeft,
   Link as LinkIcon,
   Video as VideoIcon,
+  ThumbsUp,
+  ThumbsDown,
+  Trash2,
+  AlertCircle,
 } from "lucide-react";
 import {
   FaInstagram,
@@ -43,6 +47,7 @@ import { getTutorById } from "@/services/tutorService";
 import { toggleFavorite } from "@/services/favoriteService";
 import { addReview } from "@/services/reviewService";
 import { sendMessage } from "@/services/messageService";
+import { approveListing, deleteAdminListing } from "@/services/adminService";
 import styled, { keyframes, css } from "styled-components";
 import toast from "react-hot-toast";
 import BASE_URL, { getImageUrl } from "@/services/api";
@@ -63,6 +68,7 @@ function TutorDetail() {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [messageContent, setMessageContent] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [certLightboxUrl, setCertLightboxUrl] = useState(null);
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
@@ -70,6 +76,40 @@ function TutorDetail() {
   const [reviewData, setReviewData] = useState({ rating: 5, comment: "" });
   const [reviewLoading, setReviewLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const isAdmin = user && (user.role?.toString() === "3" || user.role?.toString().toLowerCase() === "admin" || user.role?.toString() === "4" || user.role?.toString().toLowerCase() === "superadmin");
+
+  const handleAdminApprove = async (isApproved) => {
+    let reason = "Uygun görülmedi.";
+    if (!isApproved) {
+      const inputReason = window.prompt("Lütfen red sebebini giriniz (Eğitmene iletilecek):");
+      if (inputReason === null) return; 
+      if (inputReason.trim() !== "") {
+        reason = inputReason.trim();
+      }
+    }
+    try {
+      await approveListing(tutor.id, isApproved, reason);
+      toast.success(isApproved ? "İlan onaylandı." : "İlan reddedildi.");
+      const updated = await getTutorById(id);
+      setTutor(updated.data || updated);
+    } catch (err) {
+      toast.error(err.message || "İşlem sırasında bir hata oluştu.");
+    }
+  };
+
+  const handleAdminDelete = async () => {
+    const confirm = window.confirm(`"${tutor.teacherName}" öğretmeninin bu ilanını tamamen silmek istediğinize emin misiniz?\nBu işlem geri alınamaz!`);
+    if (!confirm) return;
+
+    try {
+      await deleteAdminListing(tutor.id);
+      toast.success("İlan başarıyla silindi.");
+      navigate("/admin/tutors");
+    } catch (err) {
+      toast.error(err.message || "İlan silinirken bir hata oluştu.");
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -138,12 +178,8 @@ function TutorDetail() {
       return;
     }
 
-    // Giriş yapılmışsa → role göre doğru mesaj sayfasına git
-    const userRole = user?.role?.toString().toLowerCase();
-    const istutor = userRole === "2" || userRole === "tutor";
-    const messagesPath = istutor ? "/tutor/messages" : "/student/messages";
-
-    navigate(`${messagesPath}?tutorId=${targetId}&tutorName=${tutorName}`);
+    // İster öğrenci, ister öğretmen, ister admin olsun; ilandan mesaj atıldığında /student/messages'a yönlendirilir
+    navigate(`/student/messages?tutorId=${targetId}&tutorName=${tutorName}`);
   };
 
   const handleSubmitReview = async (e) => {
@@ -172,24 +208,35 @@ function TutorDetail() {
       </LoadingWrapper>
     );
 
-  if (error || !tutor)
+  if (error || !tutor) {
+    const isNotFound = error === "Öğretmen bulunamadı." || !tutor;
     return (
       <ErrorWrapper>
-        <div className="error-card">
-          <XIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2>Hata Oluştu</h2>
-          <p>{error || "Öğretmen profili yüklenemedi."}</p>
-          <Link to="/tutors">
-            <Button className="w-full bg-[#2d79f3] text-white">
-              Öğretmen Bul
+        <div className="error-card animate-in fade-in duration-300">
+          <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+             <AlertCircle className={`h-10 w-10 ${isNotFound ? 'text-amber-500' : 'text-red-500'}`} />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
+            {isNotFound ? "İlan Bulunamadı" : "Hata Oluştu"}
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-8 leading-relaxed">
+            {isNotFound 
+              ? "Aradığınız ilan yayından kaldırılmış, pasife alınmış veya henüz yönetici onayından geçmemiş olabilir." 
+              : (error || "Öğretmen profili yüklenemedi.")}
+          </p>
+          <Link to="/tutors" className="block w-full">
+            <Button className="w-full h-12 rounded-xl bg-[#2d79f3] hover:bg-blue-600 text-white font-black shadow-lg shadow-blue-200 dark:shadow-none transition-all">
+              Öğretmen Keşfet
             </Button>
           </Link>
         </div>
       </ErrorWrapper>
     );
+  }
 
   const reviews = tutor.reviews?.$values || tutor.reviews || [];
   const photos = tutor.photos?.$values || tutor.photos || [];
+  const documents = tutor.documents?.$values || tutor.documents || [];
 
   let parsedLessonRates = [];
   let displayDescription = tutor.bio || "";
@@ -249,6 +296,67 @@ function TutorDetail() {
     <PageWrapper>
       {/* Visual background elements */}
       <BgDecoration />
+
+      {/* Admin Action Bar */}
+      {isAdmin && tutor && (
+        <AdminActionBar>
+          <div className="admin-bar-content">
+            <div className="admin-info">
+              <ShieldCheck className="w-6 h-6 text-blue-500 animate-pulse" />
+              <div>
+                <h4>Yönetici İşlem Paneli</h4>
+                <p>
+                  Mevcut İlan Durumu:{" "}
+                  <span className={`status-label status-${tutor.status?.toLowerCase()}`}>
+                    {tutor.status === "PendingApproval"
+                      ? "Onay Bekliyor"
+                      : tutor.status === "Active"
+                        ? "Yayında (Onaylı)"
+                        : tutor.status === "Passive"
+                          ? "Pasif"
+                          : tutor.status === "Rejected"
+                            ? "Reddedildi"
+                            : tutor.status}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div className="admin-actions">
+              {tutor.status === "PendingApproval" && (
+                <>
+                  <Button
+                    onClick={() => handleAdminApprove(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 px-4 rounded-xl flex items-center gap-1.5"
+                  >
+                    <ThumbsUp size={15} /> Onayla
+                  </Button>
+                  <Button
+                    onClick={() => handleAdminApprove(false)}
+                    variant="destructive"
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold h-10 px-4 rounded-xl flex items-center gap-1.5"
+                  >
+                    <ThumbsDown size={15} /> Reddet
+                  </Button>
+                </>
+              )}
+              <Button
+                onClick={handleAdminDelete}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold h-10 px-4 rounded-xl flex items-center gap-1.5"
+              >
+                <Trash2 size={15} /> İlanı Tamamen Sil
+              </Button>
+              <Link to="/admin/tutors">
+                <Button
+                  variant="outline"
+                  className="border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold h-10 px-3 rounded-xl"
+                >
+                  Listeye Dön
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </AdminActionBar>
+      )}
 
       <div className="container mx-auto py-8 px-4 md:px-6 max-w-6xl relative z-10">
         {/* Modern Top Hero Section */}
@@ -717,6 +825,49 @@ function TutorDetail() {
               </ContentCard>
             )}
 
+            {/* Sertifikalar Section */}
+            {documents.length > 0 && (
+              <ContentCard>
+                <CardTitleAccent>
+                  <span className="title-decor decor-purple" />
+                  Sertifikalar & Belgeler
+                </CardTitleAccent>
+                <CertificatesGrid>
+                  {documents.map((doc, idx) => (
+                    <CertificateCard key={idx}>
+                      <div className="cert-badge-icon">
+                        <Award size={26} className="text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="cert-info">
+                        <h4 className="cert-title" title={doc.name}>{doc.name}</h4>
+                        <p className="cert-org" title={doc.organization}>{doc.organization}</p>
+                        <span className="cert-year">{doc.year}</span>
+                      </div>
+                      {doc.fileUrl && (
+                        <div
+                          className="cert-preview"
+                          onClick={() => {
+                            setCertLightboxUrl(resolveMediaUrl(doc.fileUrl));
+                          }}
+                        >
+                          <img
+                            src={resolveMediaUrl(doc.fileUrl)}
+                            alt={doc.name}
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                            }}
+                          />
+                          <div className="preview-overlay">
+                            <span>Önizle</span>
+                          </div>
+                        </div>
+                      )}
+                    </CertificateCard>
+                  ))}
+                </CertificatesGrid>
+              </ContentCard>
+            )}
+
             {/* Hizmet Alanı & Harita */}
             <ContentCard>
               <div className="flex items-center justify-between mb-4">
@@ -1116,6 +1267,31 @@ function TutorDetail() {
 
           <div className="absolute bottom-6 bg-white/10 px-4 py-1.5 rounded-full text-white/95 text-xs font-bold z-[1200]">
             {lightboxIndex + 1} / {photos.length}
+          </div>
+        </div>
+      )}
+
+      {/* Certificate Lightbox Modal */}
+      {certLightboxUrl && (
+        <div
+          className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-all duration-300"
+          onClick={() => setCertLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-6 right-6 text-white/80 hover:text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-colors z-[1200]"
+            onClick={() => setCertLightboxUrl(null)}
+          >
+            <XIcon size={24} />
+          </button>
+          <div
+            className="max-w-[85vw] max-h-[85vh] select-none z-[1150]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={certLightboxUrl}
+              alt="Sertifika Belgesi"
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in duration-200"
+            />
           </div>
         </div>
       )}
@@ -2570,6 +2746,224 @@ const StyledRadio = styled.div`
     100% {
       transform: scale(1.05);
     }
+  }
+`;
+
+const CertificatesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 10px;
+`;
+
+const CertificateCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.25s ease;
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+  }
+
+  .cert-badge-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: #f3e8ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .dark & {
+      background: #581c8730;
+    }
+  }
+
+  .cert-info {
+    flex: 1;
+    min-width: 0;
+
+    .cert-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .dark & {
+        color: white;
+      }
+    }
+
+    .cert-org {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .dark & {
+        color: #94a3b8;
+      }
+    }
+
+    .cert-year {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8b5cf6;
+      background: #f3e8ff;
+      padding: 2px 8px;
+      border-radius: 20px;
+
+      .dark & {
+        background: #581c8730;
+        color: #c084fc;
+      }
+    }
+  }
+
+  .cert-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+
+    .dark & {
+      border-color: #334155;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(139, 92, 246, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+
+      span {
+        color: white;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    }
+
+    &:hover .preview-overlay {
+      opacity: 1;
+    }
+  }
+`;
+
+const AdminActionBar = styled.div`
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+
+  .dark & {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(51, 65, 85, 0.8);
+    box-shadow: none;
+  }
+
+  .admin-bar-content {
+    max-width: 1150px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .admin-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    h4 {
+      font-size: 14px;
+      font-weight: 900;
+      color: #1e293b;
+      .dark & {
+        color: white;
+      }
+    }
+
+    p {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 2px;
+      .dark & {
+        color: #cbd5e1;
+      }
+    }
+
+    .status-label {
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+
+      &.status-pendingapproval {
+        background: #fffbeb;
+        color: #d97706;
+      }
+      &.status-active {
+        background: #f0fdf4;
+        color: #16a34a;
+      }
+      &.status-passive {
+        background: #f1f5f9;
+        color: #475569;
+      }
+      &.status-rejected {
+        background: #fef2f2;
+        color: #ef4444;
+      }
+    }
+  }
+
+  .admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 `;
 

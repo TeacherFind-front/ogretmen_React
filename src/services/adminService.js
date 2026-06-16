@@ -220,3 +220,20 @@ export async function updateAdminSettings(settings) {
   if (!res || !res.ok) throw new Error("Ayarlar güncellenemedi.");
   return res.json();
 }
+
+/**
+ * Admin olarak ilanı tamamen sil
+ * @param {string} id - İlan ID'si (Guid)
+ */
+export async function deleteAdminListing(id) {
+  const res = await apiFetch(`/api/admin/listings/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err.message || "İlan silinemedi.");
+  }
+
+  return true;
+}

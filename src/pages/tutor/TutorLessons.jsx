@@ -7,6 +7,8 @@ import {
   updateMyListing,
   deleteListing,
   getMyProfile,
+  publishListing,
+  unpublishListing,
 } from "@/services/tutorService";
 import { getCategories } from "@/services/locationService";
 import {
@@ -49,6 +51,8 @@ export default function TutorLessons() {
   const [myCourses, setMyCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [processingId, setProcessingId] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -143,14 +147,53 @@ export default function TutorLessons() {
     setShowForm(true);
   };
 
-  const handleDeleteClick = async (id) => {
-    if (!window.confirm("Bu ilanı silmek istediğinize emin misiniz?")) return;
+  const handleDeleteClick = (id) => {
+    setDeleteConfirmId(id);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    setProcessingId(deleteConfirmId);
     try {
-      await deleteListing(id);
-      setMyCourses(myCourses.filter((c) => c.id !== id));
+      await deleteListing(deleteConfirmId);
+      setMyCourses(myCourses.filter((c) => c.id !== deleteConfirmId));
+      setDeleteConfirmId(null);
     } catch (err) {
       alert(err.message || "İlan silinemedi.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handlePublishClick = async (id) => {
+    setProcessingId(id);
+    try {
+      await publishListing(id);
+      setMyCourses((prev) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, status: "Active", isActive: true } : c,
+        ),
+      );
+    } catch (err) {
+      alert(err.message || "İlan yayına alınamadı.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleUnpublishClick = async (id) => {
+    setProcessingId(id);
+    try {
+      await unpublishListing(id);
+      setMyCourses((prev) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, status: "Passive", isActive: false } : c,
+        ),
+      );
+    } catch (err) {
+      alert(err.message || "İlan yayından kaldırılamadı.");
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -220,27 +263,22 @@ export default function TutorLessons() {
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-4">
           {!showForm && (
-            <>
-              <div className="flex items-center bg-gray-100 dark:bg-slate-800 p-1 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"}`}
-                  title="Izgara Görünümü"
-                >
-                  <LayoutGrid size={18} />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"}`}
-                  title="Liste Görünümü"
-                >
-                  <List size={18} />
-                </button>
-              </div>
-              <AddButton onClick={handleAddClick}>
-                <Plus className="w-5 h-5" /> Yeni İlan
-              </AddButton>
-            </>
+            <div className="flex items-center bg-gray-100 dark:bg-slate-800 p-1 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"}`}
+                title="Izgara Görünümü"
+              >
+                <LayoutGrid size={18} />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400" : "text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"}`}
+                title="Liste Görünümü"
+              >
+                <List size={18} />
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -503,20 +541,28 @@ export default function TutorLessons() {
                         <div className="flex items-center gap-3">
                           {course.photos && course.photos.length > 0 ? (
                             <img
-                              src={getImageUrl(course.photos.find(p => p.isMain)?.photoUrl || course.photos[0].photoUrl)}
+                              src={course.photos.find(p => p.isMain)?.photoUrl || course.photos[0].photoUrl || "/placeholder-listing.png"}
                               alt={course.title}
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder-listing.png";
+                              }}
                               className="w-10 h-10 object-cover rounded-xl border border-gray-100 dark:border-slate-800"
                             />
                           ) : profile?.profileImageUrl || profile?.avatarUrl ? (
                             <img
-                              src={getImageUrl(profile.profileImageUrl || profile.avatarUrl)}
+                              src={profile.profileImageUrl || profile.avatarUrl || "/placeholder-avatar.png"}
                               alt={profile?.fullName || ""}
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder-avatar.png";
+                              }}
                               className="w-10 h-10 object-cover rounded-xl border border-gray-100 dark:border-slate-800"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-sm">
-                              {course.title.charAt(0)}
-                            </div>
+                            <img
+                              src="/placeholder-listing.png"
+                              alt={course.title}
+                              className="w-10 h-10 object-cover rounded-xl border border-gray-100 dark:border-slate-800"
+                            />
                           )}
                           <div className="flex flex-col min-w-0">
                             <span className="font-black text-gray-900 dark:text-white text-base truncate max-w-[200px]">
@@ -572,22 +618,54 @@ export default function TutorLessons() {
                             </>
                           ) : (
                             <>
-                              <AlertCircle className="w-3 h-3" /> Pasif
+                              <AlertCircle className="w-3 h-3" /> Yayında Değil
                             </>
                           )}
                         </StatusBadge>
                       </td>
                       <td className="p-6 border-b border-gray-50 dark:border-slate-800/50 align-middle">
-                        <div className="flex justify-end gap-3">
+                        <div className="flex justify-end items-center gap-3">
+                          {course.status === "Active" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-9 rounded-xl border-gray-200 dark:border-slate-700 text-xs font-bold whitespace-nowrap"
+                              disabled={processingId === course.id}
+                              onClick={() => handleUnpublishClick(course.id)}
+                            >
+                              {processingId === course.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                "Yayından Kaldır"
+                              )}
+                            </Button>
+                          ) : (
+                            (course.status === "Passive" || !course.status) && (
+                              <Button
+                                size="sm"
+                                className="h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold whitespace-nowrap"
+                                disabled={processingId === course.id}
+                                onClick={() => handlePublishClick(course.id)}
+                              >
+                                {processingId === course.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  "Yayına Al"
+                                )}
+                              </Button>
+                            )
+                          )}
                           <IconButton
                             title="Düzenle"
+                            disabled={processingId === course.id}
                             onClick={() => handleEditClick(course)}
                           >
                             <Edit2 className="w-4 h-4" />
                           </IconButton>
                           <IconButton
                             $danger
-                            title="Sil"
+                            title="Kalıcı Sil"
+                            disabled={processingId === course.id}
                             onClick={() => handleDeleteClick(course.id)}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -640,13 +718,14 @@ export default function TutorLessons() {
                           ? "Onayda"
                           : course.status === "Rejected"
                             ? "Red"
-                            : "Pasif"}
+                            : "Yayında Değil"}
                     </StatusBadge>
                   </div>
                   <div className="card-actions">
                     <IconButton
                       onClick={() => handleEditClick(course)}
                       size="sm"
+                      disabled={processingId === course.id}
                     >
                       <Edit2 size={14} />
                     </IconButton>
@@ -654,35 +733,101 @@ export default function TutorLessons() {
                       $danger
                       onClick={() => handleDeleteClick(course.id)}
                       size="sm"
+                      disabled={processingId === course.id}
                     >
                       <Trash2 size={14} />
                     </IconButton>
                   </div>
                 </div>
 
-                <div className="card-body">
-                  <div className="category-tag">
-                    <Tag size={12} /> {course.category}
-                  </div>
-                  <h3>{course.title}</h3>
+                <div className="card-body flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="category-tag">
+                      <Tag size={12} /> {course.category}
+                    </div>
+                    <h3>{course.title}</h3>
 
-                  <div className="stats">
-                    <div className="stat-item">
-                      <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                      <span>
-                        {course.rating || "0.0"} ({course.reviewCount || 0})
-                      </span>
+                    <div className="stats mb-4">
+                      <div className="stat-item">
+                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                        <span>
+                          {course.rating || "0.0"} ({course.reviewCount || 0})
+                        </span>
+                      </div>
+                      <div className="stat-item">
+                        <Clock className="w-4 h-4 text-purple-500" />
+                        <span>{course.lessonDuration} Dk</span>
+                      </div>
                     </div>
-                    <div className="stat-item">
-                      <Clock className="w-4 h-4 text-purple-500" />
-                      <span>{course.lessonDuration} Dk</span>
-                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-50 dark:border-slate-800">
+                    {course.status === "Active" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full h-10 rounded-xl border-gray-200 dark:border-slate-700 text-xs font-bold"
+                        disabled={processingId === course.id}
+                        onClick={() => handleUnpublishClick(course.id)}
+                      >
+                        {processingId === course.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
+                        ) : (
+                          "Yayından Kaldır"
+                        )}
+                      </Button>
+                    ) : (
+                      (course.status === "Passive" || !course.status) && (
+                        <Button
+                          size="sm"
+                          className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
+                          disabled={processingId === course.id}
+                          onClick={() => handlePublishClick(course.id)}
+                        >
+                          {processingId === course.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
+                          ) : (
+                            "Yayına Al"
+                          )}
+                        </Button>
+                      )
+                    )}
                   </div>
                 </div>
               </ListingGridCard>
             ))
           )}
         </div>
+      )}
+
+      {deleteConfirmId && (
+        <ModalOverlay>
+          <ModalContent>
+            <h4>İlanı Silmek İstiyor musunuz?</h4>
+            <p>
+              Bu ilan kalıcı olarak silinecek. İlan fotoğrafları ve ilişkili
+              kayıtlar da silinir. Bu işlem geri alınamaz.
+            </p>
+            <div className="modal-buttons">
+              <CancelButton
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={processingId !== null}
+              >
+                Vazgeç
+              </CancelButton>
+              <DangerButton
+                onClick={handleConfirmDelete}
+                disabled={processingId !== null}
+              >
+                {processingId !== null ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Evet, Kalıcı Sil"
+                )}
+              </DangerButton>
+            </div>
+          </ModalContent>
+        </ModalOverlay>
       )}
     </Container>
   );
@@ -1036,5 +1181,95 @@ const ListingGridCard = styled.div`
         }
       }
     }
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  border-radius: 28px;
+  padding: 32px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+  border: 1px solid #f1f5f9;
+  text-align: center;
+  animation: slideUp 0.2s ease-out;
+
+  @keyframes slideUp {
+    from { transform: translateY(20px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  }
+
+  h4 {
+    font-size: 20px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 12px;
+    .dark & { color: white; }
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    .dark & { color: #94a3b8; }
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+`;
+
+const DangerButton = styled.button`
+  background: #ef4444;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  transition: all 0.2s;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 `;
