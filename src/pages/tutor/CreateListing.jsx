@@ -632,7 +632,7 @@ const CreateListing = () => {
                       r[index].title = e.target.value;
                       setFormData({ ...formData, lessonRates: r });
                     }}
-                    placeholder="Ders Adı"
+                    placeholder="Ders gir..."
                   />
                 </div>
                 <div>
@@ -1690,6 +1690,27 @@ const rateFieldBase = `
   border-radius:12px; font-size:14px; font-weight:700;
   color:#1e293b; outline:none; transition:all 0.2s;
   &:focus { border-color:#2d79f3; background:white; }
+  &::placeholder { color: #cbd5e1; font-weight: 500; }
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+    
+    &::placeholder {
+      color: #475569;
+    }
+    
+    &:focus {
+      background: #0f172a;
+      border-color: #2d79f3;
+    }
+
+    option {
+      background: #1e293b;
+      color: #f1f5f9;
+    }
+  }
 `;
 
 const RateInput = styled.input`
