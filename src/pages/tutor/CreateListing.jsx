@@ -959,9 +959,30 @@ const CreateListing = () => {
           style={{ display: "none" }}
           onChange={(e) => {
             const files = Array.from(e.target.files);
+            const validTypes = ["image/jpeg", "image/png", "image/webp"];
+            const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+            const currentCount = formData.listingPhotos.length;
+            if (currentCount + files.length > 2) {
+              toast.error("En fazla 2 adet ilan fotoğrafı yükleyebilirsiniz.");
+              return;
+            }
+
+            const invalidFile = files.find(f => !validTypes.includes(f.type));
+            if (invalidFile) {
+              toast.error("Yalnızca JPG, PNG ve WEBP formatındaki resimler desteklenmektedir.");
+              return;
+            }
+
+            const oversizedFile = files.find(f => f.size > maxSizeBytes);
+            if (oversizedFile) {
+              toast.error("Her bir resmin boyutu en fazla 5 MB olabilir.");
+              return;
+            }
+
             setFormData({
               ...formData,
-              listingPhotos: [...formData.listingPhotos, ...files].slice(0, 2),
+              listingPhotos: [...formData.listingPhotos, ...files],
             });
           }}
         />

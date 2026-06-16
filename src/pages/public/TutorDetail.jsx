@@ -245,15 +245,36 @@ function TutorDetail() {
   let displayDescription = tutor.bio || "";
   let youtubeVideoUrl = tutor.youtubeVideoUrl || null;
 
-  const convertToEmbedUrl = (url) => {
+  const getYoutubeEmbedUrl = (url) => {
     if (!url) return null;
-    const regex =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-    const match = url.match(regex);
-    return match && match[1]
-      ? `https://www.youtube.com/embed/${match[1]}`
-      : url;
+
+    try {
+      const u = new URL(url.trim());
+      const host = u.hostname.replace("www.", "").toLowerCase();
+
+      let videoId = null;
+
+      if (host === "youtu.be") {
+        videoId = u.pathname.split("/").filter(Boolean)[0];
+      } else if (host.includes("youtube.com")) {
+        if (u.pathname.startsWith("/watch")) {
+          videoId = u.searchParams.get("v");
+        } else if (u.pathname.startsWith("/shorts/")) {
+          videoId = u.pathname.split("/").filter(Boolean)[1];
+        } else if (u.pathname.startsWith("/embed/")) {
+          videoId = u.pathname.split("/").filter(Boolean)[1];
+        }
+      }
+
+      if (!videoId) return null;
+
+      return `https://www.youtube.com/embed/${videoId}`;
+    } catch {
+      return null;
+    }
   };
+
+  const embedUrl = getYoutubeEmbedUrl(youtubeVideoUrl);
 
   if (tutor.bio) {
     const match = displayDescription.match(
@@ -294,6 +315,12 @@ function TutorDetail() {
     tutor.serviceType === "Both" ||
     tutor.serviceType === 2 ||
     tutor.serviceType === 3;
+
+  const mainPhoto =
+    photos.find((p) => p.isMain)?.photoUrl ||
+    photos[0]?.photoUrl ||
+    tutor.avatarUrl ||
+    null;
 
   return (
     <PageWrapper>
@@ -368,8 +395,8 @@ function TutorDetail() {
             <div className="profile-image-container">
               <img
                 src={
-                  tutor.avatarUrl
-                    ? resolveMediaUrl(tutor.avatarUrl)
+                  mainPhoto
+                    ? resolveMediaUrl(mainPhoto)
                     : `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.teacherName)}&background=2d79f3&color=fff&size=200`
                 }
                 alt={tutor.teacherName}
@@ -635,7 +662,7 @@ function TutorDetail() {
             </ContentCard>
 
             {/* Tanıtım Videosu Section */}
-            {youtubeVideoUrl && (
+            {embedUrl && (
               <ContentCard>
                 <CardTitleAccent>
                   <span className="title-decor decor-red" />
@@ -643,7 +670,7 @@ function TutorDetail() {
                 </CardTitleAccent>
                 <VideoPlayerWrapper>
                   <iframe
-                    src={convertToEmbedUrl(youtubeVideoUrl)}
+                    src={embedUrl}
                     title="YouTube video player"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

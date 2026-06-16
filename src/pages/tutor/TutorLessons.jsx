@@ -34,6 +34,7 @@ import {
   MoreVertical,
   ExternalLink,
   GraduationCap,
+  Video,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -63,6 +64,7 @@ export default function TutorLessons() {
     description: "",
     serviceType: 1,
     lessonDuration: 60,
+    youtubeVideoUrl: "",
   });
 
   useEffect(() => {
@@ -108,6 +110,7 @@ export default function TutorLessons() {
       description: "",
       serviceType: 1,
       lessonDuration: 60,
+      youtubeVideoUrl: "",
     });
     setShowForm(true);
   };
@@ -143,6 +146,7 @@ export default function TutorLessons() {
             ? 2
             : 3,
       lessonDuration: course.lessonDuration || 60,
+      youtubeVideoUrl: course.youtubeVideoUrl || "",
     });
     setShowForm(true);
   };
@@ -219,6 +223,7 @@ export default function TutorLessons() {
         price: p,
         lessonDuration: parseInt(formData.lessonDuration),
         serviceType: parseInt(formData.serviceType),
+        youtubeVideoUrl: formData.youtubeVideoUrl?.trim() || null,
         university: profile?.university || "",
         department: profile?.department || "",
       };
@@ -458,6 +463,21 @@ export default function TutorLessons() {
                     </select>
                   </FormGroup>
                 </div>
+
+                <FormGroup>
+                  <label>
+                    <Video className="w-4 h-4 inline mr-2 text-red-500" />{" "}
+                    YouTube Tanıtım Videosu (İsteğe Bağlı)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={formData.youtubeVideoUrl || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, youtubeVideoUrl: e.target.value })
+                    }
+                  />
+                </FormGroup>
 
                 <FormGroup className="md:col-span-2">
                   <label>Detaylı Açıklama</label>

@@ -58,9 +58,10 @@ export function TutorCard({ tutor }) {
   const name = tutor.teacherName || tutor.name || tutor.teacherListing?.teacherName || tutor.fullName || "Eğitmen";
   
   // Önce isMain olan fotoğrafı bul, yoksa ilk fotoğrafı al, o da yoksa avatarUrl'e bak
+  const photosList = tutor.photos?.$values || tutor.photos || [];
   const imageUrl =
-    tutor.photos?.find(p => p.isMain)?.photoUrl ||
-    tutor.photos?.[0]?.photoUrl ||
+    photosList.find(p => p.isMain)?.photoUrl ||
+    photosList[0]?.photoUrl ||
     tutor.photoUrl ||
     tutor.profileImageUrl ||
     tutor.avatarUrl;
@@ -92,7 +93,9 @@ export function TutorCard({ tutor }) {
             src={avatar}
             alt={name}
             className="w-28 h-28 rounded-full object-cover shadow-md mb-5 border-4 border-white dark:border-[#1e293b] group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => { e.target.src = `https://i.pravatar.cc/150?u=${tutor.id}`; }}
+            onError={(e) => {
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`;
+            }}
           />
           <span className="absolute bottom-4 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-[#1e293b] rounded-full" />
         </div>
