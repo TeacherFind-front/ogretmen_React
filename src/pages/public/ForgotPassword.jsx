@@ -44,6 +44,23 @@ const ForgotPassword = () => {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pastedData) {
+      const newCode = [...code];
+      for (let i = 0; i < pastedData.length; i++) {
+        if (i < 6) newCode[i] = pastedData[i];
+      }
+      setCode(newCode);
+      const nextFocusIndex = pastedData.length < 6 ? pastedData.length : 5;
+      const targetElement = document.getElementById(`reset-code-${nextFocusIndex}`);
+      if (targetElement) {
+        targetElement.focus();
+      }
+    }
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
     const fullCode = code.join("");
@@ -140,6 +157,7 @@ const ForgotPassword = () => {
                     value={digit}
                     onChange={(e) => handleCodeChange(idx, e.target.value)}
                     onKeyDown={(e) => handleCodeKeyDown(idx, e)}
+                    onPaste={handlePaste}
                     autoFocus={idx === 0}
                   />
                 ))}

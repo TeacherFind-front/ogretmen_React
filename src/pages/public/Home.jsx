@@ -25,16 +25,16 @@ import { toPlainText, resolveMediaUrl } from "@/utils/helpers";
 
 // ─── Categories ──────────────────────────────────────────────────────────────
 const CATEGORY_ICONS = {
-  "Matematik": Calculator,
+  Matematik: Calculator,
   "Fen Bilimleri": FlaskConical,
-  "Yazılım": Code,
+  Yazılım: Code,
   "Yabancı Dil": Languages,
   "Sınav Hazırlık": GraduationCap,
-  "Müzik": Music,
-  "İngilizce": Languages,
+  Müzik: Music,
+  İngilizce: Languages,
   "Kişisel Gelişim": Star,
-  "Sanat": Music,
-  "Spor": Play
+  Sanat: Music,
+  Spor: Play,
 };
 
 const CATEGORIES = [
@@ -84,9 +84,9 @@ const CATEGORIES = [
 
 function TeacherCard({ teacher }) {
   const navigate = useNavigate();
-  
+
   return (
-    <div 
+    <div
       onClick={() => navigate(`/tutors/${teacher.id}`)}
       className="cursor-pointer bg-white dark:bg-[#0f172a] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#1e293b] flex flex-col group transition-all hover:shadow-xl"
     >
@@ -99,7 +99,9 @@ function TeacherCard({ teacher }) {
           }
           alt={teacher.teacherName || "Eğitmen"}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.teacherName || "Öğretmen")}&background=2d79f3&color=fff&size=512`; }}
+          onError={(e) => {
+            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.teacherName || "Öğretmen")}&background=2d79f3&color=fff&size=512`;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
@@ -118,7 +120,11 @@ function TeacherCard({ teacher }) {
           <div className="flex items-center gap-0.5 bg-yellow-50 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded-md">
             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
             <span className="text-[11px] font-bold text-yellow-700">
-              {teacher.rating || "4.8"}
+              {teacher.rating
+                ? typeof teacher.rating === "number"
+                  ? teacher.rating.toFixed(1)
+                  : teacher.rating
+                : "0.0"}
             </span>
           </div>
         </div>
@@ -136,14 +142,20 @@ function TeacherCard({ teacher }) {
             </span>
           </div>
           <div className="flex gap-1.5">
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`/tutors/${teacher.id}`); }}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/tutors/${teacher.id}`);
+              }}
               className="p-1.5 rounded-lg bg-gray-50 dark:bg-[#1e293b] text-gray-400 hover:bg-blue-50 dark:hover:bg-[#334155] hover:text-blue-500 transition-colors"
             >
               <MessageCircle className="w-4 h-4" />
             </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`/tutors/${teacher.id}`); }}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/tutors/${teacher.id}`);
+              }}
               className="p-1.5 rounded-lg bg-[#009688] text-white hover:bg-[#00796b] transition-colors shadow-md shadow-teal-100"
             >
               <Calendar className="w-4 h-4" />
@@ -202,14 +214,19 @@ export default function Home() {
     { value: "her-ikisi", label: "Her İkisi" },
   ];
 
-  const selectedLocationLabel = LOCATION_OPTIONS.find(o => o.value === selectedLocation)?.label || "Ders türü seçin...";
+  const selectedLocationLabel =
+    LOCATION_OPTIONS.find((o) => o.value === selectedLocation)?.label ||
+    "Ders türü seçin...";
 
-  const subjectOptions = allCategories.length > 0
-    ? allCategories.map(c => c.category)
-    : ["Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca"];
+  const subjectOptions =
+    allCategories.length > 0
+      ? allCategories.map((c) => c.category)
+      : ["Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca"];
 
-  const filteredSubjects = subjectOptions.filter(s =>
-    s.toLocaleLowerCase("tr-TR").includes(subjectSearch.toLocaleLowerCase("tr-TR"))
+  const filteredSubjects = subjectOptions.filter((s) =>
+    s
+      .toLocaleLowerCase("tr-TR")
+      .includes(subjectSearch.toLocaleLowerCase("tr-TR")),
   );
 
   useEffect(() => {
@@ -222,13 +239,19 @@ export default function Home() {
       const data = await getCategories();
       if (Array.isArray(data) && data.length > 0) {
         setAllCategories(data);
-        setGridCategories(data.slice(0, 6).map(c => ({
-          id: c.category,
-          label: c.category,
-          sub: c.subjects?.slice(0, 2).map(s => s.name).join(", ") || "Alanında Uzmanlar",
-          icon: CATEGORY_ICONS[c.category] || BookOpen,
-          queryValue: c.category
-        })));
+        setGridCategories(
+          data.slice(0, 6).map((c) => ({
+            id: c.category,
+            label: c.category,
+            sub:
+              c.subjects
+                ?.slice(0, 2)
+                .map((s) => s.name)
+                .join(", ") || "Alanında Uzmanlar",
+            icon: CATEGORY_ICONS[c.category] || BookOpen,
+            queryValue: c.category,
+          })),
+        );
       }
     } catch (err) {
       console.error("Categories fetch failed", err);
@@ -268,16 +291,16 @@ export default function Home() {
     if (selectedSubject) {
       params.append("category", selectedSubject);
     }
-    
+
     let serviceType = "";
     if (selectedLocation === "online") serviceType = "1";
     else if (selectedLocation === "yuz-yuze") serviceType = "2";
     else if (selectedLocation === "her-ikisi") serviceType = "3";
-    
+
     if (serviceType) {
       params.append("serviceType", serviceType);
     }
-    
+
     navigate(`/tutors?${params.toString()}`);
   };
 
@@ -292,10 +315,10 @@ export default function Home() {
 
       const realTutors = (response.items || []).map((tutor) => {
         const name = tutor.teacherName || tutor.name || "Öğretmen";
-        
+
         // Fotoğraf seçme sırası
         const imageUrl =
-          tutor.photos?.find(p => p.isMain)?.photoUrl ||
+          tutor.photos?.find((p) => p.isMain)?.photoUrl ||
           tutor.photos?.[0]?.photoUrl ||
           tutor.photoUrl ||
           tutor.profileImageUrl ||
@@ -306,7 +329,10 @@ export default function Home() {
           : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff&size=512`;
 
         const plainAbout = toPlainText(tutor.description || tutor.bio || "");
-        const truncatedAbout = plainAbout.length > 120 ? plainAbout.substring(0, 120) + "..." : plainAbout;
+        const truncatedAbout =
+          plainAbout.length > 120
+            ? plainAbout.substring(0, 120) + "..."
+            : plainAbout;
 
         return {
           id: tutor.id,
@@ -336,28 +362,32 @@ export default function Home() {
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full mb-10 border border-white/20">
             <GraduationCap className="w-4 h-4 text-white" />
             <span className="text-xs font-bold tracking-wide uppercase text-white">
-              ALANINDA UZMAN {totalTutors > 0 ? totalTutors.toLocaleString("tr-TR") : "..."} EĞİTMEN
+              ALANINDA UZMAN{" "}
+              {totalTutors > 0 ? totalTutors.toLocaleString("tr-TR") : "..."}{" "}
+              EĞİTMEN
             </span>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl md:text-5xl lg:text-[56px] font-bold mb-10 md:mb-14 leading-[1.3] md:leading-[1.2]">
-            En İyi Öğretmenlerden{" "}
-            <span className="text-[#d1d8f5] font-medium">Online veya</span>{" "}
-            <br className="hidden sm:block" />
-            <span className="text-[#d1d8f5] font-medium">Yüz Yüze</span> Dersler
-            Alın
+          <h1 className="text-2xl md:text-4xl lg:text-[54px] font-bold mb-10 md:mb-14 leading-[1.3] md:leading-[1.2]">
+            Özel Ders VIP Kalitesiyle <br className="hidden sm:block" />
+            Alanında Uzman Eğitmenlerden <br className="hidden sm:block" />
+            <span className="text-[#d1d8f5] font-medium">
+              Online veya Yüz Yüze
+            </span>{" "}
+            Ders Alın
           </h1>
 
           {/* Search Bar */}
           <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] md:rounded-full p-2 flex flex-col md:flex-row items-center w-full max-w-4xl shadow-2xl mx-auto gap-2 transition-colors duration-300">
-
             {/* Ders Seçin — Modern Combobox */}
             <div
               className="flex-[1.2] flex items-center gap-4 px-6 py-3 w-full border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#334155] relative"
               ref={subjectRef}
             >
-              <BookOpen className={`w-5 h-5 shrink-0 transition-colors ${subjectFocused ? "text-blue-500" : "text-gray-400 dark:text-blue-400"}`} />
+              <BookOpen
+                className={`w-5 h-5 shrink-0 transition-colors ${subjectFocused ? "text-blue-500" : "text-gray-400 dark:text-blue-400"}`}
+              />
               <div className="text-left flex-1 min-w-0">
                 <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-0.5">
                   DERS SEÇİN
@@ -370,7 +400,11 @@ export default function Home() {
                     setSelectedSubject("");
                     setSubjectOpen(true);
                   }}
-                  onFocus={() => { setSubjectOpen(true); setSubjectFocused(true); setSubjectSearch(""); }}
+                  onFocus={() => {
+                    setSubjectOpen(true);
+                    setSubjectFocused(true);
+                    setSubjectSearch("");
+                  }}
                   placeholder={selectedSubject || "Ders ara..."}
                   className="w-full bg-transparent text-gray-800 dark:text-slate-100 font-semibold focus:outline-none text-sm placeholder:text-gray-400 dark:placeholder:text-slate-500"
                 />
@@ -380,7 +414,9 @@ export default function Home() {
               {subjectOpen && (
                 <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-72 overflow-y-auto animate-in">
                   {filteredSubjects.length === 0 ? (
-                    <div className="px-5 py-4 text-sm text-gray-400 text-center">Sonuç bulunamadı</div>
+                    <div className="px-5 py-4 text-sm text-gray-400 text-center">
+                      Sonuç bulunamadı
+                    </div>
                   ) : (
                     filteredSubjects.map((s) => (
                       <button
@@ -412,14 +448,19 @@ export default function Home() {
               className="flex-1 flex items-center gap-4 px-6 py-3 w-full relative"
               ref={locationRef}
             >
-              <MapPin className={`w-5 h-5 shrink-0 transition-colors ${locationFocused ? "text-blue-500" : "text-gray-400 dark:text-blue-400"}`} />
+              <MapPin
+                className={`w-5 h-5 shrink-0 transition-colors ${locationFocused ? "text-blue-500" : "text-gray-400 dark:text-blue-400"}`}
+              />
               <div className="text-left flex-1 min-w-0">
                 <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-0.5">
                   DERS NEREDE YAPILSIN
                 </p>
                 <button
                   type="button"
-                  onClick={() => { setLocationOpen(o => !o); setLocationFocused(true); }}
+                  onClick={() => {
+                    setLocationOpen((o) => !o);
+                    setLocationFocused(true);
+                  }}
                   className="w-full bg-transparent text-left font-semibold focus:outline-none text-sm text-gray-800 dark:text-slate-100"
                 >
                   {selectedLocationLabel}
@@ -429,7 +470,7 @@ export default function Home() {
               {/* Location Dropdown */}
               {locationOpen && (
                 <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden animate-in">
-                  {LOCATION_OPTIONS.filter(o => o.value !== "").map((opt) => (
+                  {LOCATION_OPTIONS.filter((o) => o.value !== "").map((opt) => (
                     <button
                       key={opt.value}
                       onMouseDown={(e) => e.preventDefault()}
@@ -453,7 +494,10 @@ export default function Home() {
             </div>
 
             {/* Ara Butonu */}
-            <button onClick={handleSearch} className="bg-[#001040] text-white p-4 md:px-8 rounded-full hover:bg-blue-900 transition-colors shrink-0 w-full md:w-auto flex justify-center items-center mt-2 md:mt-0">
+            <button
+              onClick={handleSearch}
+              className="bg-[#001040] text-white p-4 md:px-8 rounded-full hover:bg-blue-900 transition-colors shrink-0 w-full md:w-auto flex justify-center items-center mt-2 md:mt-0"
+            >
               <Search className="w-6 h-6" />
             </button>
           </div>
@@ -463,19 +507,25 @@ export default function Home() {
       {/* ── Category Grid ── */}
       <section className="py-8 px-6">
         <div className="container mx-auto max-w-7xl">
-          <div 
+          <div
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
             onMouseLeave={() => setHoveredCategory(null)}
           >
             {gridCategories.map((cat) => {
               const Icon = cat.icon;
-              const isActive = hoveredCategory ? hoveredCategory === cat.id : cat.id === "Matematik";
-              
+              const isActive = hoveredCategory
+                ? hoveredCategory === cat.id
+                : cat.id === "Matematik";
+
               return (
                 <div
                   key={cat.id}
                   onMouseEnter={() => setHoveredCategory(cat.id)}
-                  onClick={() => navigate(`/tutors?category=${encodeURIComponent(cat.queryValue)}`)}
+                  onClick={() =>
+                    navigate(
+                      `/tutors?category=${encodeURIComponent(cat.queryValue)}`,
+                    )
+                  }
                   className={`p-3 md:p-4 rounded-[20px] md:rounded-[24px] border border-gray-100 dark:border-[#1e293b] flex flex-col items-start gap-2 md:gap-3 transition-all hover:scale-105 hover:shadow-lg cursor-pointer group ${
                     isActive
                       ? "bg-[#1e3a8a] text-white dark:bg-[#1e3a8a] dark:text-white"
@@ -492,10 +542,14 @@ export default function Home() {
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className={`font-bold text-sm leading-tight ${isActive ? "text-white" : ""}`}>
+                    <h3
+                      className={`font-bold text-sm leading-tight ${isActive ? "text-white" : ""}`}
+                    >
                       {cat.label}
                     </h3>
-                    <p className={`text-[9px] mt-0.5 leading-tight ${isActive ? "text-white/80 opacity-100" : "opacity-60"}`}>
+                    <p
+                      className={`text-[9px] mt-0.5 leading-tight ${isActive ? "text-white/80 opacity-100" : "opacity-60"}`}
+                    >
                       {cat.sub}
                     </p>
                   </div>
@@ -578,14 +632,16 @@ export default function Home() {
             hedeflerinize bir adım daha yaklaşın.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button 
-              onClick={() => navigate('/tutors')}
-              className="w-full sm:w-auto bg-[#002e47] dark:bg-blue-600 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-[#003d5c] dark:hover:bg-blue-700 transition-all text-sm md:text-base">
+            <button
+              onClick={() => navigate("/tutors")}
+              className="w-full sm:w-auto bg-[#002e47] dark:bg-blue-600 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-[#003d5c] dark:hover:bg-blue-700 transition-all text-sm md:text-base"
+            >
               Öğretmen Bul
             </button>
-            <button 
-              onClick={() => navigate('/sss')}
-              className="w-full sm:w-auto bg-white dark:bg-[#1e293b] text-[#002e47] dark:text-white border-2 border-[#002e47] dark:border-[#334155] px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-[#334155] transition-all text-sm md:text-base">
+            <button
+              onClick={() => navigate("/sss")}
+              className="w-full sm:w-auto bg-white dark:bg-[#1e293b] text-[#002e47] dark:text-white border-2 border-[#002e47] dark:border-[#334155] px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-[#334155] transition-all text-sm md:text-base"
+            >
               Nasıl Çalışır?
             </button>
           </div>
