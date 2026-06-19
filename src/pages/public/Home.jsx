@@ -356,27 +356,58 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300">
       {/* ── Hero Section ── */}
-      <section className="relative bg-gradient-to-b from-[#5c75dd] to-[#8a9eed] dark:from-[#0f1d4a] dark:to-[#070b19] pt-24 pb-28 px-6 text-center text-white transition-colors duration-300">
-        <div className="container mx-auto max-w-4xl relative z-10 flex flex-col items-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full mb-10 border border-white/20">
-            <GraduationCap className="w-4 h-4 text-white" />
-            <span className="text-xs font-bold tracking-wide uppercase text-white">
-              ALANINDA UZMAN{" "}
-              {totalTutors > 0 ? totalTutors.toLocaleString("tr-TR") : "..."}{" "}
-              EĞİTMEN
-            </span>
-          </div>
+      <section className="relative bg-gradient-to-b from-[#5c75dd] to-[#8a9eed] dark:from-[#0f1d4a] dark:to-[#070b19] pt-16 pb-20 px-6 text-white transition-colors duration-300">
+        <div className="container mx-auto max-w-6xl relative z-10 flex flex-col items-center">
+          {/* Main Grid: Text & Image */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full mb-10 text-center lg:text-left">
+            {/* Left Column: Badge, Title, Description */}
+            <div className="lg:col-span-7 flex flex-col items-center lg:items-start">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full mb-6 border border-white/20">
+                <GraduationCap className="w-4 h-4 text-white" />
+                <span className="text-xs font-bold tracking-wide uppercase text-white">
+                  ALANINDA UZMAN{" "}
+                  {totalTutors > 0 ? totalTutors.toLocaleString("tr-TR") : "..."}{" "}
+                  EĞİTMEN
+                </span>
+              </div>
 
-          {/* Title */}
-          <h1 className="text-2xl md:text-4xl lg:text-[54px] font-bold mb-10 md:mb-14 leading-[1.3] md:leading-[1.2]">
-            Özel Ders VIP Kalitesiyle <br className="hidden sm:block" />
-            Alanında Uzman Eğitmenlerden <br className="hidden sm:block" />
-            <span className="text-[#d1d8f5] font-medium">
-              Online veya Yüz Yüze
-            </span>{" "}
-            Ders Alın
-          </h1>
+              {/* Title */}
+              <h1 className="text-xl md:text-3xl lg:text-4xl font-extrabold mb-6 leading-[1.3] md:leading-[1.2]">
+                Özel Ders VIP Kalitesiyle <br className="hidden lg:block" />
+                Alanında Uzman Eğitmenlerden <br className="hidden lg:block" />
+                <span className="text-[#d1d8f5] font-medium">
+                  Online veya Yüz Yüze
+                </span>{" "}
+                Ders Alın
+              </h1>
+
+              {/* Description */}
+              <p className="text-xs md:text-sm text-white/90 max-w-xl font-medium mb-2 leading-relaxed">
+                Kişiye özel eğitim planlarıyla hedeflerinize daha hızlı ulaşın. Dilediğiniz branşta, online ya da yüz yüze ders seçenekleriyle en iyi eğitmenler burada.
+              </p>
+            </div>
+
+            {/* Right Column: Premium Image Card */}
+            <div className="lg:col-span-5 flex justify-center w-full">
+              <div className="relative group max-w-md w-full">
+                {/* Background decorative glow */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-3xl blur opacity-30 group-hover:opacity-45 transition duration-1000 group-hover:duration-200"></div>
+                
+                {/* Image Card Container */}
+                <div className="relative bg-white/10 dark:bg-black/20 p-2 rounded-3xl backdrop-blur-md border border-white/15 shadow-2xl">
+                  <img
+                    src="/ders.png"
+                    alt="Öğretmen ve Öğrenci Özel Ders"
+                    className="rounded-2xl w-full h-[240px] md:h-[280px] object-cover shadow-inner transform transition-transform duration-500 group-hover:scale-[1.02]"
+                    onError={(e) => {
+                      e.target.src = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80";
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Search Bar */}
           <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] md:rounded-full p-2 flex flex-col md:flex-row items-center w-full max-w-4xl shadow-2xl mx-auto gap-2 transition-colors duration-300">
