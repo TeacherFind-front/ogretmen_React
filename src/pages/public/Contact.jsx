@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { Mail, Phone, MapPin, Send, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
+import { sendContactMessage } from "@/services/contactService";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -17,18 +18,43 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Simüle edilmiş API isteği
-    setTimeout(() => {
-      toast.success(
-        "Mesajınız başarıyla alındı. En kısa sürede size dönüş yapacağız!",
-      );
+    // Validasyonlar
+    if (!formData.name.trim()) {
+      toast.error("Lütfen adınızı ve soyadınızı yazın.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Lütfen geçerli bir e-posta adresi girin.");
+      return;
+    }
+    if (!formData.subject.trim()) {
+      toast.error("Lütfen bir konu başlığı yazın.");
+      return;
+    }
+    if (formData.message.trim().length < 10) {
+      toast.error("Mesajınız en az 10 karakter olmalıdır.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await sendContactMessage({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim()
+      });
+      toast.success("Mesajınız başarıyla alındı. En kısa sürede size dönüş yapacağız.");
       setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      toast.error(err.message || "Mesaj gönderilemedi. Lütfen tekrar deneyin.");
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   return (

@@ -1,611 +1,1301 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useSearchParams } from "react-router-dom";
-import { getConversations, getMessages, sendMessage, deleteMessages, deleteConversation } from "@/services/messageService";
-import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
-import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, ArrowLeft, Trash2, CornerUpLeft, X, Circle, CheckCircle2, Reply, MessageSquare } from "lucide-react";
-import { useAuth } from "@/store/AuthContext";
-import { resolveMediaUrl } from "@/utils/helpers";
+import { 
+  getContactMessages, 
+  getContactMessageById, 
+  markContactMessageAsRead, 
+  replyContactMessage, 
+  closeContactMessage, 
+  deleteContactMessage 
+} from "@/services/adminContactService";
+import { 
+  Search, Mail, User, BookOpen, Clock, CheckCircle2, AlertCircle, 
+  Trash2, X, RefreshCw, Reply, Lock, Check, Loader2, ArrowRight
+} from "lucide-react";
+import toast from "react-hot-toast";
+
+const STATUS_FILTERS = [
+  { value: "Tümü", label: "Tümü" },
+  { value: "New", label: "Yeni" },
+  { value: "Read", label: "Okundu" },
+  { value: "Replied", label: "Cevaplandı" },
+  { value: "Closed", label: "Kapandı" }
+];
 
 export default function AdminMessages() {
-  const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [conversations, setConversations] = useState([]);
-  const [selectedConv, setSelectedConv] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [msgLoading, setMsgLoading] = useState(false);
-  const [newMsg, setNewMsg] = useState("");
-  const [replyTo, setReplyTo] = useState(null);
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedMessages, setSelectedMessages] = useState([]);
-  const messagesEndRef = useRef(null);
+  const [selectedMsg, setSelectedMsg] = useState(null);
+  const [selectedMsgDetail, setSelectedMsgDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
+
+  // Arama ve Filtre State'leri
+  const [statusFilter, setStatusFilter] = useState("Tümü");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 15;
 
   useEffect(() => {
-    fetchConversations();
-  }, [searchParams]);
+    fetchMessages();
+  }, [statusFilter, page]);
 
-  useEffect(() => {
-    const handleNewMessage = (message) => {
-      if (selectedConv && (message.senderId === selectedConv.otherUserId || message.receiverId === selectedConv.otherUserId)) {
-        setMessages(prev => {
-          if (prev.some(m => m.id === message.id)) return prev;
-          return [...prev, message];
-        });
-      }
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setPage(1);
+    fetchMessages();
+  };
 
-      setConversations(prev => {
-        const index = prev.findIndex(c => c.otherUserId === message.senderId || c.otherUserId === message.receiverId);
-        if (index === -1) return prev;
-
-        const updated = [...prev];
-        const conv = updated[index];
-        updated[index] = { 
-          ...conv, 
-          lastMessage: message.content, 
-          lastMessageAt: message.sentAt,
-          unreadCount: (selectedConv?.otherUserId !== conv.otherUserId && message.receiverId === user?.userId) 
-            ? (conv.unreadCount || 0) + 1 
-            : conv.unreadCount
-        };
-        
-        const item = updated.splice(index, 1)[0];
-        return [item, ...updated];
-      });
-    };
-
-    const handleUserStatusChanged = ({ userId, isOnline, lastSeenAt }) => {
-      setConversations(prev => prev.map(c => {
-        if (c.otherUserId === userId) {
-          return { ...c, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
-        }
-        return c;
-      }));
-
-      setSelectedConv(prev => {
-        if (prev && prev.otherUserId === userId) {
-          return { ...prev, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
-        }
-        return prev;
-      });
-    };
-
-    const setupSignalR = async () => {
-      const connection = await startChatConnection();
-      if (connection) {
-        connection.off("ReceiveMessage", handleNewMessage);
-        connection.on("ReceiveMessage", handleNewMessage);
-        
-        connection.off("UserStatusChanged", handleUserStatusChanged);
-        connection.on("UserStatusChanged", handleUserStatusChanged);
-      }
-    };
-    setupSignalR();
-
-    return () => {
-      const connection = getChatConnection();
-      if (connection) {
-        connection.off("ReceiveMessage", handleNewMessage);
-        connection.off("UserStatusChanged", handleUserStatusChanged);
-      }
-    };
-  }, [selectedConv, user?.userId]);
-
-  useEffect(() => {
-    if (selectedConv) {
-      fetchMessages(selectedConv.otherUserId);
-    }
-  }, [selectedConv]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const fetchConversations = async () => {
+  const fetchMessages = async () => {
     setLoading(true);
     try {
-      const data = await getConversations();
+      const response = await getContactMessages({
+        status: statusFilter,
+        search: searchTerm,
+        page,
+        pageSize
+      });
       
-      const targetTutorId = searchParams.get("tutorId");
-      const targetTutorName = searchParams.get("tutorName");
-      
-      let updatedData = [...data];
-      let selection = null;
-      
-      if (targetTutorId) {
-        const existingIndex = updatedData.findIndex(c => c.otherUserId === targetTutorId);
-        
-        if (existingIndex !== -1) {
-          selection = updatedData[existingIndex];
-        } else if (targetTutorName) {
-          const newConv = {
-            conversationId: "new",
-            otherUserId: targetTutorId,
-            otherUserName: decodeURIComponent(targetTutorName),
-            lastMessage: "Yeni konuşma başlat",
-            lastMessageAt: new Date().toISOString(),
-            unreadCount: 0
-          };
-          updatedData = [newConv, ...updatedData];
-          selection = newConv;
-        }
-      }
-      
-      setConversations(updatedData);
-      
-      if (selection) {
-        setSelectedConv(selection);
-      } else if (updatedData.length > 0 && !selectedConv) {
-        setSelectedConv(updatedData[0]);
+      if (response && response.items) {
+        setMessages(response.items);
+        setTotalPages(Math.ceil((response.totalCount || 0) / pageSize) || 1);
+      } else if (Array.isArray(response)) {
+        setMessages(response);
+        setTotalPages(1);
+      } else {
+        setMessages([]);
+        setTotalPages(1);
       }
     } catch (err) {
-      console.error("Conversations load failed", err);
+      toast.error(err.message || "Mesajlar yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchMessages = async (otherUserId) => {
-    setMsgLoading(true);
+  const handleSelectMessage = async (msg) => {
+    setSelectedMsg(msg);
+    setDetailLoading(true);
+    setReplyText("");
     try {
-      const data = await getMessages(otherUserId);
-      setMessages(data);
-    } catch (err) {
-      console.error("Messages load failed", err);
-    } finally {
-      setMsgLoading(false);
-    }
-  };
-
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!newMsg.trim() || !selectedConv) return;
-
-    const msgContent = newMsg.trim();
-    setNewMsg("");
-    const replyId = replyTo?.id;
-    setReplyTo(null);
-
-    try {
-      const success = await sendMessageLive(selectedConv.otherUserId, msgContent, replyId);
+      const detail = await getContactMessageById(msg.id);
+      setSelectedMsgDetail(detail);
       
-      if (!success) {
-        const sent = await sendMessage({ 
-          receiverId: selectedConv.otherUserId, 
-          content: msgContent,
-          replyToMessageId: replyId 
-        });
-        
-        if (selectedConv.conversationId === "new") {
-          fetchConversations();
-        }
-        
-        setMessages(prev => [...prev, sent]);
-      } else {
-        if (selectedConv.conversationId === "new") {
-          fetchConversations();
-        }
+      if (detail.status === "New") {
+        await markContactMessageAsRead(msg.id);
+        setSelectedMsgDetail(prev => ({ ...prev, status: "Read" }));
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, status: "Read" } : m));
       }
     } catch (err) {
-      alert(err.message);
+      toast.error("Mesaj detayı yüklenemedi: " + err.message);
+    } finally {
+      setDetailLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-gray-500 font-medium">Mesaj kutunuz yükleniyor...</p>
-      </div>
-    );
-  }
+  const handleMarkAsRead = async () => {
+    if (!selectedMsg) return;
+    try {
+      await markContactMessageAsRead(selectedMsg.id);
+      toast.success("Mesaj okundu olarak işaretlendi.");
+      setSelectedMsgDetail(prev => ({ ...prev, status: "Read" }));
+      setMessages(prev => prev.map(m => m.id === selectedMsg.id ? { ...m, status: "Read" } : m));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleCloseMessage = async () => {
+    if (!selectedMsg) return;
+    try {
+      await closeContactMessage(selectedMsg.id);
+      toast.success("Destek talebi başarıyla kapatıldı.");
+      setSelectedMsgDetail(prev => ({ ...prev, status: "Closed" }));
+      setMessages(prev => prev.map(m => m.id === selectedMsg.id ? { ...m, status: "Closed" } : m));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteMessage = async (id) => {
+    if (!window.confirm("Bu mesajı silmek istediğinize emin misiniz?")) return;
+    try {
+      await deleteContactMessage(id);
+      toast.success("Mesaj başarıyla silindi.");
+      if (selectedMsg?.id === id) {
+        setSelectedMsg(null);
+        setSelectedMsgDetail(null);
+      }
+      setMessages(prev => prev.filter(m => m.id !== id));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleSendReply = async (e) => {
+    e.preventDefault();
+    if (!selectedMsg) return;
+    if (replyText.trim().length < 5) {
+      toast.error("Cevap mesajınız en az 5 karakter olmalıdır.");
+      return;
+    }
+
+    setSubmittingReply(true);
+    try {
+      await replyContactMessage(selectedMsg.id, replyText.trim());
+      toast.success("Cevap başarıyla gönderildi.");
+      setReplyText("");
+      const updatedDetail = await getContactMessageById(selectedMsg.id);
+      setSelectedMsgDetail(updatedDetail);
+      setMessages(prev => prev.map(m => m.id === selectedMsg.id ? { ...m, status: "Replied" } : m));
+    } catch (err) {
+      toast.error(err.message || "Cevap gönderilirken hata oluştu.");
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "New":
+        return <Badge className="blue">Yeni</Badge>;
+      case "Read":
+        return <Badge className="gray">Okundu</Badge>;
+      case "Replied":
+        return <Badge className="green">Cevaplandı</Badge>;
+      case "Closed":
+        return <Badge className="dark-gray">Kapandı</Badge>;
+      default:
+        return <Badge className="gray">{status}</Badge>;
+    }
+  };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <Container className="animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Canlı Sohbet</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Eğitmenler ve öğrencilerle olan canlı konuşmalarınızı bu panelden yönetin.</p>
+        <PageTitle>İletişim ve Destek Mesajları</PageTitle>
+        <PageSubtitle>Kullanıcılardan ve ziyaretçilerden gelen destek taleplerini, soruları yönetin ve yanıtlayın.</PageSubtitle>
       </div>
 
-      <div className="bg-white dark:bg-[#1e293b] rounded-[2.5rem] border border-gray-100 dark:border-slate-800 flex h-[calc(100vh-280px)] overflow-hidden shadow-2xl relative">
-        
-        {/* Sidebar */}
-        <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r dark:border-slate-800 flex-col bg-gray-50/50 dark:bg-[#1e293b]/40 shrink-0`}>
-          <div className="p-6 border-b dark:border-slate-800 bg-white dark:bg-[#1e293b]">
-            <div className="relative group">
-               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-               <input 
-                type="text" 
-                placeholder="Mesajlarda ara..." 
-                className="w-full h-12 bg-gray-100 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 text-sm font-bold text-gray-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" 
-               />
-            </div>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto py-4 space-y-1">
-            {conversations.map(conv => (
-              <ConversationCard 
-                key={conv.conversationId} 
-                className="group"
-                $active={selectedConv?.otherUserId === conv.otherUserId}
-                onClick={() => setSelectedConv(conv)}
-              >
-                <div className="relative">
-                   <Avatar $hasImage={!!conv.otherUserAvatarUrl}>
-                     {conv.otherUserAvatarUrl ? (
-                       <img 
-                         src={resolveMediaUrl(conv.otherUserAvatarUrl)} 
-                         alt={conv.otherUserName} 
-                         onError={(e) => {
-                           e.currentTarget.src = "/placeholder-avatar.png";
-                         }}
-                         className="w-full h-full object-cover" 
-                       />
-                     ) : (
-                       conv.otherUserName?.charAt(0)
-                     )}
-                   </Avatar>
-                   {conv.otherUserIsOnline && <OnlineStatus />}
-                </div>
-                <div className="flex-1 min-w-0">
-                   <div className="flex justify-between items-center mb-1">
-                      <h4 className="font-bold text-gray-900 dark:text-slate-100 text-sm truncate">{conv.otherUserName || "Kullanıcı"}</h4>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase">
-                         {new Date(conv.lastMessageAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
-                      </span>
-                   </div>
-                   <p className="text-xs text-gray-500 font-medium truncate leading-none">{conv.lastMessage}</p>
-                </div>
-                {conv.unreadCount > 0 && (
-                  <UnreadBadge>{conv.unreadCount}</UnreadBadge>
-                )}
-                <button 
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if (window.confirm(`${conv.otherUserName || "Kullanıcı"} adlı kişiyle olan tüm konuşmayı silmek istediğinize emin misiniz?`)) {
-                      try {
-                        await deleteConversation(conv.otherUserId);
-                        setConversations(prev => prev.filter(c => c.otherUserId !== conv.otherUserId));
-                        if (selectedConv?.otherUserId === conv.otherUserId) {
-                          setSelectedConv(null);
-                        }
-                      } catch (err) {
-                        alert(err.message);
-                      }
-                    }
-                  }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg ml-2"
-                  title="Konuşmayı Sil"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </ConversationCard>
-            ))}
-          </div>
-        </div>
+      <FilterBar onSubmit={handleSearchSubmit}>
+        <FilterGroup>
+          {STATUS_FILTERS.map(f => (
+            <FilterButton 
+              key={f.value}
+              type="button"
+              className={statusFilter === f.value ? "active" : ""}
+              onClick={() => { setStatusFilter(f.value); setPage(1); }}
+            >
+              {f.label}
+            </FilterButton>
+          ))}
+        </FilterGroup>
 
-        {/* Chat Area */}
-        <div className={`${!selectedConv ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-white dark:bg-[#1e293b] w-full md:w-auto absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`}>
-          {selectedConv ? (
-            <>
-              {/* Chat Header */}
-              <div className="h-20 border-b dark:border-slate-800 px-4 md:px-8 flex items-center justify-between bg-white dark:bg-[#1e293b] shrink-0">
-                 <div className="flex items-center gap-3 md:gap-4">
+        <SearchWrapper>
+          <Search size={18} className="search-icon" />
+          <input 
+            type="text"
+            placeholder="Ad, e-posta, konu veya mesajda ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button type="submit">Ara</button>
+        </SearchWrapper>
+      </FilterBar>
+
+      <ContentGrid>
+        <ListSection>
+          <Card>
+            {loading ? (
+              <LoadingContainer>
+                <Loader2 className="animate-spin text-blue-500" size={32} />
+                <p>Mesajlar yükleniyor...</p>
+              </LoadingContainer>
+            ) : messages.length === 0 ? (
+              <EmptyContainer>
+                <AlertCircle size={40} className="empty-icon" />
+                <h3>Mesaj Bulunamadı</h3>
+                <p>Seçilen filtrelere veya arama kriterlerine uygun mesaj bulunmamaktadır.</p>
+              </EmptyContainer>
+            ) : (
+              <>
+                <TableWrapper>
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th>Gönderen</th>
+                        <th>Konu</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th className="text-right">Aksiyon</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {messages.map(msg => (
+                        <tr 
+                          key={msg.id}
+                          className={selectedMsg?.id === msg.id ? "selected-row" : ""}
+                          onClick={() => handleSelectMessage(msg)}
+                        >
+                          <td>
+                            <SenderInfo>
+                              <span className="name">{msg.name}</span>
+                              <span className="email">{msg.email}</span>
+                            </SenderInfo>
+                          </td>
+                          <td>
+                            <SubjectText title={msg.subject}>{msg.subject}</SubjectText>
+                          </td>
+                          <td>{getStatusBadge(msg.status)}</td>
+                          <td>
+                            <DateText>
+                              {new Date(msg.createdAt).toLocaleDateString("tr-TR", {
+                                day: "numeric",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              })}
+                            </DateText>
+                          </td>
+                          <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <ActionButtons>
+                              <button 
+                                className="btn-delete"
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                title="Mesajı Sil"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                              <button 
+                                className="btn-view"
+                                onClick={() => handleSelectMessage(msg)}
+                                title="Detayları İncele"
+                              >
+                                <ArrowRight size={16} />
+                              </button>
+                            </ActionButtons>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </TableWrapper>
+
+                {totalPages > 1 && (
+                  <Pagination>
                     <button 
-                      className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-                      onClick={() => setSelectedConv(null)}
+                      type="button"
+                      disabled={page === 1}
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
                     >
-                      <ArrowLeft size={24} />
+                      Önceki
                     </button>
-                    <Avatar $small $hasImage={!!selectedConv.otherUserAvatarUrl}>
-                      {selectedConv.otherUserAvatarUrl ? (
-                        <img 
-                          src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} 
-                          alt={selectedConv.otherUserName} 
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder-avatar.png";
-                          }}
-                          className="w-full h-full object-cover" 
-                        />
-                      ) : (
-                        selectedConv.otherUserName?.charAt(0)
-                      )}
-                    </Avatar>
+                    <span>Sayfa {page} / {totalPages}</span>
+                    <button 
+                      type="button"
+                      disabled={page === totalPages}
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    >
+                      Sonraki
+                    </button>
+                  </Pagination>
+                )}
+              </>
+            )}
+          </Card>
+        </ListSection>
+
+        <DetailSection>
+          {selectedMsg ? (
+            <Card className="sticky-detail">
+              {detailLoading ? (
+                <LoadingContainer>
+                  <Loader2 className="animate-spin text-blue-500" size={32} />
+                  <p>Detaylar yükleniyor...</p>
+                </LoadingContainer>
+              ) : selectedMsgDetail ? (
+                <DetailContainer>
+                  <DetailHeader>
                     <div>
-                       <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName || "Kullanıcı"}</h3>
-                       <div className="flex items-center gap-1.5">
-                          {selectedConv.otherUserIsOnline ? (
+                      <h3>Destek Detayı</h3>
+                      <p className="msg-id">ID: {selectedMsgDetail.id}</p>
+                    </div>
+                    <CloseDetailButton onClick={() => { setSelectedMsg(null); setSelectedMsgDetail(null); }}>
+                      <X size={20} />
+                    </CloseDetailButton>
+                  </DetailHeader>
+
+                  <DetailBody>
+                    <InfoRow>
+                      <User size={16} className="info-icon" />
+                      <div>
+                        <span className="label">Gönderen</span>
+                        <span className="value font-bold">{selectedMsgDetail.name}</span>
+                      </div>
+                    </InfoRow>
+
+                    <InfoRow>
+                      <Mail size={16} className="info-icon" />
+                      <div>
+                        <span className="label">E-posta</span>
+                        <a href={`mailto:${selectedMsgDetail.email}`} className="value link">{selectedMsgDetail.email}</a>
+                      </div>
+                    </InfoRow>
+
+                    <InfoRow>
+                      <BookOpen size={16} className="info-icon" />
+                      <div>
+                        <span className="label">Konu</span>
+                        <span className="value font-bold">{selectedMsgDetail.subject}</span>
+                      </div>
+                    </InfoRow>
+
+                    <InfoRow>
+                      <Clock size={16} className="info-icon" />
+                      <div>
+                        <span className="label">Tarih</span>
+                        <span className="value">
+                          {new Date(selectedMsgDetail.createdAt).toLocaleString("tr-TR")}
+                        </span>
+                      </div>
+                    </InfoRow>
+
+                    <StatusRow>
+                      <span className="label">Durum:</span>
+                      {getStatusBadge(selectedMsgDetail.status)}
+                    </StatusRow>
+
+                    <MessageContentBox>
+                      <span className="label">Gelen Mesaj</span>
+                      <p className="text">{selectedMsgDetail.message}</p>
+                    </MessageContentBox>
+
+                    <AdminActions>
+                      {selectedMsgDetail.status === "New" && (
+                        <button className="btn-action btn-read" onClick={handleMarkAsRead}>
+                          <Check size={16} /> Okundu Yap
+                        </button>
+                      )}
+                      {selectedMsgDetail.status !== "Closed" && (
+                        <button className="btn-action btn-close-req" onClick={handleCloseMessage}>
+                          <Lock size={16} /> Kapat
+                        </button>
+                      )}
+                      <button className="btn-action btn-delete-req" onClick={() => handleDeleteMessage(selectedMsgDetail.id)}>
+                        <Trash2 size={16} /> Sil
+                      </button>
+                    </AdminActions>
+
+                    {selectedMsgDetail.replyMessage ? (
+                      <ReplyContainer>
+                        <div className="reply-header">
+                          <CheckCircle2 size={16} className="reply-icon" />
+                          <span>Cevap Gönderildi</span>
+                          <span className="reply-date">
+                            {selectedMsgDetail.repliedAt ? new Date(selectedMsgDetail.repliedAt).toLocaleString("tr-TR") : ""}
+                          </span>
+                        </div>
+                        <p className="reply-text">{selectedMsgDetail.replyMessage}</p>
+                      </ReplyContainer>
+                    ) : selectedMsgDetail.status !== "Closed" ? (
+                      <ReplyForm onSubmit={handleSendReply}>
+                        <label htmlFor="replyText">Cevap Yazın</label>
+                        <textarea 
+                          id="replyText"
+                          rows="4"
+                          placeholder="Kullanıcıya iletmek istediğiniz yanıtı buraya yazın..."
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          required
+                        />
+                        <button type="submit" disabled={submittingReply || replyText.trim().length < 5}>
+                          {submittingReply ? (
                             <>
-                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Çevrimiçi</span>
+                              <Loader2 className="animate-spin" size={16} /> Gönderiliyor...
                             </>
                           ) : (
                             <>
-                              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
-                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                {selectedConv.otherUserLastSeenAt ? `Son görülme: ${new Date(selectedConv.otherUserLastSeenAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}` : "Çevrimdışı"}
-                              </span>
+                              <Reply size={16} /> Yanıtı Gönder
                             </>
                           )}
-                       </div>
-                    </div>
-                 </div>
-                 
-                 <div className="flex items-center gap-2">
-                   {selectionMode ? (
-                     <>
-                       <button 
-                         onClick={() => { setSelectionMode(false); setSelectedMessages([]); }}
-                         className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl"
-                       >
-                         İptal
-                       </button>
-                       {selectedMessages.length > 0 && (
-                         <button 
-                           onClick={async () => {
-                             if(window.confirm(`${selectedMessages.length} mesajı silmek istediğinize emin misiniz?`)) {
-                               try {
-                                 await deleteMessages(selectedMessages);
-                                 setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
-                                 setSelectionMode(false);
-                                 setSelectedMessages([]);
-                               } catch(err) {
-                                 alert(err.message);
-                               }
-                             }
-                           }}
-                           className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                         >
-                           <Trash2 size={16} /> <span className="hidden sm:inline">Sil ({selectedMessages.length})</span>
-                         </button>
-                       )}
-                     </>
-                   ) : (
-                     <div className="relative group/menu">
-                       <button className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-slate-100 flex items-center justify-center transition-all">
-                         <MoreVertical size={20} />
-                       </button>
-                       <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
-                         <button 
-                           onClick={() => setSelectionMode(true)}
-                           className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
-                         >
-                           <CheckCircle2 size={16} /> Mesaj Seç
-                         </button>
-                       </div>
-                     </div>
-                   )}
-                 </div>
-              </div>
-
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-gray-50/30 dark:bg-[#0f172a]/50">
-                {messages.map((m, i) => {
-                  const isMine = m.senderId === user?.userId;
-                  const isSelected = selectedMessages.includes(m.id || i);
-                  
-                  return (
-                    <div key={m.id || i} className="flex items-center gap-4 group/msg">
-                      {selectionMode && (
-                        <button 
-                          onClick={() => setSelectedMessages(prev => 
-                            prev.includes(m.id || i) ? prev.filter(id => id !== (m.id || i)) : [...prev, m.id || i]
-                          )}
-                          className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
-                        >
-                          {isSelected && <Check size={14} strokeWidth={3} />}
                         </button>
-                      )}
-                      
-                      <MessageWrapper $isMine={isMine} className="flex-1">
-                         {!selectionMode && !isMine && (
-                           <button 
-                             onClick={() => setReplyTo(m)}
-                             className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all shrink-0 mr-2"
-                           >
-                             <Reply size={16} />
-                           </button>
-                         )}
-                         
-                         <div className="flex flex-col gap-1 max-w-[85%] md:max-w-[70%]">
-                            <MessageBubble $isMine={isMine}>
-                              {m.replyToMessageContent && (
-                                <div className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg text-sm border-l-4 border-black/10 dark:border-white/10 opacity-80">
-                                  <span className="font-bold block mb-0.5 text-xs">Yanıt:</span>
-                                  <p className="truncate">{m.replyToMessageContent}</p>
-                                </div>
-                              )}
-                              {m.content}
-                            </MessageBubble>
-                            <div className={`flex items-center gap-2 px-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                               <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase">
-                                 {new Date(m.sentAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                               </span>
-                               {isMine && (
-                                 <span className="text-blue-500"><CheckCheck size={12} /></span>
-                               )}
-                            </div>
-                         </div>
-                         
-                         {!selectionMode && isMine && (
-                           <button 
-                             onClick={() => setReplyTo(m)}
-                             className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all shrink-0 ml-2"
-                           >
-                             <Reply size={16} />
-                           </button>
-                         )}
-                      </MessageWrapper>
-                    </div>
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Input Area */}
-              <div className="p-4 md:p-6 border-t dark:border-slate-800 bg-white dark:bg-[#1e293b] shrink-0">
-                
-                {replyTo && (
-                  <div className="mb-4 flex items-start justify-between bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border-l-4 border-blue-500">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1.5">
-                        <CornerUpLeft size={12} />
-                        {replyTo.senderId === user?.userId ? 'Kendi mesajınıza yanıt veriyorsunuz' : 'Yanıt veriyorsunuz'}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-slate-300 truncate">
-                        {replyTo.content}
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => setReplyTo(null)}
-                      className="p-1.5 text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors shrink-0"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                )}
-
-                <form onSubmit={handleSend} className="flex items-center gap-3 md:gap-4 bg-gray-50 dark:bg-slate-800 p-2 pl-6 rounded-[2rem] border border-gray-100 dark:border-slate-700 focus-within:border-blue-200 dark:focus-within:border-blue-500/50 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:shadow-xl transition-all">
-                  <input 
-                    placeholder="Mesajınızı buraya yazın..." 
-                    className="flex-1 h-12 bg-transparent border-none focus:ring-0 font-bold text-gray-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500" 
-                    value={newMsg}
-                    onChange={(e) => setNewMsg(e.target.value)}
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={!newMsg.trim()}
-                    className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700 disabled:opacity-30 disabled:shadow-none transition-all shrink-0"
-                  >
-                    <Send size={18} />
-                  </button>
-                </form>
-              </div>
-            </>
+                      </ReplyForm>
+                    ) : (
+                      <ClosedNotice>
+                        <Lock size={16} />
+                        <span>Bu destek talebi kapatıldığı için yanıt yazılamaz.</span>
+                      </ClosedNotice>
+                    )}
+                  </DetailBody>
+                </DetailContainer>
+              ) : null}
+            </Card>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/30 dark:bg-[#0f172a]/20">
-               <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2.5rem] flex items-center justify-center text-blue-200 dark:text-blue-500/40 mb-6 animate-bounce duration-[3000ms]">
-                  <MessageSquare size={40} />
-               </div>
-               <h2 className="text-2xl font-black text-gray-900 dark:text-slate-100 mb-2">Canlı Sohbet</h2>
-               <p className="text-gray-400 dark:text-slate-500 font-medium max-w-sm">Eğitmenlerinizle veya öğrencilerinizle iletişime geçmek için soldaki menüden bir konuşma seçin.</p>
-            </div>
+            <Card className="empty-detail-state">
+              <MessageSquare size={48} className="icon" />
+              <h3>Mesaj Detayı</h3>
+              <p>Detayları görüntülemek, okundu olarak işaretlemek veya yanıt göndermek için soldaki listeden bir mesaj seçin.</p>
+            </Card>
           )}
-        </div>
-      </div>
-    </div>
+        </DetailSection>
+      </ContentGrid>
+    </Container>
   );
 }
 
-const ConversationCard = styled.div`
+// Styled Components
+const Container = styled.div`
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  border-radius: 1.5rem;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  margin: 0 4px;
-  
-  ${props => props.$active ? `
-    background: white;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.04);
-    border: 1px solid #f1f5f9;
+  flex-direction: column;
+  gap: 24px;
+`;
 
-    .dark & {
-      background: #1e293b;
-      border-color: #334155;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-  ` : `
-    &:hover { 
-      background: rgba(255,255,255,0.5); 
-      .dark & { background: rgba(255,255,255,0.05); }
-    }
-  `}
+const PageTitle = styled.h1`
+  font-size: 28px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 
   .dark & {
-    h4 { color: #f1f5f9 !important; }
-    p { color: #94a3b8 !important; }
+    color: white;
   }
 `;
 
-const Avatar = styled.div`
-  width: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
-  height: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
-  border-radius: ${props => props.$large ? '20px' : '14px'};
-  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #2d79f3 0%, #1e40af 100%)'};
-  color: white;
+const PageSubtitle = styled.p`
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+
+  .dark & {
+    color: #94a3b8;
+  }
+`;
+
+const FilterBar = styled.form`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  @media (max-width: 992px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const FilterGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+`;
+
+const FilterButton = styled.button`
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #f8fafc;
+    color: #0f172a;
+  }
+
+  &.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+    color: #cbd5e1;
+
+    &:hover {
+      background: #1e293b;
+      color: white;
+    }
+
+    &.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+  }
+`;
+
+const SearchWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 4px 8px;
+  flex: 1;
+  max-width: 480px;
+
+  .dark & {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  .search-icon {
+    color: #94a3b8;
+    margin-left: 8px;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+
+    .dark & {
+      color: white;
+    }
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+
+  button {
+    background: #0f172a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #1e293b;
+    }
+
+    .dark & {
+      background: #3b82f6;
+      &:hover {
+        background: #2563eb;
+      }
+    }
+  }
+`;
+
+const ContentGrid = styled.div`
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ListSection = styled.div``;
+
+const DetailSection = styled.div`
+  @media (max-width: 992px) {
+    grid-row: 1;
+  }
+`;
+
+const Card = styled.div`
+  background: white;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  padding: 24px;
+
+  .dark & {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  &.sticky-detail {
+    position: sticky;
+    top: 100px;
+  }
+
+  &.empty-detail-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+    color: #94a3b8;
+    border-style: dashed;
+    border-width: 2px;
+
+    .icon {
+      color: #cbd5e1;
+      margin-bottom: 16px;
+      .dark & {
+        color: #475569;
+      }
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #475569;
+      margin-bottom: 8px;
+      .dark & {
+        color: #cbd5e1;
+      }
+    }
+
+    p {
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 280px;
+    }
+  }
+`;
+
+const TableWrapper = styled.div`
+  overflow-x: auto;
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  th {
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+
+    .dark & {
+      color: #94a3b8;
+      border-color: #334155;
+    }
+  }
+
+  td {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+
+    .dark & {
+      border-color: #334155;
+      color: #cbd5e1;
+    }
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: #f8fafc;
+    .dark & {
+      background: #0f172a;
+    }
+  }
+
+  .selected-row td {
+    background: #eff6ff;
+    .dark & {
+      background: rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  .text-right {
+    text-align: right;
+  }
+`;
+
+const SenderInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .name {
+    font-weight: 700;
+    color: #0f172a;
+    .dark & {
+      color: white;
+    }
+  }
+
+  .email {
+    font-size: 11px;
+    color: #64748b;
+    .dark & {
+      color: #94a3b8;
+    }
+  }
+`;
+
+const SubjectText = styled.div`
+  font-weight: 600;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #334155;
+  .dark & {
+    color: #cbd5e1;
+  }
+`;
+
+const DateText = styled.span`
+  color: #64748b;
+  font-size: 12px;
+  .dark & {
+    color: #94a3b8;
+  }
+`;
+
+const ActionButtons = styled.div`
+  display: inline-flex;
+  gap: 8px;
+
+  button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.btn-delete {
+      background: #fef2f2;
+      color: #ef4444;
+
+      &:hover {
+        background: #fee2e2;
+      }
+      .dark & {
+        background: rgba(239, 68, 68, 0.15);
+      }
+    }
+
+    &.btn-view {
+      background: #f1f5f9;
+      color: #475569;
+
+      &:hover {
+        background: #e2e8f0;
+      }
+      .dark & {
+        background: #334155;
+        color: #cbd5e1;
+      }
+    }
+  }
+`;
+
+const Badge = styled.span`
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &.blue {
+    background: #eff6ff;
+    color: #3b82f6;
+    .dark & {
+      background: rgba(59, 130, 246, 0.15);
+    }
+  }
+
+  &.gray {
+    background: #f1f5f9;
+    color: #64748b;
+    .dark & {
+      background: rgba(100, 116, 139, 0.15);
+    }
+  }
+
+  &.green {
+    background: #f0fdf4;
+    color: #22c55e;
+    .dark & {
+      background: rgba(34, 197, 94, 0.15);
+    }
+  }
+
+  &.dark-gray {
+    background: #334155;
+    color: #94a3b8;
+    .dark & {
+      background: rgba(51, 65, 85, 0.6);
+    }
+  }
+`;
+
+const Pagination = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+
+  .dark & {
+    border-color: #334155;
+  }
+
+  span {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  button {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .dark & {
+      background: #334155;
+      color: #cbd5e1;
+
+      &:hover:not(:disabled) {
+        background: #475569;
+      }
+    }
+  }
+`;
+
+// Detail Styled Components
+const DetailContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+const DetailHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 16px;
+
+  .dark & {
+    border-color: #334155;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    .dark & {
+      color: white;
+    }
+  }
+
+  .msg-id {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+`;
+
+const CloseDetailButton = styled.button`
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
-  font-size: ${props => props.$large ? '20px' : props.$small ? '12px' : '16px'};
-  flex-shrink: 0;
-  box-shadow: ${props => props.$hasImage ? 'none' : '0 4px 12px rgba(45, 121, 243, 0.15)'};
-  overflow: hidden;
-`;
 
-const OnlineStatus = styled.div`
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 14px;
-  height: 14px;
-  background: #22c55e;
-  border: 3px solid white;
-  border-radius: 50%;
-
+  &:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
   .dark & {
-    border-color: #0f172a;
+    &:hover {
+      background: #334155;
+      color: white;
+    }
   }
 `;
 
-const UnreadBadge = styled.div`
-  background: #ef4444;
-  color: white;
-  font-size: 10px;
-  font-weight: 900;
-  padding: 2px 8px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
-`;
-
-const MessageWrapper = styled.div`
+const DetailBody = styled.div`
   display: flex;
-  gap: 12px;
-  flex-direction: ${props => props.$isMine ? 'row-reverse' : 'row'};
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 16px;
 `;
 
-const MessageBubble = styled.div`
-  padding: 16px 20px;
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.5;
-  ${props => props.$isMine ? `
-    background: #2d79f3;
-    color: white;
-    border-bottom-right-radius: 4px;
-    box-shadow: 0 8px 16px rgba(45, 121, 243, 0.15);
-  ` : `
-    background: white;
-    color: #1e293b;
-    border-bottom-left-radius: 4px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-    border: 1px solid #f1f5f9;
+const InfoRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  .info-icon {
+    color: #3b82f6;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .value {
+    font-size: 13.5px;
+    color: #334155;
 
     .dark & {
-      background: #1e293b;
-      color: #f1f5f9;
-      border-color: #334155;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      color: #cbd5e1;
     }
-  `}
+
+    &.font-bold {
+      font-weight: 700;
+    }
+
+    &.link {
+      color: #3b82f6;
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+`;
+
+const StatusRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+  }
+`;
+
+const MessageContentBox = styled.div`
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
 
   .dark & {
-    background-color: #0f172a;
+    background: #0f172a;
     border-color: #334155;
+  }
+
+  .label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .text {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #334155;
+    white-space: pre-wrap;
+
+    .dark & {
+      color: #cbd5e1;
+    }
+  }
+`;
+
+const AdminActions = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+
+  .dark & {
+    border-color: #334155;
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+
+    &.btn-read {
+      background: #eff6ff;
+      color: #3b82f6;
+      &:hover {
+        background: #dbeafe;
+      }
+      .dark & {
+        background: rgba(59, 130, 246, 0.15);
+      }
+    }
+
+    &.btn-close-req {
+      background: #f1f5f9;
+      color: #475569;
+      &:hover {
+        background: #e2e8f0;
+      }
+      .dark & {
+        background: #334155;
+        color: #cbd5e1;
+      }
+    }
+
+    &.btn-delete-req {
+      background: #fef2f2;
+      color: #ef4444;
+      &:hover {
+        background: #fee2e2;
+      }
+      .dark & {
+        background: rgba(239, 68, 68, 0.15);
+      }
+    }
+  }
+`;
+
+const ReplyContainer = styled.div`
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 16px;
+
+  .dark & {
+    background: rgba(34, 197, 94, 0.05);
+    border-color: rgba(34, 197, 94, 0.2);
+  }
+
+  .reply-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #16a34a;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+
+    .reply-icon {
+      flex-shrink: 0;
+    }
+
+    .reply-date {
+      margin-left: auto;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+  }
+
+  .reply-text {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #1e3a8a;
+    white-space: pre-wrap;
+
+    .dark & {
+      color: #a7f3d0;
+    }
+  }
+`;
+
+const ReplyForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 13.5px;
+    outline: none;
+    transition: all 0.2s;
+    resize: vertical;
+    background: #f8fafc;
+
+    .dark & {
+      background: #0f172a;
+      border-color: #334155;
+      color: white;
+    }
+
+    &:focus {
+      border-color: #3b82f6;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      
+      .dark & {
+        background: #020617;
+      }
+    }
+  }
+
+  button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+`;
+
+const ClosedNotice = styled.div`
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 600;
+
+  .dark & {
+    background: rgba(51, 65, 85, 0.3);
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 12px;
+  color: #64748b;
+  font-size: 13px;
+`;
+
+const EmptyContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #94a3b8;
+
+  .empty-icon {
+    color: #cbd5e1;
+    margin-bottom: 12px;
+    .dark & {
+      color: #475569;
+    }
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #475569;
+    margin-bottom: 4px;
+    .dark & {
+      color: #cbd5e1;
+    }
+  }
+
+  p {
+    font-size: 13px;
+    max-width: 300px;
   }
 `;

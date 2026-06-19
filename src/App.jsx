@@ -43,6 +43,7 @@ import AdminTutors from "./pages/admin/AdminTutors";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminMessages from "./pages/admin/AdminMessages";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
+import SupportMessages from "./pages/shared/SupportMessages";
 
 const router = createBrowserRouter([
   {
@@ -78,6 +79,7 @@ const router = createBrowserRouter([
       { path: "bookings/new", element: <NewBooking /> },
       { path: "review/:bookingId", element: <StudentReview /> },
       { path: "favorites", element: <StudentFavorites /> },
+      { path: "support", element: <SupportMessages /> },
     ],
   },
   {
@@ -97,6 +99,7 @@ const router = createBrowserRouter([
       { path: "messages", element: <TutorMessages /> },
       { path: "create-listing", element: <CreateListing /> },
       { path: "change-password", element: <TutorChangePassword /> },
+      { path: "support", element: <SupportMessages /> },
     ],
   },
   {

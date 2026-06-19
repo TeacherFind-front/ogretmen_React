@@ -9,6 +9,7 @@ import {
   User,
   Shield,
   Home,
+  HelpCircle,
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
@@ -39,6 +40,7 @@ export default function StudentLayout() {
     },
     { to: "/student/profile", label: "Profilim", icon: <User size={18} /> },
     { to: "/student/security", label: "Şifreyi Değiştir", icon: <Shield size={18} /> },
+    { to: "/student/support", label: "Destek Taleplerim", icon: <HelpCircle size={18} /> },
   ];
 
   return (

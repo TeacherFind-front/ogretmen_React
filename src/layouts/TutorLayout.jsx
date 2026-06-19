@@ -35,6 +35,7 @@ export default function TutorLayout() {
     { to: "/tutor/social-media", label: "Sosyal Medya", icon: "🔗" },
     { to: "/tutor/messages", label: "Mesajlar", icon: "💬" },
     { to: "/tutor/change-password", label: "Şifreyi Değiştir", icon: "🛡️" },
+    { to: "/tutor/support", label: "Destek Taleplerim", icon: "🙋‍♂️" },
   ];
 
   return (
