@@ -18,7 +18,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { getTutors } from "@/services/tutorService";
+import { getTutors, getTutorsCount } from "@/services/tutorService";
 import { getCategories } from "@/services/locationService";
 import BASE_URL, { getImageUrl } from "@/services/api";
 import { toPlainText, resolveMediaUrl } from "@/utils/helpers";
@@ -232,7 +232,19 @@ export default function Home() {
   useEffect(() => {
     fetchTutors();
     fetchCategories();
+    fetchTutorsCount();
   }, []);
+
+  const fetchTutorsCount = async () => {
+    try {
+      const data = await getTutorsCount();
+      if (data && typeof data.count === "number") {
+        setTotalTutors(data.count);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tutor count:", err);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -310,7 +322,7 @@ export default function Home() {
       const response = await getTutors({ page: 1, pageSize: 6 });
 
       if (response && response.totalCount !== undefined) {
-        setTotalTutors(response.totalCount);
+        setTotalTutors((prev) => (prev > 0 ? prev : response.totalCount));
       }
 
       const realTutors = (response.items || []).map((tutor) => {

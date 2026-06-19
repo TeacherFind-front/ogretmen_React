@@ -448,3 +448,19 @@ export async function updateAvailability(availability) {
   if (!res || !res.ok) throw new Error("Müsaitlik bilgileri güncellenemedi.");
   return res.json();
 }
+
+/**
+ * Toplam kayıtlı öğretmen sayısını getirir (Public)
+ * @returns {Promise<{ count: number }>}
+ */
+export async function getTutorsCount() {
+  const res = await apiFetch("/api/tutors/count");
+  if (!res) throw new Error("Bağlantı hatası.");
+  if (res.status === 429) {
+    const err = new Error("Rate limit exceeded");
+    err.status = 429;
+    throw err;
+  }
+  if (!res.ok) throw new Error("Öğretmen sayısı alınamadı.");
+  return res.json();
+}
