@@ -79,13 +79,20 @@ function TutorDetail() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const isAdmin = user && (user.role?.toString() === "3" || user.role?.toString().toLowerCase() === "admin" || user.role?.toString() === "4" || user.role?.toString().toLowerCase() === "superadmin");
+  const isAdmin =
+    user &&
+    (user.role?.toString() === "3" ||
+      user.role?.toString().toLowerCase() === "admin" ||
+      user.role?.toString() === "4" ||
+      user.role?.toString().toLowerCase() === "superadmin");
 
   const handleAdminApprove = async (isApproved) => {
     let reason = "Uygun görülmedi.";
     if (!isApproved) {
-      const inputReason = window.prompt("Lütfen red sebebini giriniz (Eğitmene iletilecek):");
-      if (inputReason === null) return; 
+      const inputReason = window.prompt(
+        "Lütfen red sebebini giriniz (Eğitmene iletilecek):",
+      );
+      if (inputReason === null) return;
       if (inputReason.trim() !== "") {
         reason = inputReason.trim();
       }
@@ -101,7 +108,9 @@ function TutorDetail() {
   };
 
   const handleAdminDelete = async () => {
-    const confirm = window.confirm(`"${tutor.teacherName}" öğretmeninin bu ilanını tamamen silmek istediğinize emin misiniz?\nBu işlem geri alınamaz!`);
+    const confirm = window.confirm(
+      `"${tutor.teacherName}" öğretmeninin bu ilanını tamamen silmek istediğinize emin misiniz?\nBu işlem geri alınamaz!`,
+    );
     if (!confirm) return;
 
     try {
@@ -174,7 +183,9 @@ function TutorDetail() {
     if (!isAuthenticated) {
       navigate("/login", {
         state: {
-          from: { pathname: `/student/messages?tutorId=${targetId}&tutorName=${tutorName}` },
+          from: {
+            pathname: `/student/messages?tutorId=${targetId}&tutorName=${tutorName}`,
+          },
         },
       });
       return;
@@ -219,15 +230,17 @@ function TutorDetail() {
       <ErrorWrapper>
         <div className="error-card animate-in fade-in duration-300">
           <div className="w-20 h-20 bg-green-50 dark:bg-[var(--card-bg)] rounded-full flex items-center justify-center mx-auto mb-6">
-             <AlertCircle className={`h-10 w-10 ${isNotFound ? 'text-amber-500' : 'text-red-500'}`} />
+            <AlertCircle
+              className={`h-10 w-10 ${isNotFound ? "text-amber-500" : "text-red-500"}`}
+            />
           </div>
           <h2 className="text-2xl font-black text-[var(--text-primary)] dark:text-[var(--text-primary)] mb-3">
             {isNotFound ? "İlan Bulunamadı" : "Hata Oluştu"}
           </h2>
           <p className="text-[var(--text-muted)] dark:text-[var(--text-muted)] font-medium text-sm mb-8 leading-relaxed">
-            {isNotFound 
-              ? "Aradığınız ilan yayından kaldırılmış, pasife alınmış veya henüz yönetici onayından geçmemiş olabilir." 
-              : (error || "Öğretmen profili yüklenemedi.")}
+            {isNotFound
+              ? "Aradığınız ilan yayından kaldırılmış, pasife alınmış veya henüz yönetici onayından geçmemiş olabilir."
+              : error || "Öğretmen profili yüklenemedi."}
           </p>
           <Link to="/tutors" className="block w-full">
             <Button className="w-full h-12 rounded-xl bg-[#16a34a] hover:bg-green-600 text-white font-black shadow-lg shadow-green-200 dark:shadow-none transition-all">
@@ -339,7 +352,9 @@ function TutorDetail() {
                 <h4>Yönetici İşlem Paneli</h4>
                 <p>
                   Mevcut İlan Durumu:{" "}
-                  <span className={`status-label status-${tutor.status?.toLowerCase()}`}>
+                  <span
+                    className={`status-label status-${tutor.status?.toLowerCase()}`}
+                  >
                     {tutor.status === "PendingApproval"
                       ? "Onay Bekliyor"
                       : tutor.status === "Active"
@@ -390,7 +405,7 @@ function TutorDetail() {
         </AdminActionBar>
       )}
 
-      <div className="container mx-auto py-8 px-4 md:px-6 max-w-6xl relative z-10">
+      <div className="container mx-auto py-8 px-4 md:px-6 max-w-[950px] relative z-10">
         {/* Modern Top Hero Section */}
         <HeroSection>
           <HeroGrid>
@@ -543,33 +558,33 @@ function TutorDetail() {
           </StatsBanner>
         </HeroSection>
 
+        {/* Hakkımda Section */}
+        <ContentCard className="mb-6">
+          <CardTitleAccent>
+            <span className="title-decor" />
+            Hakkımda
+          </CardTitleAccent>
+          <BioTextWrapper
+            className={`prose dark:prose-invert max-w-none ${!isExpanded && showExpandButton ? "collapsed" : ""}`}
+            dangerouslySetInnerHTML={{
+              __html: displayDescription || "Biyografi henüz eklenmemiş.",
+            }}
+          />
+          {showExpandButton && (
+            <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
+              {isExpanded ? "Daha az göster" : "Daha fazlasını göster"}
+              <ChevronRight
+                size={16}
+                className={`arrow ${isExpanded ? "rotated" : ""}`}
+              />
+            </ExpandButton>
+          )}
+        </ContentCard>
+
         {/* Main Content Layout */}
         <GridContainer>
-          {/* Left Side Content */}
+          {/* Left Column: Dersler & Video */}
           <MainContentCol>
-            {/* Hakkımda Section */}
-            <ContentCard>
-              <CardTitleAccent>
-                <span className="title-decor" />
-                Hakkımda
-              </CardTitleAccent>
-              <BioTextWrapper
-                className={`prose dark:prose-invert max-w-none ${!isExpanded && showExpandButton ? "collapsed" : ""}`}
-                dangerouslySetInnerHTML={{
-                  __html: displayDescription || "Biyografi henüz eklenmemiş.",
-                }}
-              />
-              {showExpandButton && (
-                <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
-                  {isExpanded ? "Daha az göster" : "Daha fazlasını göster"}
-                  <ChevronRight
-                    size={16}
-                    className={`arrow ${isExpanded ? "rotated" : ""}`}
-                  />
-                </ExpandButton>
-              )}
-            </ContentCard>
-
             {/* Verdiği Dersler ve Fiyatlar */}
             <ContentCard>
               <CardTitleAccent>
@@ -682,392 +697,11 @@ function TutorDetail() {
                 </VideoPlayerWrapper>
               </ContentCard>
             )}
-
-            {/* Müsaitlik Takvimi */}
-            <ContentCard>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <CardTitleAccent style={{ marginBottom: 0 }}>
-                  <span className="title-decor decor-purple" />
-                  Haftalık Ders Takvimi
-                </CardTitleAccent>
-                <CalendarLegends>
-                  <div className="legend">
-                    <div className="legend-box legend-online">
-                      <Monitor size={10} />
-                    </div>
-                    <span>ONLINE</span>
-                  </div>
-                  <div className="legend">
-                    <div className="legend-box legend-inperson">
-                      <Home size={10} />
-                    </div>
-                    <span>YÜZ YÜZE</span>
-                  </div>
-                  <div className="legend">
-                    <div className="legend-box legend-both">
-                      <Globe size={10} />
-                    </div>
-                    <span>HER İKİSİ</span>
-                  </div>
-                  <div className="legend">
-                    <div className="legend-box legend-empty"></div>
-                    <span>MÜSAİT DEĞİL</span>
-                  </div>
-                </CalendarLegends>
-              </div>
-
-              <SchedulerContainer>
-                <div className="scheduler-scrollable">
-                  <table className="scheduler-table">
-                    <thead>
-                      <tr>
-                        <th className="corner-col">Saatler</th>
-                        {[
-                          "Pazartesi",
-                          "Salı",
-                          "Çarşamba",
-                          "Perşembe",
-                          "Cuma",
-                          "Cumartesi",
-                          "Pazar",
-                        ].map((d) => (
-                          <th key={d} className="day-header">
-                            {d}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {["Sabah", "Öğle", "Öğleden Sonra", "Akşam"].map(
-                        (slot) => {
-                          return (
-                            <tr key={slot}>
-                              <td className="slot-label">{slot}</td>
-                              {[0, 1, 2, 3, 4, 5, 6].map((dayIdx) => {
-                                const slotAvailability =
-                                  tutor.availability?.find((a) => {
-                                    const aDay = a.day.trim().toLowerCase();
-                                    const targetDays = [
-                                      "monday",
-                                      "tuesday",
-                                      "wednesday",
-                                      "thursday",
-                                      "friday",
-                                      "saturday",
-                                      "sunday",
-                                    ];
-                                    const targetDaysTr = [
-                                      "pazartesi",
-                                      "salı",
-                                      "çarşamba",
-                                      "perşembe",
-                                      "cuma",
-                                      "cumartesi",
-                                      "pazar",
-                                    ];
-                                    if (
-                                      aDay !== targetDays[dayIdx] &&
-                                      aDay !== targetDaysTr[dayIdx]
-                                    )
-                                      return false;
-                                    const h = parseInt(a.start.split(":")[0]);
-                                    if (slot === "Sabah" && h >= 6 && h < 12)
-                                      return true;
-                                    if (slot === "Öğle" && h >= 12 && h < 15)
-                                      return true;
-                                    if (slot === "Öğleden Sonra" && h >= 15 && h < 18)
-                                      return true;
-                                    if (slot === "Akşam" && h >= 18 && h <= 23)
-                                      return true;
-                                    return false;
-                                  });
-
-                                let availabilityClass = "empty-slot";
-                                let CellIcon = null;
-
-                                if (slotAvailability) {
-                                  const type =
-                                    slotAvailability.type || tutor.serviceType;
-                                  if (
-                                    type === "both" ||
-                                    type === "Both" ||
-                                    type === 3
-                                  ) {
-                                    availabilityClass = "slot-both";
-                                    CellIcon = Globe;
-                                  } else if (
-                                    type === "online" ||
-                                    type === "Online" ||
-                                    type === 1
-                                  ) {
-                                    availabilityClass = "slot-online";
-                                    CellIcon = Monitor;
-                                  } else {
-                                    availabilityClass = "slot-inperson";
-                                    CellIcon = Home;
-                                  }
-                                }
-
-                                return (
-                                  <td key={dayIdx}>
-                                    <div
-                                      className={`time-slot-cell ${availabilityClass}`}
-                                    >
-                                      {CellIcon && <CellIcon size={12} />}
-                                    </div>
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        },
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </SchedulerContainer>
-            </ContentCard>
-
-            {/* Fotoğraflar Section */}
-            {photos.length > 0 && (
-              <ContentCard>
-                <CardTitleAccent>
-                  <span className="title-decor decor-amber" />
-                  Eğitmen Fotoğrafları
-                </CardTitleAccent>
-                <PhotoGalleryGrid>
-                  {photos.map((p, i) => (
-                    <div
-                      key={i}
-                      className={`photo-card-item ${activePhoto === i ? "active" : ""}`}
-                      onClick={() => {
-                        setActivePhoto(i);
-                        setLightboxIndex(i);
-                      }}
-                    >
-                      <img
-                        src={p.photoUrl ? resolveMediaUrl(p.photoUrl) : ""}
-                        alt="Eğitmen Fotoğrafı"
-                      />
-                      <div className="card-hover-overlay">
-                        <LayoutGrid size={20} />
-                      </div>
-                    </div>
-                  ))}
-                </PhotoGalleryGrid>
-              </ContentCard>
-            )}
-
-            {/* Sertifikalar Section */}
-            {documents.length > 0 && (
-              <ContentCard>
-                <CardTitleAccent>
-                  <span className="title-decor decor-purple" />
-                  Sertifikalar & Belgeler
-                </CardTitleAccent>
-                <CertificatesGrid>
-                  {documents.map((doc, idx) => (
-                    <CertificateCard key={idx}>
-                      <div className="cert-badge-icon">
-                        <Award size={26} className="text-teal-600 dark:text-teal-400" />
-                      </div>
-                      <div className="cert-info">
-                        <h4 className="cert-title" title={doc.name}>{doc.name}</h4>
-                        <p className="cert-org" title={doc.organization}>{doc.organization}</p>
-                        <span className="cert-year">{doc.year}</span>
-                      </div>
-                      <CertificateFile fileUrl={doc.fileUrl} title={doc.name} />
-                    </CertificateCard>
-                  ))}
-                </CertificatesGrid>
-              </ContentCard>
-            )}
-
-            {/* Hizmet Alanı & Harita */}
-            <ContentCard>
-              <div className="flex items-center justify-between mb-4">
-                <CardTitleAccent style={{ marginBottom: 0 }}>
-                  <span className="title-decor decor-emerald" />
-                  Hizmet Bölgesi
-                </CardTitleAccent>
-                <MapBadge>
-                  <MapPin size={12} />
-                  <span>
-                    {tutor.neighborhood || tutor.district}, {tutor.city}
-                  </span>
-                </MapBadge>
-              </div>
-              <MapOuterWrapper>
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  allowFullScreen
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(`${tutor.neighborhood || ""} ${tutor.district || ""} ${tutor.city}`)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                ></iframe>
-              </MapOuterWrapper>
-            </ContentCard>
-
-            {/* Değerlendirmeler ve Yorumlar */}
-            <ContentCard>
-              <CardTitleAccent>
-                <span className="title-decor" />
-                Değerlendirmeler
-              </CardTitleAccent>
-
-              <ReviewDashboard>
-                <div className="big-rating-card">
-                  <div className="rating-val">
-                    {tutor.rating?.toFixed(1) || "5.0"}
-                  </div>
-                  <div className="stars-row">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star
-                        key={s}
-                        size={15}
-                        className={
-                          s <= Math.round(tutor.rating || 5)
-                            ? "fill-amber-400 text-amber-400"
-                            : "text-[var(--text-primary)] dark:text-[var(--text-primary)]"
-                        }
-                      />
-                    ))}
-                  </div>
-                  <div className="total-revs">{reviews.length} Yorum</div>
-                </div>
-
-                <div className="bars-col">
-                  {[5, 4, 3, 2, 1].map((star) => {
-                    const count = reviews.filter(
-                      (r) => r.rating === star,
-                    ).length;
-                    const percentage =
-                      reviews.length > 0
-                        ? (count / reviews.length) * 100
-                        : star === 5
-                          ? 100
-                          : 0;
-                    return (
-                      <div key={star} className="bar-row">
-                        <span className="star-lbl">{star} ★</span>
-                        <div className="bar-bg">
-                          <div
-                            className="bar-fill"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                        <span className="bar-count">{count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </ReviewDashboard>
-
-              {/* Comments Feed */}
-              <CommentsFeed>
-                {reviews.length > 0 ? (
-                  reviews.map((r, i) => (
-                    <CommentBubble key={i}>
-                      <div className="reviewer-avatar">
-                        {r.reviewerName?.charAt(0) || "Ö"}
-                      </div>
-                      <div className="bubble-content">
-                        <div className="bubble-header">
-                          <span className="reviewer-name">
-                            {r.reviewerName || "Öğrenci"}
-                          </span>
-                          <div className="bubble-stars">
-                            {[1, 2, 3, 4, 5].map((s) => (
-                              <Star
-                                key={s}
-                                size={10}
-                                className={
-                                  s <= r.rating
-                                    ? "fill-amber-400 text-amber-400"
-                                    : "text-[var(--text-primary)] dark:text-[var(--text-primary)]"
-                                }
-                              />
-                            ))}
-                          </div>
-                          <span className="review-date">
-                            {r.location ? `${r.location} • ` : ""}1 ay önce
-                          </span>
-                        </div>
-                        <p className="review-text">"{r.comment}"</p>
-                      </div>
-                    </CommentBubble>
-                  ))
-                ) : (
-                  <EmptyReviewsState>
-                    <Star
-                      size={32}
-                      className="text-[var(--text-primary)] dark:text-[var(--text-muted)] mb-2"
-                    />
-                    <p>Henüz değerlendirme yapılmamış.</p>
-                  </EmptyReviewsState>
-                )}
-              </CommentsFeed>
-
-              {/* Add Review Form */}
-              <AddReviewWrapper>
-                <h4>Değerlendirme Yazın</h4>
-                <div className="rating-select-row">
-                  <span className="select-lbl">Eğitmene Puanınız:</span>
-                  <StyledRadio>
-                    <div className="radio">
-                      {[5, 4, 3, 2, 1].map((s) => (
-                        <React.Fragment key={s}>
-                          <input
-                            value={s}
-                            name="rating"
-                            type="radio"
-                            id={`rating-${s}`}
-                            checked={reviewData.rating === s}
-                            onChange={() =>
-                              setReviewData({ ...reviewData, rating: s })
-                            }
-                          />
-                          <label title={`${s} Yıldız`} htmlFor={`rating-${s}`}>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              height="0.8em"
-                              viewBox="0 0 576 512"
-                            >
-                              <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z" />
-                            </svg>
-                          </label>
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </StyledRadio>
-                </div>
-                <textarea
-                  className="review-textarea"
-                  placeholder="Eğitmen hakkında görüşlerinizi diğer öğrencilerle paylaşın..."
-                  value={reviewData.comment}
-                  onChange={(e) =>
-                    setReviewData({ ...reviewData, comment: e.target.value })
-                  }
-                />
-                <Button
-                  className="submit-review-btn"
-                  onClick={handleSubmitReview}
-                  disabled={reviewLoading}
-                >
-                  {reviewLoading ? (
-                    <Loader2 className="animate-spin" size={16} />
-                  ) : (
-                    "Yorumu Yayınla"
-                  )}
-                </Button>
-              </AddReviewWrapper>
-            </ContentCard>
           </MainContentCol>
 
-          {/* Right Side Sticky Sidebar Column */}
+          {/* Right Column: İletişime Geç */}
           <SidebarCol>
-            <StickySidebarCard>
+            <StickySidebarCard style={{ position: "static" }}>
               <div className="card-header-gradient">
                 <h3>{tutor.teacherName?.split(" ")[0]} ile İletişime Geç</h3>
                 <p>Güvenli ders talebi ve hızlı mesajlaşma paneli</p>
@@ -1197,6 +831,398 @@ function TutorDetail() {
             </StickySidebarCard>
           </SidebarCol>
         </GridContainer>
+
+        {/* Full Width Sections */}
+        <div className="flex flex-col gap-6 mt-6">
+          {/* Müsaitlik Takvimi */}
+          <ContentCard>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <CardTitleAccent style={{ marginBottom: 0 }}>
+                <span className="title-decor decor-purple" />
+                Haftalık Ders Takvimi
+              </CardTitleAccent>
+              <CalendarLegends>
+                <div className="legend">
+                  <div className="legend-box legend-online">
+                    <Monitor size={10} />
+                  </div>
+                  <span>ONLINE</span>
+                </div>
+                <div className="legend">
+                  <div className="legend-box legend-inperson">
+                    <Home size={10} />
+                  </div>
+                  <span>YÜZ YÜZE</span>
+                </div>
+                <div className="legend">
+                  <div className="legend-box legend-both">
+                    <Globe size={10} />
+                  </div>
+                  <span>HER İKİSİ</span>
+                </div>
+                <div className="legend">
+                  <div className="legend-box legend-empty"></div>
+                  <span>MÜSAİT DEĞİL</span>
+                </div>
+              </CalendarLegends>
+            </div>
+
+            <SchedulerContainer>
+              <div className="scheduler-scrollable">
+                <table className="scheduler-table">
+                  <thead>
+                    <tr>
+                      <th className="corner-col">Saatler</th>
+                      {[
+                        "Pazartesi",
+                        "Salı",
+                        "Çarşamba",
+                        "Perşembe",
+                        "Cuma",
+                        "Cumartesi",
+                        "Pazar",
+                      ].map((d) => (
+                        <th key={d} className="day-header">
+                          {d}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {["Sabah", "Öğle", "Öğleden Sonra", "Akşam"].map((slot) => {
+                      return (
+                        <tr key={slot}>
+                          <td className="slot-label">{slot}</td>
+                          {[0, 1, 2, 3, 4, 5, 6].map((dayIdx) => {
+                            const slotAvailability = tutor.availability?.find(
+                              (a) => {
+                                const aDay = a.day.trim().toLowerCase();
+                                const targetDays = [
+                                  "monday",
+                                  "tuesday",
+                                  "wednesday",
+                                  "thursday",
+                                  "friday",
+                                  "saturday",
+                                  "sunday",
+                                ];
+                                const targetDaysTr = [
+                                  "pazartesi",
+                                  "salı",
+                                  "çarşamba",
+                                  "perşembe",
+                                  "cuma",
+                                  "cumartesi",
+                                  "pazar",
+                                ];
+                                if (
+                                  aDay !== targetDays[dayIdx] &&
+                                  aDay !== targetDaysTr[dayIdx]
+                                )
+                                  return false;
+                                const h = parseInt(a.start.split(":")[0]);
+                                if (slot === "Sabah" && h >= 6 && h < 12)
+                                  return true;
+                                if (slot === "Öğle" && h >= 12 && h < 15)
+                                  return true;
+                                if (
+                                  slot === "Öğleden Sonra" &&
+                                  h >= 15 &&
+                                  h < 18
+                                )
+                                  return true;
+                                if (slot === "Akşam" && h >= 18 && h <= 23)
+                                  return true;
+                                return false;
+                              },
+                            );
+
+                            let availabilityClass = "empty-slot";
+                            let CellIcon = null;
+
+                            if (slotAvailability) {
+                              const type =
+                                slotAvailability.type || tutor.serviceType;
+                              if (
+                                type === "both" ||
+                                type === "Both" ||
+                                type === 3
+                              ) {
+                                availabilityClass = "slot-both";
+                                CellIcon = Globe;
+                              } else if (
+                                type === "online" ||
+                                type === "Online" ||
+                                type === 1
+                              ) {
+                                availabilityClass = "slot-online";
+                                CellIcon = Monitor;
+                              } else {
+                                availabilityClass = "slot-inperson";
+                                CellIcon = Home;
+                              }
+                            }
+
+                            return (
+                              <td key={dayIdx}>
+                                <div
+                                  className={`time-slot-cell ${availabilityClass}`}
+                                >
+                                  {CellIcon && <CellIcon size={12} />}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </SchedulerContainer>
+          </ContentCard>
+
+          {/* Fotoğraflar Section */}
+          {photos.length > 0 && (
+            <ContentCard>
+              <CardTitleAccent>
+                <span className="title-decor decor-amber" />
+                Eğitmen Fotoğrafları
+              </CardTitleAccent>
+              <PhotoGalleryGrid>
+                {photos.map((p, i) => (
+                  <div
+                    key={i}
+                    className={`photo-card-item ${activePhoto === i ? "active" : ""}`}
+                    onClick={() => {
+                      setActivePhoto(i);
+                      setLightboxIndex(i);
+                    }}
+                  >
+                    <img
+                      src={p.photoUrl ? resolveMediaUrl(p.photoUrl) : ""}
+                      alt="Eğitmen Fotoğrafı"
+                    />
+                    <div className="card-hover-overlay">
+                      <LayoutGrid size={20} />
+                    </div>
+                  </div>
+                ))}
+              </PhotoGalleryGrid>
+            </ContentCard>
+          )}
+
+          {/* Sertifikalar Section */}
+          {documents.length > 0 && (
+            <ContentCard>
+              <CardTitleAccent>
+                <span className="title-decor decor-purple" />
+                Sertifikalar & Belgeler
+              </CardTitleAccent>
+              <CertificatesGrid>
+                {documents.map((doc, idx) => (
+                  <CertificateCard key={idx}>
+                    <div className="cert-badge-icon">
+                      <Award
+                        size={26}
+                        className="text-teal-600 dark:text-teal-400"
+                      />
+                    </div>
+                    <div className="cert-info">
+                      <h4 className="cert-title" title={doc.name}>
+                        {doc.name}
+                      </h4>
+                      <p className="cert-org" title={doc.organization}>
+                        {doc.organization}
+                      </p>
+                      <span className="cert-year">{doc.year}</span>
+                    </div>
+                    <CertificateFile fileUrl={doc.fileUrl} title={doc.name} />
+                  </CertificateCard>
+                ))}
+              </CertificatesGrid>
+            </ContentCard>
+          )}
+
+          {/* Hizmet Alanı & Harita */}
+          <ContentCard>
+            <div className="flex items-center justify-between mb-4">
+              <CardTitleAccent style={{ marginBottom: 0 }}>
+                <span className="title-decor decor-emerald" />
+                Hizmet Bölgesi
+              </CardTitleAccent>
+              <MapBadge>
+                <MapPin size={12} />
+                <span>
+                  {tutor.neighborhood || tutor.district}, {tutor.city}
+                </span>
+              </MapBadge>
+            </div>
+            <MapOuterWrapper>
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(`${tutor.neighborhood || ""} ${tutor.district || ""} ${tutor.city}`)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+              ></iframe>
+            </MapOuterWrapper>
+          </ContentCard>
+
+          {/* Değerlendirmeler ve Yorumlar */}
+          <ContentCard>
+            <CardTitleAccent>
+              <span className="title-decor" />
+              Değerlendirmeler
+            </CardTitleAccent>
+
+            <ReviewDashboard>
+              <div className="big-rating-card">
+                <div className="rating-val">
+                  {tutor.rating?.toFixed(1) || "5.0"}
+                </div>
+                <div className="stars-row">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      size={15}
+                      className={
+                        s <= Math.round(tutor.rating || 5)
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-[var(--text-primary)] dark:text-[var(--text-primary)]"
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="total-revs">{reviews.length} Yorum</div>
+              </div>
+
+              <div className="bars-col">
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const count = reviews.filter((r) => r.rating === star).length;
+                  const percentage =
+                    reviews.length > 0
+                      ? (count / reviews.length) * 100
+                      : star === 5
+                        ? 100
+                        : 0;
+                  return (
+                    <div key={star} className="bar-row">
+                      <span className="star-lbl">{star} ★</span>
+                      <div className="bar-bg">
+                        <div
+                          className="bar-fill"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <span className="bar-count">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </ReviewDashboard>
+
+            {/* Comments Feed */}
+            <CommentsFeed>
+              {reviews.length > 0 ? (
+                reviews.map((r, i) => (
+                  <CommentBubble key={i}>
+                    <div className="reviewer-avatar">
+                      {r.reviewerName?.charAt(0) || "Ö"}
+                    </div>
+                    <div className="bubble-content">
+                      <div className="bubble-header">
+                        <span className="reviewer-name">
+                          {r.reviewerName || "Öğrenci"}
+                        </span>
+                        <div className="bubble-stars">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              size={10}
+                              className={
+                                s <= r.rating
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "text-[var(--text-primary)] dark:text-[var(--text-primary)]"
+                              }
+                            />
+                          ))}
+                        </div>
+                        <span className="review-date">
+                          {r.location ? `${r.location} • ` : ""}1 ay önce
+                        </span>
+                      </div>
+                      <p className="review-text">"{r.comment}"</p>
+                    </div>
+                  </CommentBubble>
+                ))
+              ) : (
+                <EmptyReviewsState>
+                  <Star
+                    size={32}
+                    className="text-[var(--text-primary)] dark:text-[var(--text-muted)] mb-2"
+                  />
+                  <p>Henüz değerlendirme yapılmamış.</p>
+                </EmptyReviewsState>
+              )}
+            </CommentsFeed>
+
+            {/* Add Review Form */}
+            <AddReviewWrapper>
+              <h4>Değerlendirme Yazın</h4>
+              <div className="rating-select-row">
+                <span className="select-lbl">Eğitmene Puanınız:</span>
+                <StyledRadio>
+                  <div className="radio">
+                    {[5, 4, 3, 2, 1].map((s) => (
+                      <React.Fragment key={s}>
+                        <input
+                          value={s}
+                          name="rating"
+                          type="radio"
+                          id={`rating-${s}`}
+                          checked={reviewData.rating === s}
+                          onChange={() =>
+                            setReviewData({ ...reviewData, rating: s })
+                          }
+                        />
+                        <label title={`${s} Yıldız`} htmlFor={`rating-${s}`}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="0.8em"
+                            viewBox="0 0 576 512"
+                          >
+                            <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z" />
+                          </svg>
+                        </label>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </StyledRadio>
+              </div>
+              <textarea
+                className="review-textarea"
+                placeholder="Eğitmen hakkında görüşlerinizi diğer öğrencilerle paylaşın..."
+                value={reviewData.comment}
+                onChange={(e) =>
+                  setReviewData({ ...reviewData, comment: e.target.value })
+                }
+              />
+              <Button
+                className="submit-review-btn"
+                onClick={handleSubmitReview}
+                disabled={reviewLoading}
+              >
+                {reviewLoading ? (
+                  <Loader2 className="animate-spin" size={16} />
+                ) : (
+                  "Yorumu Yayınla"
+                )}
+              </Button>
+            </AddReviewWrapper>
+          </ContentCard>
+        </div>
       </div>
 
       {/* Share Modal */}
@@ -1659,15 +1685,18 @@ const ActionButton = styled.button`
     color: ${(props) => (props.$active ? "#ef4444" : "#475569")};
 
     .dark & {
-      background: ${(props) => (props.$active ? "#991b1b20" : "var(--card-bg)")};
-      border-color: ${(props) => (props.$active ? "#991b1b50" : "var(--card-border)")};
+      background: ${(props) =>
+        props.$active ? "#991b1b20" : "var(--card-bg)"};
+      border-color: ${(props) =>
+        props.$active ? "#991b1b50" : "var(--card-border)"};
       color: ${(props) => (props.$active ? "#f87171" : "#cbd5e1")};
     }
 
     &:hover {
       background: ${(props) => (props.$active ? "#fee2e2" : "#f8fafc")};
       .dark & {
-        background: ${(props) => (props.$active ? "#991b1b30" : "var(--card-border)")};
+        background: ${(props) =>
+          props.$active ? "#991b1b30" : "var(--card-border)"};
       }
     }
   }
@@ -1798,9 +1827,12 @@ const MainContentCol = styled.div`
 const SidebarCol = styled.div`
   width: 100%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   @media (min-width: 961px) {
-    position: relative;
-    width: auto;
+    width: 340px;
+    flex-shrink: 0;
   }
 `;
 
@@ -1846,11 +1878,21 @@ const CardTitleAccent = styled.h3`
     background: #16a34a;
     display: inline-block;
     flex-shrink: 0;
-    &.decor-emerald { background: #10b981; }
-    &.decor-red { background: #16a34a; }
-    &.decor-purple { background: #10b981; }
-    &.decor-amber { background: #059669; }
-    &.decor-indigo { background: #047857; }
+    &.decor-emerald {
+      background: #10b981;
+    }
+    &.decor-red {
+      background: #16a34a;
+    }
+    &.decor-purple {
+      background: #10b981;
+    }
+    &.decor-amber {
+      background: #059669;
+    }
+    &.decor-indigo {
+      background: #047857;
+    }
   }
 `;
 
@@ -1859,17 +1901,45 @@ const BioTextWrapper = styled.div`
   line-height: 1.7;
   color: #475569;
   word-break: break-word;
-  .dark & { color: var(--text-primary); }
-  &.collapsed { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-  p { margin-bottom: 12px; }
-  p:last-child { margin-bottom: 0; }
+  .dark & {
+    color: var(--text-primary);
+  }
+  &.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  p {
+    margin-bottom: 12px;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const ExpandButton = styled.button`
-  background: transparent; border: none; color: #16a34a; font-weight: 800; font-size: 13px;
-  display: inline-flex; align-items: center; gap: 4px; margin-top: 14px; cursor: pointer; padding: 2px 0;
-  &:hover { color: #14532d; text-decoration: underline; }
-  .arrow { transition: transform 0.3s; &.rotated { transform: rotate(90deg); } }
+  background: transparent;
+  border: none;
+  color: #16a34a;
+  font-weight: 800;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 14px;
+  cursor: pointer;
+  padding: 2px 0;
+  &:hover {
+    color: #14532d;
+    text-decoration: underline;
+  }
+  .arrow {
+    transition: transform 0.3s;
+    &.rotated {
+      transform: rotate(90deg);
+    }
+  }
 `;
 
 const RatesList = styled.div`
@@ -1879,22 +1949,89 @@ const RatesList = styled.div`
 `;
 
 const RateRow = styled.div`
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 20px; background: #f8fafc; border-radius: 18px; border: 1px solid #f1f5f9; gap: 16px;
-  .dark & { background: var(--page-bg); border-color: var(--card-border); }
-  @media (max-width: 640px) { flex-direction: column; align-items: flex-start; gap: 14px; }
-  .rate-info { display: flex; align-items: center; gap: 14px;
-    .rate-icon { width: 38px; height: 38px; border-radius: 10px; background: #f0fdf4; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; .dark & { background: #14532d30; color: #4ade80; } }
-    h4 { font-size: 14.5px; font-weight: 900; color: var(--text-primary); .dark & { color: white; } }
-    .rate-meta { display: flex; align-items: center; gap: 6px; margin-top: 2px; span { font-size: 11.5px; font-weight: 600; color: var(--text-muted); } .divider { font-size: 10px; } }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-radius: 18px;
+  border: 1px solid #f1f5f9;
+  gap: 16px;
+  .dark & {
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
-  .rate-price-block { display: flex; align-items: center; gap: 8px;
-    .price-split { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; @media (max-width: 640px) { align-items: flex-start; } }
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .rate-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    .rate-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #f0fdf4;
+      color: #15803d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      .dark & {
+        background: #14532d30;
+        color: #4ade80;
+      }
+    }
+    h4 {
+      font-size: 14.5px;
+      font-weight: 900;
+      color: var(--text-primary);
+      .dark & {
+        color: white;
+      }
+    }
+    .rate-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      span {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+      .divider {
+        font-size: 10px;
+      }
+    }
+  }
+  .rate-price-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    .price-split {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+      @media (max-width: 640px) {
+        align-items: flex-start;
+      }
+    }
   }
 `;
 
 const PriceBadge = styled.div`
-  display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 12px; font-size: 12px; font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 900;
   ${(props) =>
     props.$type === "online"
       ? `background: #eff6ff; color: #1d4ed8; .dark & { background: #1e3a8a40; color: #60a5fa; }`
@@ -1904,147 +2041,636 @@ const PriceBadge = styled.div`
 `;
 
 const VideoPlayerWrapper = styled.div`
-  position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 20px; overflow: hidden;
-  border: 1px solid rgba(226,232,240,0.8); .dark & { border-color: var(--card-border); }
-  iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  .dark & {
+    border-color: var(--card-border);
+  }
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
   max-width: 100%;
 `;
 
 const CalendarLegends = styled.div`
-  display: flex; gap: 12px; flex-wrap: wrap;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
   @media (max-width: 640px) {
     gap: 8px 10px;
   }
-  .legend { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 850; color: #475569; .dark & { color: var(--text-primary); }
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 850;
+    color: #475569;
+    .dark & {
+      color: var(--text-primary);
+    }
     @media (max-width: 640px) {
       font-size: 9px;
       gap: 4px;
     }
-    .legend-box { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; border: 1.5px solid transparent;
+    .legend-box {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      border: 1.5px solid transparent;
       @media (max-width: 640px) {
         width: 14px;
         height: 14px;
-        svg { width: 8px; height: 8px; }
+        svg {
+          width: 8px;
+          height: 8px;
+        }
       }
-      &.legend-online { background: #2563eb; } &.legend-inperson { background: #ea580c; } &.legend-both { background: #16a34a; }
-      &.legend-empty { background: transparent; border-color: var(--text-primary); .dark & { border-color: var(--card-border); } }
+      &.legend-online {
+        background: #2563eb;
+      }
+      &.legend-inperson {
+        background: #ea580c;
+      }
+      &.legend-both {
+        background: #16a34a;
+      }
+      &.legend-empty {
+        background: transparent;
+        border-color: var(--text-primary);
+        .dark & {
+          border-color: var(--card-border);
+        }
+      }
     }
-    span { letter-spacing: 0.05em; white-space: nowrap; }
+    span {
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
   }
 `;
 
 const SchedulerContainer = styled.div`
-  background: #f8fafc; border-radius: 18px; padding: 16px; border: 1px solid #f1f5f9;
-  .dark & { background: var(--page-bg); border-color: var(--card-border); }
-  .scheduler-scrollable { overflow-x: auto; width: 100%; scrollbar-width: thin; }
-  .scheduler-table { width: 100%; min-width: 560px; border-collapse: separate; border-spacing: 4px; table-layout: fixed;
-    .corner-col { width: 90px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; text-align: left; padding-bottom: 8px; padding-left: 6px; }
-    .day-header { font-size: 11px; font-weight: 900; color: var(--text-primary); text-transform: capitalize; padding-bottom: 8px; text-align: center; }
-    .slot-label { font-size: 11px; font-weight: 800; color: #64748b; .dark & { color: var(--text-primary); } white-space: nowrap; padding: 6px; }
-    .time-slot-cell { height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px solid transparent;
-      &.empty-slot { background: transparent; border-color: var(--text-primary); .dark & { background: var(--card-bg); border-color: var(--card-border); } }
-      &.slot-online { background: #2563eb; color: white; } &.slot-inperson { background: #ea580c; color: white; } &.slot-both { background: #16a34a; color: white; }
+  background: #f8fafc;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid #f1f5f9;
+  .dark & {
+    background: var(--page-bg);
+    border-color: var(--card-border);
+  }
+  .scheduler-scrollable {
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: thin;
+  }
+  .scheduler-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: separate;
+    border-spacing: 4px;
+    table-layout: fixed;
+    .corner-col {
+      width: 90px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      text-align: left;
+      padding-bottom: 8px;
+      padding-left: 6px;
+    }
+    .day-header {
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-primary);
+      text-transform: capitalize;
+      padding-bottom: 8px;
+      text-align: center;
+    }
+    .slot-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      .dark & {
+        color: var(--text-primary);
+      }
+      white-space: nowrap;
+      padding: 6px;
+    }
+    .time-slot-cell {
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+      &.empty-slot {
+        background: transparent;
+        border-color: var(--text-primary);
+        .dark & {
+          background: var(--card-bg);
+          border-color: var(--card-border);
+        }
+      }
+      &.slot-online {
+        background: #2563eb;
+        color: white;
+      }
+      &.slot-inperson {
+        background: #ea580c;
+        color: white;
+      }
+      &.slot-both {
+        background: #16a34a;
+        color: white;
+      }
     }
   }
 `;
 
 const PhotoGalleryGrid = styled.div`
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
-  .photo-card-item { position: relative; aspect-ratio: 1/1; border-radius: 16px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: all 0.25s ease;
-    img { width: 100%; height: 100%; object-fit: cover; }
-    .card-hover-overlay { position: absolute; inset: 0; background: rgba(22,163,74,0.4); display: flex; align-items: center; justify-content: center; color: white; opacity: 0; transition: opacity 0.2s ease; }
-    &:hover { transform: scale(0.98); .card-hover-overlay { opacity: 1; } } &.active { border-color: #16a34a; }
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  .photo-card-item {
+    position: relative;
+    aspect-ratio: 1/1;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s ease;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-hover-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(22, 163, 74, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    &:hover {
+      transform: scale(0.98);
+      .card-hover-overlay {
+        opacity: 1;
+      }
+    }
+    &.active {
+      border-color: #16a34a;
+    }
   }
 `;
 
 const MapBadge = styled.div`
-  display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; color: #475569;
-  .dark & { background: var(--page-bg); border-color: var(--card-border); color: var(--text-primary); }
-  svg { color: #16a34a; }
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+  .dark & {
+    background: var(--page-bg);
+    border-color: var(--card-border);
+    color: var(--text-primary);
+  }
+  svg {
+    color: #16a34a;
+  }
 `;
 
 const MapOuterWrapper = styled.div`
-  height: 250px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(226,232,240,0.8);
-  width: 100%; max-width: 100%;
-  .dark & { border-color: var(--card-border); }
-  iframe { width: 100%; height: 100%; border: 0; }
-  .dark & iframe { filter: invert(90%) hue-rotate(180deg); opacity: 0.85; }
+  height: 250px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  width: 100%;
+  max-width: 100%;
+  .dark & {
+    border-color: var(--card-border);
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .dark & iframe {
+    filter: invert(90%) hue-rotate(180deg);
+    opacity: 0.85;
+  }
 `;
 
 const ReviewDashboard = styled.div`
-  display: flex; align-items: center; gap: 40px; padding: 24px; background: #f8fafc; border-radius: 20px; border: 1px solid #f1f5f9; margin-bottom: 28px;
-  .dark & { background: var(--page-bg); border-color: var(--card-border); }
-  @media (max-width: 768px) { flex-direction: column; gap: 24px; text-align: center; }
-  .big-rating-card { display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
-    .rating-val { font-size: 44px; font-weight: 900; color: var(--text-primary); line-height: 1; .dark & { color: white; } }
-    .stars-row { display: flex; gap: 2px; margin: 8px 0; } .total-revs { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 28px;
+  .dark & {
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
-  .bars-col { flex: 1; display: flex; flex-direction: column; gap: 8px; width: 100%; min-width: 0;
-    .bar-row { display: flex; align-items: center; gap: 12px; min-width: 0;
-      .star-lbl { font-size: 11px; font-weight: 800; color: #64748b; width: 30px; text-align: right; .dark & { color: var(--text-muted); } }
-      .bar-bg { flex: 1; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; min-width: 0; .dark & { background: var(--card-bg); } }
-      .bar-fill { height: 100%; background: #fbbf24; border-radius: 10px; max-width: 100%; } .bar-count { font-size: 11px; font-weight: 800; color: var(--text-muted); width: 15px; }
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+  }
+  .big-rating-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    .rating-val {
+      font-size: 44px;
+      font-weight: 900;
+      color: var(--text-primary);
+      line-height: 1;
+      .dark & {
+        color: white;
+      }
+    }
+    .stars-row {
+      display: flex;
+      gap: 2px;
+      margin: 8px 0;
+    }
+    .total-revs {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+  }
+  .bars-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      .star-lbl {
+        font-size: 11px;
+        font-weight: 800;
+        color: #64748b;
+        width: 30px;
+        text-align: right;
+        .dark & {
+          color: var(--text-muted);
+        }
+      }
+      .bar-bg {
+        flex: 1;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        min-width: 0;
+        .dark & {
+          background: var(--card-bg);
+        }
+      }
+      .bar-fill {
+        height: 100%;
+        background: #fbbf24;
+        border-radius: 10px;
+        max-width: 100%;
+      }
+      .bar-count {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--text-muted);
+        width: 15px;
+      }
     }
   }
 `;
 
 const CommentsFeed = styled.div`
-  display: flex; flex-direction: column; gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 `;
 
 const CommentBubble = styled.div`
-  display: flex; gap: 14px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9; .dark & { border-color: var(--card-border); }
-  &:last-child { border-bottom: none; padding-bottom: 0; }
-  .reviewer-avatar { width: 42px; height: 42px; border-radius: 12px; background: #f0fdf4; color: #15803d; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; flex-shrink: 0; .dark & { background: #14532d30; color: #4ade80; } }
-  .bubble-content { flex: 1; min-width: 0;
-    .bubble-header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;
-      .reviewer-name { font-size: 13.5px; font-weight: 850; color: var(--text-primary); .dark & { color: white; } }
-      .bubble-stars { display: flex; gap: 1px; } .review-date { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-left: auto; }
+  display: flex;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+  .dark & {
+    border-color: var(--card-border);
+  }
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .reviewer-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #f0fdf4;
+    color: #15803d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+    flex-shrink: 0;
+    .dark & {
+      background: #14532d30;
+      color: #4ade80;
     }
-    .review-text { font-size: 13px; line-height: 1.6; color: #475569; font-style: italic; .dark & { color: var(--text-primary); } }
+  }
+  .bubble-content {
+    flex: 1;
+    min-width: 0;
+    .bubble-header {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+      .reviewer-name {
+        font-size: 13.5px;
+        font-weight: 850;
+        color: var(--text-primary);
+        .dark & {
+          color: white;
+        }
+      }
+      .bubble-stars {
+        display: flex;
+        gap: 1px;
+      }
+      .review-date {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-left: auto;
+      }
+    }
+    .review-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #475569;
+      font-style: italic;
+      .dark & {
+        color: var(--text-primary);
+      }
+    }
   }
 `;
 
 const EmptyReviewsState = styled.div`
-  display: flex; flex-direction: column; align-items: center; padding: 40px 0; color: var(--text-muted);
-  p { font-size: 13px; font-weight: 700; }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  color: var(--text-muted);
+  p {
+    font-size: 13px;
+    font-weight: 700;
+  }
 `;
 
 const AddReviewWrapper = styled.div`
-  background: #f8fafc; border-radius: 20px; padding: 24px; border: 1px solid #f1f5f9; margin-top: 32px; overflow: hidden;
-  .dark & { background: var(--page-bg); border-color: var(--card-border); }
-  h4 { font-size: 15px; font-weight: 900; color: var(--text-primary); margin-bottom: 16px; .dark & { color: white; } }
-  .rating-select-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
-    .select-lbl { font-size: 12px; font-weight: 800; color: #64748b; .dark & { color: var(--text-muted); } }
+  background: #f8fafc;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #f1f5f9;
+  margin-top: 32px;
+  overflow: hidden;
+  .dark & {
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
-  .review-textarea { width: 100%; box-sizing: border-box; height: 90px; background: white; border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px; font-size: 13px; font-weight: 600; color: var(--text-primary); outline: none; transition: all 0.2s; resize: none; margin-bottom: 16px; display: block;
-    .dark & { background: var(--card-bg); border-color: var(--card-border); color: white; } &:focus { border-color: #16a34a; }
+  h4 {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    .dark & {
+      color: white;
+    }
   }
-  .submit-review-btn { background: #16a34a; color: white; font-weight: 800; font-size: 13px; padding: 10px 20px; border-radius: 10px; &:hover { background: #15803d; } }
+  .rating-select-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    .select-lbl {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748b;
+      .dark & {
+        color: var(--text-muted);
+      }
+    }
+  }
+  .review-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 90px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s;
+    resize: none;
+    margin-bottom: 16px;
+    display: block;
+    .dark & {
+      background: var(--card-bg);
+      border-color: var(--card-border);
+      color: white;
+    }
+    &:focus {
+      border-color: #16a34a;
+    }
+  }
+  .submit-review-btn {
+    background: #16a34a;
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    &:hover {
+      background: #15803d;
+    }
+  }
 `;
 
 const StickySidebarCard = styled.div`
-  position: sticky; top: 24px; background: white; border-radius: 28px; border: 1px solid rgba(226,232,240,0.8); box-shadow: 0 10px 30px rgba(0,0,0,0.03); overflow: hidden;
-  .dark & { background: var(--card-bg); border-color: var(--card-border); box-shadow: none; }
-  .card-header-gradient { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white; padding: 24px; text-align: center;
-    .dark & { background: linear-gradient(135deg, #14532d 0%, #166534 100%); }
-    h3 { font-size: 16px; font-weight: 900; margin-bottom: 4px; } p { font-size: 11px; font-weight: 600; opacity: 0.85; }
+  position: sticky;
+  top: 24px;
+  background: white;
+  border-radius: 28px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  .dark & {
+    background: var(--card-bg);
+    border-color: var(--card-border);
+    box-shadow: none;
   }
-  .card-body { padding: 24px; display: flex; flex-direction: column; gap: 20px;
-    .price-display { display: flex; align-items: baseline; justify-content: center; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; .dark & { border-color: var(--card-border); }
-      .price-big { font-size: 32px; font-weight: 950; color: #16a34a; .dark & { color: #4ade80; } }
-      .price-lbl { font-size: 13px; font-weight: 750; color: #64748b; .dark & { color: var(--text-primary); } }
+  .card-header-gradient {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: white;
+    padding: 24px;
+    text-align: center;
+    .dark & {
+      background: linear-gradient(135deg, #14532d 0%, #166534 100%);
     }
-    .quick-info-box { display: flex; flex-direction: column; gap: 10px;
-      .info-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: #475569; .dark & { color: var(--text-primary); }
-        svg { flex-shrink: 0; } strong { color: var(--text-primary); .dark & { color: white; } }
+    h3 {
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    p {
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+  }
+  .card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    .price-display {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      .dark & {
+        border-color: var(--card-border);
+      }
+      .price-big {
+        font-size: 32px;
+        font-weight: 950;
+        color: #16a34a;
+        .dark & {
+          color: #4ade80;
+        }
+      }
+      .price-lbl {
+        font-size: 13px;
+        font-weight: 750;
+        color: #64748b;
+        .dark & {
+          color: var(--text-primary);
+        }
       }
     }
-    .response-time-hint { text-align: center; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .social-section { .social-header-title { font-size: 11px; font-weight: 850; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; text-align: center; }
-      .social-btn-row { display: flex; justify-content: center; gap: 10px;
-        .social-icon-btn { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.2s ease;
-          &:hover { transform: translateY(-2px); } &.whatsapp-color { background: #25d366; } &.instagram-color { background: linear-gradient(45deg, #f09433, #e6683c, #bc1888); } &.linkedin-color { background: #0a66c2; } &.facebook-color { background: #1877f2; }
+    .quick-info-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      .info-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #475569;
+        .dark & {
+          color: var(--text-primary);
+        }
+        svg {
+          flex-shrink: 0;
+        }
+        strong {
+          color: var(--text-primary);
+          .dark & {
+            color: white;
+          }
+        }
+      }
+    }
+    .response-time-hint {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .social-section {
+      .social-header-title {
+        font-size: 11px;
+        font-weight: 850;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .social-btn-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        .social-icon-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          transition: all 0.2s ease;
+          &:hover {
+            transform: translateY(-2px);
+          }
+          &.whatsapp-color {
+            background: #25d366;
+          }
+          &.instagram-color {
+            background: linear-gradient(45deg, #f09433, #e6683c, #bc1888);
+          }
+          &.linkedin-color {
+            background: #0a66c2;
+          }
+          &.facebook-color {
+            background: #1877f2;
+          }
         }
       }
     }
@@ -2052,45 +2678,168 @@ const StickySidebarCard = styled.div`
 `;
 
 const StyledRadio = styled.div`
-  .radio { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 6px; }
-  .radio > input { position: absolute; appearance: none; }
-  .radio > label { cursor: pointer; font-size: 22px; position: relative; display: inline-block; transition: transform 0.3s ease; }
-  .radio > label > svg { fill: #e2e8f0; transition: fill 0.3s ease; }
-  .radio > label:hover { transform: scale(1.2); }
-  .radio > label:hover > svg, .radio > label:hover ~ label > svg { fill: #ff9e0b; }
-  .radio > input:checked + label > svg, .radio > input:checked + label ~ label > svg { fill: #ff9e0b; animation: pulse 0.8s infinite alternate; }
-  @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+  .radio {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .radio > input {
+    position: absolute;
+    appearance: none;
+  }
+  .radio > label {
+    cursor: pointer;
+    font-size: 22px;
+    position: relative;
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+  .radio > label > svg {
+    fill: #e2e8f0;
+    transition: fill 0.3s ease;
+  }
+  .radio > label:hover {
+    transform: scale(1.2);
+  }
+  .radio > label:hover > svg,
+  .radio > label:hover ~ label > svg {
+    fill: #ff9e0b;
+  }
+  .radio > input:checked + label > svg,
+  .radio > input:checked + label ~ label > svg {
+    fill: #ff9e0b;
+    animation: pulse 0.8s infinite alternate;
+  }
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.05);
+    }
+  }
 `;
 
 const CertificatesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px; margin-top: 10px; width: 100%; overflow: hidden;
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  gap: 16px;
+  margin-top: 10px;
+  width: 100%;
+  overflow: hidden;
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const CertificateCard = styled.div`
-  display: flex; align-items: center;
-  gap: 16px; padding: 16px; background: #f8fafc; border-radius: 20px;
-  border: 1px solid #f1f5f9; transition: all 0.25s ease;
-  .dark & { background: var(--page-bg); border-color: var(--card-border); }
-  &:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
-  .cert-badge-icon {
-    width: 48px; height: 48px; border-radius: 14px; background: #ccfbf1;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    .dark & { background: #581c8730; }
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.25s ease;
+  .dark & {
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
-  .cert-info { flex: 1; min-width: 0;
-    .cert-title { font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; .dark & { color: white; } }
-    .cert-org { font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; .dark & { color: var(--text-muted); } }
-    .cert-year { font-size: 11px; font-weight: 700; color: #8b5cf6; background: #ccfbf1; padding: 2px 8px; border-radius: 20px; .dark & { background: #581c8730; color: #2dd4bf; } }
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+  }
+  .cert-badge-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: #ccfbf1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    .dark & {
+      background: #581c8730;
+    }
+  }
+  .cert-info {
+    flex: 1;
+    min-width: 0;
+    .cert-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      .dark & {
+        color: white;
+      }
+    }
+    .cert-org {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      .dark & {
+        color: var(--text-muted);
+      }
+    }
+    .cert-year {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8b5cf6;
+      background: #ccfbf1;
+      padding: 2px 8px;
+      border-radius: 20px;
+      .dark & {
+        background: #581c8730;
+        color: #2dd4bf;
+      }
+    }
   }
   .cert-preview {
-    width: 60px; height: 60px; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; border: 1px solid #e2e8f0; flex-shrink: 0;
-    .dark & { border-color: var(--card-border); }
-    img { width: 100%; height: 100%; object-fit: cover; }
-    .preview-overlay { position: absolute; inset: 0; background: rgba(139,92,246,0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; span { color: white; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; } }
-    &:hover .preview-overlay { opacity: 1; }
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+    .dark & {
+      border-color: var(--card-border);
+    }
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(139, 92, 246, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      span {
+        color: white;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    }
+    &:hover .preview-overlay {
+      opacity: 1;
+    }
   }
 `;
 
