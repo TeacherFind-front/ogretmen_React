@@ -50,7 +50,9 @@ export default function TutorAvailability() {
             availabilitiesArray.forEach((item) => {
               const startRaw = String(item.start || item.Start || "").trim();
               const dayRaw = String(item.day || item.Day || "").trim();
-              let type = String(item.type || item.Type || "").trim().toLowerCase();
+              let type = String(item.type || item.Type || "")
+                .trim()
+                .toLowerCase();
 
               // Fallback to empty if it says null or undefined string
               if (type === "null" || type === "undefined") type = "";
@@ -68,7 +70,9 @@ export default function TutorAvailability() {
                 // Lowercase the whole string taking Turkish characters into account
                 let lowerDay = dayRaw.toLocaleLowerCase("tr-TR");
                 // Capitalize first letter taking Turkish into account
-                day = lowerDay.charAt(0).toLocaleUpperCase("tr-TR") + lowerDay.slice(1);
+                day =
+                  lowerDay.charAt(0).toLocaleUpperCase("tr-TR") +
+                  lowerDay.slice(1);
               }
 
               if (day && type) {
@@ -141,7 +145,7 @@ export default function TutorAvailability() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] gap-6">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+        <Loader2 className="w-12 h-12 animate-spin text-green-600" />
         <p className="text-gray-400 font-black uppercase tracking-widest text-xs">
           Takvim Yükleniyor
         </p>
@@ -202,13 +206,13 @@ export default function TutorAvailability() {
           <div className="legend-item">
             <div className="box empty"></div> <span>Müsait Değil</span>
           </div>
-          <p className="hint text-blue-600 dark:text-blue-400 font-black flex items-center gap-2">
+          <p className="hint text-green-600 dark:text-green-400 font-black flex items-center gap-2">
             <Clock size={14} /> Kutucuklara tıklayarak durumu
             değiştirebilirsiniz.
           </p>
         </div>
 
-        <div className="overflow-x-auto w-full rounded-2xl border border-gray-100 dark:border-slate-800">
+        <div className="overflow-x-auto w-full rounded-2xl border border-gray-100 dark:border-[var(--card-border)]">
           <table className="w-full min-w-[800px] border-separate border-spacing-2">
             <thead>
               <tr>
@@ -283,8 +287,8 @@ const HeaderCard = styled.div`
   margin-bottom: 24px;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: none;
   }
 
@@ -301,7 +305,7 @@ const HeaderCard = styled.div`
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #2d79f3;
+      color: #16a34a;
 
       svg {
         width: 24px;
@@ -309,15 +313,15 @@ const HeaderCard = styled.div`
       }
 
       .dark & {
-        background: #1e3a8a30;
-        color: #60a5fa;
+        background: #14532d30;
+        color: #4ade80;
       }
     }
 
     h1 {
       font-size: 24px;
       font-weight: 950;
-      color: #0f172a;
+      color: var(--text-primary);
       margin: 0;
       letter-spacing: -0.5px;
       .dark & {
@@ -330,7 +334,7 @@ const HeaderCard = styled.div`
       margin-top: 4px;
       font-size: 14px;
       .dark & {
-        color: #94a3b8;
+        color: var(--text-muted);
       }
     }
   }
@@ -351,8 +355,8 @@ const GridCard = styled.div`
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: none;
   }
 
@@ -367,7 +371,7 @@ const GridCard = styled.div`
     border-radius: 16px;
 
     .dark & {
-      background: #0f172a50;
+      background: var(--page-bg) 50;
     }
 
     .legend-item {
@@ -376,7 +380,7 @@ const GridCard = styled.div`
       gap: 12px;
       font-size: 14px;
       font-weight: 900;
-      color: #334155;
+      color: #475569;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       .dark & {
@@ -388,20 +392,20 @@ const GridCard = styled.div`
         height: 24px;
         border-radius: 8px;
         &.online {
-          background: #3b82f6;
+          background: #2563eb;
         }
         &.inperson {
-          background: #10b981;
+          background: #ea580c;
         }
         &.both {
-          background: #8b5cf6;
+          background: #16a34a;
         }
         &.empty {
           background: white;
           border: 2px solid #e2e8f0;
           .dark & {
-            background: #0f172a;
-            border-color: #334155;
+            background: var(--page-bg);
+            border-color: var(--card-border);
           }
         }
       }
@@ -426,7 +430,7 @@ const Table = styled.table`
     text-align: center;
     font-size: 11px;
     font-weight: 950;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     padding-bottom: 16px;
@@ -445,7 +449,7 @@ const Table = styled.table`
       white-space: nowrap;
       text-align: center;
       .dark & {
-        background: #334155;
+        background: var(--card-border);
         color: #f1f5f9;
       }
     }
@@ -467,12 +471,12 @@ const Cell = styled.div`
   color: white;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   &:hover {
     transform: scale(1.08);
-    border-color: #cbd5e1;
+    border-color: var(--text-primary);
     box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
     z-index: 10;
   }
@@ -480,35 +484,35 @@ const Cell = styled.div`
   &.empty {
     background: white;
     .dark & {
-      background: #0f172a;
+      background: var(--page-bg);
     }
     &:hover {
       background: #f8fafc;
       .dark & {
-        background: #1e293b;
+        background: var(--card-bg);
       }
     }
   }
 
   &.online {
-    background: #3b82f6;
-    border-color: #2563eb;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+    background: #2563eb;
+    border-color: #1d4ed8;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
   }
   &.inperson {
-    background: #10b981;
-    border-color: #059669;
-    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+    background: #ea580c;
+    border-color: #c2410c;
+    box-shadow: 0 10px 20px rgba(234, 88, 12, 0.2);
   }
   &.both {
-    background: #8b5cf6;
-    border-color: #7c3aed;
-    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+    background: #16a34a;
+    border-color: #15803d;
+    box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
   }
 `;
 
 const SaveButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 12px 24px;
   border-radius: 14px;
@@ -517,12 +521,12 @@ const SaveButton = styled.button`
   align-items: center;
   gap: 10px;
   transition: all 0.3s;
-  box-shadow: 0 10px 20px rgba(45, 121, 243, 0.2);
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
   font-size: 14px;
   &:hover {
     background: #1e40af;
     transform: translateY(-3px);
-    box-shadow: 0 20px 40px rgba(45, 121, 243, 0.3);
+    box-shadow: 0 20px 40px rgba(22, 163, 74, 0.3);
   }
   &:disabled {
     opacity: 0.5;

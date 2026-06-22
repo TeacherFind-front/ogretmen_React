@@ -63,7 +63,7 @@ export default function SupportMessages() {
 
       {loading ? (
         <LoadingState>
-          <RefreshCw className="animate-spin text-blue-500" size={36} />
+          <RefreshCw className="animate-spin text-green-500" size={36} />
           <p>Destek talepleriniz yükleniyor...</p>
         </LoadingState>
       ) : error ? (
@@ -248,7 +248,7 @@ const Header = styled.div`
 const Title = styled.h1`
   font-size: 28px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 6px;
 
   .dark & {
@@ -261,7 +261,7 @@ const Subtitle = styled.p`
   color: #64748b;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -279,7 +279,7 @@ const HeaderActions = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #3b82f6;
+    background: #16a34a;
     color: white;
     padding: 10px 20px;
     border-radius: 12px;
@@ -288,7 +288,7 @@ const HeaderActions = styled.div`
     transition: all 0.2s;
 
     &:hover {
-      background: #2563eb;
+      background: #15803d;
       transform: translateY(-1px);
     }
   }
@@ -310,7 +310,7 @@ const RefreshButton = styled.button`
 
   &:hover {
     background: #f8fafc;
-    color: #0f172a;
+    color: var(--text-primary);
   }
 
   &:disabled {
@@ -319,9 +319,9 @@ const RefreshButton = styled.button`
   }
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
-    color: #cbd5e1;
+    background: var(--card-bg);
+    border-color: var(--card-border);
+    color: var(--text-primary);
 
     &:hover {
       background: #334155;
@@ -342,8 +342,8 @@ const TableWrapper = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 
   @media (max-width: 768px) {
@@ -367,9 +367,9 @@ const Table = styled.table`
     border-bottom: 1px solid #e2e8f0;
 
     .dark & {
-      background: #0f172a;
-      color: #94a3b8;
-      border-color: #334155;
+      background: var(--page-bg);
+      color: var(--text-muted);
+      border-color: var(--card-border);
     }
   }
 
@@ -380,8 +380,8 @@ const Table = styled.table`
     color: #334155;
 
     .dark & {
-      border-color: #334155;
-      color: #cbd5e1;
+      border-color: var(--card-border);
+      color: var(--text-primary);
     }
   }
 
@@ -400,14 +400,14 @@ const SubjectCell = styled.div`
   gap: 12px;
 
   .cell-icon {
-    color: #3b82f6;
+    color: #16a34a;
     margin-top: 2px;
     flex-shrink: 0;
   }
 
   .subject {
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
     display: block;
     margin-bottom: 4px;
 
@@ -426,7 +426,7 @@ const SubjectCell = styled.div`
     text-overflow: ellipsis;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 `;
@@ -437,7 +437,7 @@ const DateText = styled.span`
   font-size: 13px;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -457,12 +457,12 @@ const ViewButton = styled.button`
 
   &:hover {
     background: #e2e8f0;
-    color: #0f172a;
+    color: var(--text-primary);
   }
 
   .dark & {
     background: #334155;
-    color: #cbd5e1;
+    color: var(--text-primary);
 
     &:hover {
       background: #475569;
@@ -481,7 +481,7 @@ const Badge = styled.span`
   letter-spacing: 0.05em;
 
   &.blue {
-    background: #eff6ff;
+    background: #f0fdf4;
     color: #1e90ff;
     .dark & {
       background: rgba(30, 144, 255, 0.2);
@@ -506,7 +506,7 @@ const Badge = styled.span`
 
   &.dark-gray {
     background: #334155;
-    color: #94a3b8;
+    color: var(--text-muted);
     .dark & {
       background: rgba(51, 65, 85, 0.6);
     }
@@ -534,16 +534,16 @@ const MobileCard = styled.div`
   transition: all 0.2s;
 
   &:hover {
-    border-color: #cbd5e1;
+    border-color: var(--text-primary);
     transform: translateY(-1px);
   }
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
 
     &:hover {
-      border-color: #475569;
+      border-color: var(--card-border);
     }
   }
 
@@ -557,7 +557,7 @@ const MobileCard = styled.div`
     overflow: hidden;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 `;
@@ -570,7 +570,7 @@ const MobileCardHeader = styled.div`
 
   .subject {
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 15px;
 
     .dark & {
@@ -588,7 +588,7 @@ const MobileCardFooter = styled.div`
   padding-top: 10px;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   .date {
@@ -598,13 +598,13 @@ const MobileCardFooter = styled.div`
     color: #64748b;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
   .view-link {
     font-weight: 700;
-    color: #3b82f6;
+    color: #16a34a;
   }
 `;
 
@@ -633,7 +633,7 @@ const ErrorState = styled.div`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
 
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     border-color: #7f1d1d40;
   }
 
@@ -651,7 +651,7 @@ const ErrorState = styled.div`
     margin-bottom: 24px;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
@@ -685,8 +685,8 @@ const EmptyState = styled.div`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 
   .icon-container {
@@ -694,21 +694,21 @@ const EmptyState = styled.div`
     height: 80px;
     border-radius: 24px;
     background: #f1f5f9;
-    color: #3b82f6;
+    color: #16a34a;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
 
     .dark & {
-      background: #0f172a;
+      background: var(--page-bg);
     }
   }
 
   h3 {
     font-size: 20px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-primary);
     margin-bottom: 8px;
 
     .dark & {
@@ -724,12 +724,12 @@ const EmptyState = styled.div`
     line-height: 1.6;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
   a {
-    background: #3b82f6;
+    background: #16a34a;
     color: white;
     padding: 12px 28px;
     border-radius: 12px;
@@ -738,7 +738,7 @@ const EmptyState = styled.div`
     transition: all 0.2s;
 
     &:hover {
-      background: #2563eb;
+      background: #15803d;
       transform: translateY(-1px);
     }
   }
@@ -769,7 +769,7 @@ const ModalContent = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     border: 1px solid #334155;
   }
 `;
@@ -782,13 +782,13 @@ const ModalHeader = styled.div`
   align-items: center;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   h3 {
     font-size: 18px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-primary);
 
     .dark & {
       color: #f8fafc;
@@ -809,11 +809,11 @@ const ModalHeader = styled.div`
 
     &:hover {
       background: #f1f5f9;
-      color: #0f172a;
+      color: var(--text-primary);
     }
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
       &:hover {
         background: #334155;
         color: white;
@@ -843,7 +843,7 @@ const DetailGroup = styled.div`
     color: #64748b;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
@@ -853,13 +853,13 @@ const DetailGroup = styled.div`
     color: #334155;
 
     .dark & {
-      color: #cbd5e1;
+      color: var(--text-primary);
     }
 
     &.highlight {
       font-size: 16px;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--text-primary);
 
       .dark & {
         color: white;
@@ -878,9 +878,9 @@ const DetailGroup = styled.div`
     white-space: pre-wrap;
 
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
-      color: #cbd5e1;
+      background: var(--page-bg);
+      border-color: var(--card-border);
+      color: var(--text-primary);
     }
   }
 `;
@@ -914,7 +914,7 @@ const ReplyBox = styled.div`
       font-weight: 500;
 
       .dark & {
-        color: #94a3b8;
+        color: var(--text-muted);
       }
     }
   }
@@ -922,7 +922,7 @@ const ReplyBox = styled.div`
   .reply-content {
     font-size: 14px;
     line-height: 1.6;
-    color: #1e3a8a;
+    color: #14532d;
     white-space: pre-wrap;
 
     .dark & {
@@ -957,7 +957,7 @@ const ModalFooter = styled.div`
   justify-content: flex-end;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   .btn-close {
@@ -973,12 +973,12 @@ const ModalFooter = styled.div`
 
     &:hover {
       background: #e2e8f0;
-      color: #0f172a;
+      color: var(--text-primary);
     }
 
     .dark & {
       background: #334155;
-      color: #cbd5e1;
+      color: var(--text-primary);
 
       &:hover {
         background: #475569;

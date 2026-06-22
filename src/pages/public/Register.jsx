@@ -12,8 +12,8 @@ import { getCities, getDistricts, getNeighborhoods } from "@/services/locationSe
 import { register } from "@/services/authService";
 import { useAuth } from "@/store/AuthContext";
 
-const inputCls = "w-full px-3 py-2 text-[13px] border border-[#d4d4d0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#0f172a] text-[#111] dark:text-white transition-all focus:outline-none focus:border-[#111] dark:focus:border-blue-400 placeholder-gray-400 dark:placeholder-gray-500";
-const labelCls = "block text-[12px] font-medium text-[#333] dark:text-slate-300 mb-1";
+const inputCls = "w-full px-3 py-2 text-[13px] border border-[#d4d4d0] dark:border-[var(--card-border)] rounded-lg bg-white dark:bg-[var(--card-bg)] text-[#111] dark:text-[var(--text-primary)] transition-all focus:outline-none focus:border-[#16a34a] dark:focus:border-[#22c55e] focus:ring-1 focus:ring-[#16a34a] placeholder-gray-400 dark:placeholder-gray-500";
+const labelCls = "block text-[12px] font-medium text-[#333] dark:text-[var(--text-primary)] mb-1";
 const selectStyle = {
   backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
   backgroundPosition: "right 8px center",
@@ -141,16 +141,16 @@ const Register = () => {
   };
 
   const renderStep0 = () => (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-gray-50 dark:bg-slate-900">
-      <div className="w-full max-w-2xl bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-12">
-        <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white text-center mb-2">Hoş Geldiniz</h2>
+    <div className="flex min-h-screen items-center justify-center p-4 bg-gray-50 dark:bg-[var(--page-bg)]">
+      <div className="w-full max-w-2xl bg-white dark:bg-[var(--card-bg)] rounded-3xl shadow-xl p-8 md:p-12">
+        <h2 className="text-3xl font-extrabold text-gray-900 dark:text-[var(--text-primary)] text-center mb-2">Hoş Geldiniz</h2>
         <p className="text-center text-gray-500 dark:text-gray-400 mb-10">Devam etmek için size uygun olan rolü seçin</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <RoleCard $active={role === 'student'} onClick={() => { setRole('student'); setStep(1); }} className="group">
             <div className="image-box">
               <img src="https://img.icons8.com/3d-fluency/188/student-male--v2.png" alt="Öğrenci" className="transition-transform duration-500 group-hover:scale-110" />
             </div>
-            <h3 className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Öğrenci Olmak İstiyorum</h3>
+            <h3 className="group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">Öğrenci Olmak İstiyorum</h3>
             <p>En iyi eğitmenlerden ders alarak hedeflerine ulaş.</p>
             <div className="check-icon"><CheckCircle2 /></div>
           </RoleCard>
@@ -158,7 +158,7 @@ const Register = () => {
             <div className="image-box">
               <img src="https://img.icons8.com/3d-fluency/188/training.png" alt="Eğitmen" className="transition-transform duration-500 group-hover:scale-110" />
             </div>
-            <h3 className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Eğitmen Olmak İstiyorum</h3>
+            <h3 className="group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">Eğitmen Olmak İstiyorum</h3>
             <p>Bilgini paylaş, kendi programını oluştur ve kazanmaya başla.</p>
             <div className="check-icon"><CheckCircle2 /></div>
           </RoleCard>
@@ -171,7 +171,7 @@ const Register = () => {
     <div className="w-full max-w-[320px] mx-auto">
       <div className="text-center mb-5">
         <p className="text-xs text-[#111] dark:text-gray-300 mb-1 font-medium">Hesabınızı Oluşturun</p>
-        <h1 className="text-2xl md:text-3xl font-medium text-[#111] dark:text-white mb-5 leading-[1.1] tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-medium text-[#111] dark:text-[var(--text-primary)] mb-5 leading-[1.1] tracking-tight">
           {role === 'student' ? (
             <>Öğrenci<br />Kayıt</>
           ) : (
@@ -180,7 +180,7 @@ const Register = () => {
         </h1>
       </div>
 
-      <div className="text-base font-semibold mb-3 text-[#111] dark:text-white">Kayıt Ol</div>
+      <div className="text-base font-semibold mb-3 text-[#111] dark:text-[var(--text-primary)]">Kayıt Ol</div>
 
       <form onSubmit={handleFinalSubmit} className="space-y-3">
         <div className="flex flex-col gap-1">
@@ -290,7 +290,8 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#18181b] dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 text-white py-2 rounded-lg font-medium text-[13px] transition-colors flex items-center justify-center gap-2"
+            style={{ background: "linear-gradient(135deg, #16a34a, #22c55e)", boxShadow: "0 4px 16px rgba(22,163,74,0.2)" }}
+            className="w-full text-white py-2 rounded-lg font-medium text-[13px] transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
           >
             {loading ? "Kaydediliyor..." : "Onayla ve Devam Et"}
           </button>
@@ -298,7 +299,7 @@ const Register = () => {
 
         <div className="text-center mt-3 text-[#666] dark:text-gray-400 text-[12px]">
           Zaten bir hesabınız var mı?{" "}
-          <Link to="/login" className="text-[#111] dark:text-white font-semibold hover:underline">
+          <Link to="/login" className="text-[#111] dark:text-[var(--text-primary)] font-semibold hover:underline">
             Giriş Yap
           </Link>
         </div>
@@ -313,7 +314,7 @@ const Register = () => {
     : "https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] dark:bg-slate-900 flex flex-col md:flex-row overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-[#f8f8f6] dark:bg-[var(--page-bg)] flex flex-col md:flex-row overflow-hidden font-sans transition-colors duration-300">
 
       {/* ── MOBİL ÜSTÜ HERO BANNER (sadece md altında görünür) ── */}
       <div className="md:hidden relative w-full h-52 flex-shrink-0">
@@ -323,17 +324,17 @@ const Register = () => {
           className="w-full h-full object-cover object-top"
         />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#f8f8f6] dark:to-slate-900" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#f8f8f6] dark:to-[var(--page-bg)]" />
         {/* Geri butonu */}
         <button
           onClick={() => setStep(0)}
-          className="absolute top-4 left-4 z-10 w-8 h-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm text-black dark:text-white"
+          className="absolute top-4 left-4 z-10 w-8 h-8 bg-white/80 dark:bg-[var(--card-bg)]/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm text-black dark:text-[var(--text-primary)]"
         >
           <ArrowLeft size={16} />
         </button>
         {/* Rol rozeti */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-          <span className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-[#18181b] dark:text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow">
+          <span className="bg-white/90 dark:bg-[var(--card-bg)]/90 backdrop-blur-sm text-[#18181b] dark:text-[var(--text-primary)] text-xs font-semibold px-4 py-1.5 rounded-full shadow">
             {role === 'student' ? '🎓 Öğrenci Kaydı' : '📚 Eğitmen Kaydı'}
           </span>
         </div>
@@ -357,7 +358,7 @@ const Register = () => {
         {/* Desktop Back Button */}
         <button
           onClick={() => setStep(0)}
-          className="hidden md:flex absolute top-6 left-6 w-8 h-8 bg-white dark:bg-slate-800 rounded-full items-center justify-center shadow-sm hover:shadow-md transition-shadow text-[#111] dark:text-white border border-gray-100 dark:border-slate-700"
+          className="hidden md:flex absolute top-6 left-6 w-8 h-8 bg-white dark:bg-[var(--card-bg)] rounded-full items-center justify-center shadow-sm hover:shadow-md transition-shadow text-[#111] dark:text-[var(--text-primary)] border border-gray-100 dark:border-[var(--card-border)]"
         >
           <ArrowLeft size={16} strokeWidth={1.5} />
         </button>
@@ -383,11 +384,11 @@ const Register = () => {
 };
 
 const RoleCard = styled.div`
-  background: ${props => props.$active ? '#eff6ff' : '#ffffff'};
-  border: 2px solid ${props => props.$active ? '#3b82f6' : '#f1f5f9'};
+  background: ${props => props.$active ? '#f0fdf4' : '#ffffff'};
+  border: 2px solid ${props => props.$active ? '#16a34a' : '#f1f5f9'};
   .dark & {
-    background: ${props => props.$active ? '#1e3a8a' : '#1e293b'};
-    border-color: ${props => props.$active ? '#3b82f6' : '#334155'};
+    background: ${props => props.$active ? '#14532d' : 'var(--card-bg)'};
+    border-color: ${props => props.$active ? '#16a34a' : 'var(--card-border)'};
   }
   border-radius: 24px;
   padding: 32px;
@@ -398,10 +399,10 @@ const RoleCard = styled.div`
 
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.15);
-    border-color: ${props => props.$active ? '#3b82f6' : '#bfdbfe'};
+    box-shadow: 0 20px 40px -10px rgba(22, 163, 74, 0.15);
+    border-color: ${props => props.$active ? '#16a34a' : '#bbf7d0'};
     .dark & {
-      border-color: ${props => props.$active ? '#3b82f6' : '#334155'};
+      border-color: ${props => props.$active ? '#16a34a' : 'var(--card-border)'};
       box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
     }
   }
@@ -425,15 +426,15 @@ const RoleCard = styled.div`
   h3 {
     font-size: 18px;
     font-weight: 700;
-    color: #1e293b;
-    .dark & { color: white; }
+    color: var(--card-bg);
+    .dark & { color: var(--text-primary); }
     margin-bottom: 8px;
   }
 
   p {
     font-size: 14px;
     color: #64748b;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
     line-height: 1.5;
   }
 
@@ -441,7 +442,7 @@ const RoleCard = styled.div`
     position: absolute;
     top: 20px;
     right: 20px;
-    color: #3b82f6;
+    color: #16a34a;
     opacity: ${props => props.$active ? 1 : 0};
     transform: scale(${props => props.$active ? 1 : 0.5});
     transition: all 0.2s ease;

@@ -165,3 +165,15 @@ export async function getCategories() {
   console.warn("Backend'den kategori verisi alınamadı veya boş döndü. Fallback listesi kullanılıyor.");
   return FALLBACK_CATEGORIES;
 }
+
+/**
+ * Ders hiyerarşisini getir (Category -> Subject -> Level/Option)
+ * @returns {Promise<Array>}
+ */
+export async function getSubjectsHierarchy() {
+  const res = await apiFetch("/api/subjects/hierarchy");
+  if (!res || !res.ok) return [];
+  const json = await res.json();
+  return extractData(json) || [];
+}
+

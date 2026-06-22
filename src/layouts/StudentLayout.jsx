@@ -44,10 +44,10 @@ export default function StudentLayout() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-muted/20 dark:bg-[#0f172a] transition-colors duration-300">
+    <div className="flex min-h-screen bg-muted/20 dark:bg-[var(--page-bg)] transition-colors duration-300">
       <ScrollToTop />
       {/* Desktop Sidebar */}
-      <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
+      <aside className="w-56 border-r bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] hidden md:block shadow-sm">
         <div className="flex h-16 items-center px-6 border-b">
           <div className="flex items-center">
             <Link to="/">
@@ -124,7 +124,7 @@ export default function StudentLayout() {
       </MobileSidebar>
 
       <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-4 md:px-6 justify-between shadow-sm">
+        <header className="h-14 border-b bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] flex items-center px-4 md:px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
             <div className="md:hidden">
               <div className="flex items-center">
@@ -145,11 +145,11 @@ export default function StudentLayout() {
               <span className="text-xs font-bold text-gray-900 dark:text-slate-100">
                 {user?.role === "3" ? "Admin Paneli" : "Öğrenci Paneli"}
               </span>
-              <span className="text-[10px] text-gray-500 dark:text-slate-400">
+              <span className="text-[10px] text-gray-500 dark:text-[var(--text-muted)]">
                 Hoş geldin, {user?.fullName || "Kullanıcı"}
               </span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 overflow-hidden shrink-0">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold border border-green-200 overflow-hidden shrink-0">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -162,7 +162,7 @@ export default function StudentLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 bg-gray-50 dark:bg-[#0f172a] transition-colors duration-300 overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 bg-gray-50 dark:bg-[var(--page-bg)] transition-colors duration-300 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
@@ -189,7 +189,7 @@ const LogoWrapper = styled.div`
     letter-spacing: -0.5px;
 
     span {
-      color: #2d79f3;
+      color: #16a34a;
     }
   }
 `;
@@ -205,26 +205,26 @@ const SideLink = styled(Link)`
   transition: all 0.2s ease;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 
   &:hover {
     background-color: #f3f4f6;
-    color: #2d79f3;
+    color: #16a34a;
 
     .dark & {
       background-color: #334155;
-      color: #3b82f6;
+      color: #16a34a;
     }
   }
 
   &.active {
-    background-color: #eff6ff;
-    color: #2d79f3;
+    background-color: #f0fdf4;
+    color: #16a34a;
 
     .dark & {
-      background-color: #1e3a8a;
-      color: #60a5fa;
+      background-color: #14532d;
+      color: #4ade80;
     }
   }
 `;
@@ -280,7 +280,7 @@ const MobileSidebar = styled.div`
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
   
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     border-right: 1px solid #334155;
   }
 

@@ -47,7 +47,7 @@ import toast from "react-hot-toast";
 
 const STEPS = [
   { id: 1, label: "Kategori & Branş", icon: Tag, color: "#6366f1" },
-  { id: 2, label: "İlan Detayları", icon: FileText, color: "#3b82f6" },
+  { id: 2, label: "İlan Detayları", icon: FileText, color: "#16a34a" },
   { id: 3, label: "Konum & Gizlilik", icon: MapPin, color: "#10b981" },
   { id: 4, label: "Medya & Belgeler", icon: Image, color: "#f59e0b" },
 ];
@@ -309,10 +309,10 @@ const CreateListing = () => {
           <SectionCard style={{ marginTop: 20 }}>
             <SectionIcon
               style={{
-                background: "linear-gradient(135deg, #3b82f620, #60a5fa20)",
+                background: "linear-gradient(135deg, #16a34a20, #4ade8020)",
               }}
             >
-              <BookOpen size={20} color="#3b82f6" />
+              <BookOpen size={20} color="#16a34a" />
             </SectionIcon>
             <div className="flex items-center gap-3 mb-1">
               <SectionTitle style={{ margin: 0 }}>Ders Branşı</SectionTitle>
@@ -422,10 +422,10 @@ const CreateListing = () => {
       <SectionCard>
         <SectionIcon
           style={{
-            background: "linear-gradient(135deg, #3b82f620, #60a5fa20)",
+            background: "linear-gradient(135deg, #16a34a20, #4ade8020)",
           }}
         >
-          <Type size={20} color="#3b82f6" />
+          <Type size={20} color="#16a34a" />
         </SectionIcon>
         <SectionTitle>İlan Başlığı</SectionTitle>
         <SectionHint>
@@ -842,7 +842,7 @@ const CreateListing = () => {
           <ToggleRow>
             <div className="toggle-info">
               <div className="toggle-icon" style={{ background: "#dbeafe" }}>
-                <Phone size={18} color="#2563eb" />
+                <Phone size={18} color="#15803d" />
               </div>
               <div>
                 <p className="toggle-title">Telefon Numaram Görünsün</p>
@@ -1173,7 +1173,7 @@ const LoadingScreen = styled.div`
   }
   .spin {
     animation: ${spin} 1s linear infinite;
-    color: #2d79f3;
+    color: #16a34a;
   }
   p {
     font-size: 15px;
@@ -1186,13 +1186,13 @@ const PageWrapper = styled.div`
   min-height: 100vh;
   background: linear-gradient(160deg, #f0f4ff 0%, #f8fafc 50%, #f0fdf4 100%);
   .dark & {
-    background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(160deg, var(--page-bg) 0%, var(--card-bg) 100%);
   }
   padding-bottom: 80px;
 `;
 
 const PageHeader = styled.div`
-  background: linear-gradient(135deg, #1e40af 0%, #2d79f3 50%, #4f46e5 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #16a34a 50%, #4f46e5 100%);
   padding: 60px 24px 80px;
   text-align: center;
   position: relative;
@@ -1265,7 +1265,7 @@ const StepTracker = styled.div`
   scrollbar-width: none;
 
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   }
 
@@ -1307,9 +1307,9 @@ const StepDot = styled.div`
             `
           : css`
               background: #f1f5f9;
-              color: #94a3b8;
+              color: var(--text-muted);
               .dark & {
-                background: #334155;
+                background: var(--card-border);
                 color: #64748b;
               }
             `}
@@ -1326,7 +1326,7 @@ const StepDot = styled.div`
   .dot-num {
     font-size: 9px;
     font-weight: 800;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
@@ -1335,7 +1335,7 @@ const StepDot = styled.div`
     font-weight: 800;
     white-space: nowrap;
     color: ${({ $active, $done, $color }) =>
-      $active || $done ? "#1e293b" : "#94a3b8"};
+      $active || $done ? "var(--card-bg)" : "var(--text-muted)"};
     .dark & {
       color: ${({ $active, $done }) =>
         $active || $done ? "#f1f5f9" : "#475569"};
@@ -1356,7 +1356,7 @@ const StepLine = styled.div`
   margin-bottom: 28px;
   .dark & {
     background: ${({ $done }) =>
-      $done ? "linear-gradient(90deg,#10b981,#34d399)" : "#334155"};
+      $done ? "linear-gradient(90deg,#10b981,#34d399)" : "var(--card-border)"};
   }
 `;
 
@@ -1368,7 +1368,7 @@ const FormCard = styled.div`
   animation: ${fadeUp} 0.4s ease;
 
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
   }
 `;
@@ -1388,8 +1388,8 @@ const SectionCard = styled.div`
   animation: ${fadeUp} 0.3s ease;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
 `;
 
@@ -1406,7 +1406,7 @@ const SectionIcon = styled.div`
 const SectionTitle = styled.h3`
   font-size: 15px;
   font-weight: 900;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -1420,7 +1420,7 @@ const SectionTitle = styled.h3`
 const SectionHint = styled.p`
   font-size: 12px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-bottom: 16px;
 `;
 
@@ -1433,8 +1433,8 @@ const OptionalTag = styled.span`
   border-radius: 20px;
   letter-spacing: 0.03em;
   .dark & {
-    background: #334155;
-    color: #94a3b8;
+    background: var(--card-border);
+    color: var(--text-muted);
   }
 `;
 
@@ -1446,7 +1446,7 @@ const ModernSelect = styled.select`
   border-radius: 14px;
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   outline: none;
   transition: all 0.2s;
   appearance: none;
@@ -1457,14 +1457,14 @@ const ModernSelect = styled.select`
   cursor: pointer;
 
   .dark & {
-    background-color: #1e293b;
-    border-color: #334155;
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
   }
 
   &:focus {
-    border-color: #2d79f3;
-    box-shadow: 0 0 0 3px rgba(45, 121, 243, 0.1);
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
   }
   &:disabled {
     opacity: 0.5;
@@ -1480,21 +1480,21 @@ const ModernInput = styled.input`
   border-radius: 14px;
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   outline: none;
   transition: all 0.2s;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
   }
   &:focus {
-    border-color: #2d79f3;
-    box-shadow: 0 0 0 3px rgba(45, 121, 243, 0.1);
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
   }
   &::placeholder {
-    color: #94a3b8;
+    color: var(--text-muted);
     font-weight: 500;
   }
 `;
@@ -1502,7 +1502,7 @@ const ModernInput = styled.input`
 const CharCount = styled.p`
   font-size: 11px;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-muted);
   text-align: right;
   margin-top: 6px;
 `;
@@ -1516,7 +1516,7 @@ const FieldLabel = styled.label`
   letter-spacing: 0.05em;
   margin-bottom: 8px;
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -1534,8 +1534,8 @@ const PriceInput = styled.div`
   }
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 
   span {
@@ -1550,7 +1550,7 @@ const PriceInput = styled.div`
     align-items: center;
     .dark & {
       background: #064e3b30;
-      border-color: #334155;
+      border-color: var(--card-border);
     }
   }
 
@@ -1559,7 +1559,7 @@ const PriceInput = styled.div`
     padding: 14px 18px;
     font-size: 18px;
     font-weight: 900;
-    color: #1e293b;
+    color: var(--text-primary);
     border: none;
     outline: none;
     background: transparent;
@@ -1567,7 +1567,7 @@ const PriceInput = styled.div`
       color: #f1f5f9;
     }
     &::placeholder {
-      color: #cbd5e1;
+      color: var(--text-primary);
       font-weight: 400;
       font-size: 16px;
     }
@@ -1586,8 +1586,8 @@ const QuillWrapper = styled.div`
       box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
     }
     .dark & {
-      background: #1e293b;
-      border-color: #334155;
+      background: var(--card-bg);
+      border-color: var(--card-border);
     }
   }
   .ql-toolbar {
@@ -1595,8 +1595,8 @@ const QuillWrapper = styled.div`
     border-bottom: 1px solid #e2e8f0;
     background: #f8fafc;
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
     }
   }
   .ql-container {
@@ -1605,12 +1605,12 @@ const QuillWrapper = styled.div`
   }
   .ql-editor {
     min-height: 160px;
-    color: #1e293b;
+    color: var(--text-primary);
     .dark & {
       color: #f1f5f9;
     }
     &.ql-blank::before {
-      color: #94a3b8;
+      color: var(--text-muted);
       font-style: normal;
     }
   }
@@ -1641,8 +1641,8 @@ const AddRateBtn = styled.button`
   gap: 6px;
   padding: 8px 16px;
   border-radius: 12px;
-  background: #eff6ff;
-  color: #2563eb;
+  background: #f0fdf4;
+  color: #15803d;
   font-size: 13px;
   font-weight: 800;
   transition: all 0.2s;
@@ -1650,8 +1650,8 @@ const AddRateBtn = styled.button`
     background: #dbeafe;
   }
   .dark & {
-    background: #1e3a8a30;
-    color: #60a5fa;
+    background: #14532d30;
+    color: #4ade80;
   }
 `;
 
@@ -1661,8 +1661,8 @@ const RateCard = styled.div`
   border-radius: 16px;
   padding: 20px;
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 `;
 
@@ -1699,7 +1699,7 @@ const RateLabel = styled.label`
   display: block;
   font-size: 11px;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 6px;
@@ -1709,13 +1709,13 @@ const rateFieldBase = `
   width:100%; padding:10px 14px;
   background:#f8fafc; border:2px solid #f1f5f9;
   border-radius:12px; font-size:14px; font-weight:700;
-  color:#1e293b; outline:none; transition:all 0.2s;
-  &:focus { border-color:#2d79f3; background:white; }
-  &::placeholder { color: #cbd5e1; font-weight: 500; }
+  color:var(--card-bg); outline:none; transition:all 0.2s;
+  &:focus { border-color:#16a34a; background:white; }
+  &::placeholder { color: var(--text-primary); font-weight: 500; }
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
     
     &::placeholder {
@@ -1723,12 +1723,12 @@ const rateFieldBase = `
     }
     
     &:focus {
-      background: #0f172a;
-      border-color: #2d79f3;
+      background: var(--page-bg);
+      border-color: #16a34a;
     }
 
     option {
-      background: #1e293b;
+      background: var(--card-bg);
       color: #f1f5f9;
     }
   }
@@ -1752,8 +1752,8 @@ const ToggleRow = styled.div`
   border-radius: 16px;
   gap: 16px;
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 
   .toggle-info {
@@ -1775,7 +1775,7 @@ const ToggleRow = styled.div`
   .toggle-title {
     font-size: 14px;
     font-weight: 800;
-    color: #1e293b;
+    color: var(--text-primary);
     margin-bottom: 2px;
     .dark & {
       color: #f1f5f9;
@@ -1783,7 +1783,7 @@ const ToggleRow = styled.div`
   }
   .toggle-hint {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-muted);
     font-weight: 500;
   }
 
@@ -1823,7 +1823,7 @@ const ToggleRow = styled.div`
     }
 
     input:checked + .slider {
-      background: #2d79f3;
+      background: #16a34a;
     }
     input:checked + .slider::before {
       transform: translateX(22px);
@@ -1878,21 +1878,21 @@ const PhotoUploadBtn = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #94a3b8;
+  color: var(--text-muted);
   transition: all 0.2s;
   background: #fafafa;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
 
   &:hover {
-    border-color: #2d79f3;
-    color: #2d79f3;
-    background: #eff6ff;
+    border-color: #16a34a;
+    color: #16a34a;
+    background: #f0fdf4;
     .dark & {
-      background: #1e3a8a20;
+      background: #14532d20;
     }
   }
 
@@ -1917,8 +1917,8 @@ const CertRow = styled.div`
   padding: 12px 16px;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
 
   input {
@@ -1927,13 +1927,13 @@ const CertRow = styled.div`
     outline: none;
     font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     background: transparent;
     .dark & {
       color: #f1f5f9;
     }
     &::placeholder {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
@@ -1975,7 +1975,7 @@ const EmptyState = styled.div`
   justify-content: center;
   padding: 32px;
   text-align: center;
-  color: #cbd5e1;
+  color: var(--text-primary);
   gap: 8px;
   p {
     font-size: 14px;
@@ -1989,7 +1989,7 @@ const EmptyState = styled.div`
 
 // ─── Branch Selector ──────────────────────────────────────────
 const CountBadge = styled.span`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   font-size: 10px;
   font-weight: 900;
@@ -2006,7 +2006,7 @@ const SelectedChipsRow = styled.div`
   border-bottom: 2px dashed #e2e8f0;
   align-items: center;
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 `;
 
@@ -2015,12 +2015,12 @@ const SelectedChip = styled.span`
   align-items: center;
   gap: 5px;
   padding: 6px 12px;
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   border-radius: 40px;
   font-size: 12px;
   font-weight: 800;
-  box-shadow: 0 2px 10px rgba(45, 121, 243, 0.3);
+  box-shadow: 0 2px 10px rgba(22, 163, 74, 0.3);
 
   button {
     display: inline-flex;
@@ -2058,14 +2058,14 @@ const SearchBox = styled.div`
   margin-bottom: 14px;
   transition: all 0.2s;
   &:focus-within {
-    border-color: #2d79f3;
+    border-color: #16a34a;
   }
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
   svg {
-    color: #94a3b8;
+    color: var(--text-muted);
     flex-shrink: 0;
   }
   input {
@@ -2074,13 +2074,13 @@ const SearchBox = styled.div`
     outline: none;
     font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     background: transparent;
     .dark & {
       color: #f1f5f9;
     }
     &::placeholder {
-      color: #94a3b8;
+      color: var(--text-muted);
       font-weight: 500;
     }
   }
@@ -2103,7 +2103,7 @@ const ChipsGrid = styled.div`
 `;
 
 const NoResult = styled.p`
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
   padding: 16px 0;
@@ -2115,8 +2115,8 @@ const Chip = styled.button`
   gap: 6px;
   padding: 8px 16px;
   border-radius: 40px;
-  border: 2px solid ${({ $selected }) => ($selected ? "#2d79f3" : "#e2e8f0")};
-  background: ${({ $selected }) => ($selected ? "#2d79f3" : "white")};
+  border: 2px solid ${({ $selected }) => ($selected ? "#16a34a" : "#e2e8f0")};
+  background: ${({ $selected }) => ($selected ? "#16a34a" : "white")};
   color: ${({ $selected }) => ($selected ? "white" : "#475569")};
   font-size: 13px;
   font-weight: 700;
@@ -2126,15 +2126,15 @@ const Chip = styled.button`
     $selected ? "0 4px 14px rgba(45,121,243,0.35)" : "none"};
 
   .dark & {
-    background: ${({ $selected }) => ($selected ? "#2d79f3" : "#1e293b")};
-    border-color: ${({ $selected }) => ($selected ? "#2d79f3" : "#334155")};
-    color: ${({ $selected }) => ($selected ? "white" : "#cbd5e1")};
+    background: ${({ $selected }) => ($selected ? "#16a34a" : "var(--card-bg)")};
+    border-color: ${({ $selected }) => ($selected ? "#16a34a" : "var(--card-border)")};
+    color: ${({ $selected }) => ($selected ? "white" : "var(--text-primary)")};
   }
 
   &:hover {
-    border-color: #2d79f3;
-    color: ${({ $selected }) => ($selected ? "white" : "#2d79f3")};
-    background: ${({ $selected }) => ($selected ? "#1d4ed8" : "#eff6ff")};
+    border-color: #16a34a;
+    color: ${({ $selected }) => ($selected ? "white" : "#16a34a")};
+    background: ${({ $selected }) => ($selected ? "#14532d" : "#f0fdf4")};
     transform: translateY(-1px);
   }
 `;
@@ -2148,7 +2148,7 @@ const StepFooter = styled.div`
   padding-top: 24px;
   border-top: 1px solid #f1f5f9;
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
   @media (max-width: 480px) {
     flex-direction: column-reverse;
@@ -2170,12 +2170,12 @@ const BackBtn = styled.button`
   transition: all 0.2s;
   &:hover {
     background: #e2e8f0;
-    color: #1e293b;
+    color: var(--text-primary);
   }
   .dark & {
-    background: #334155;
-    color: #94a3b8;
-    border-color: #334155;
+    background: var(--card-border);
+    color: var(--text-muted);
+    border-color: var(--card-border);
     &:hover {
       color: #f1f5f9;
     }
@@ -2191,12 +2191,12 @@ const NextBtn = styled.button`
   font-size: 14px;
   font-weight: 900;
   color: white;
-  background: linear-gradient(135deg, #2d79f3, #4f46e5);
-  box-shadow: 0 6px 20px rgba(45, 121, 243, 0.35);
+  background: linear-gradient(135deg, #16a34a, #4f46e5);
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35);
   transition: all 0.2s;
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(45, 121, 243, 0.45);
+    box-shadow: 0 10px 28px rgba(22, 163, 74, 0.45);
   }
   @media (max-width: 480px) {
     width: 100%;

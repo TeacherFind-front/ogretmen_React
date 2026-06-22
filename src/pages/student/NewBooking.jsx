@@ -87,7 +87,7 @@ export default function NewBooking() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+        <Loader2 className="w-12 h-12 animate-spin text-green-600" />
         <p className="text-gray-400 font-black uppercase tracking-widest text-xs">Rezervasyon Paneli Hazırlanıyor</p>
       </div>
     );
@@ -124,7 +124,7 @@ export default function NewBooking() {
   return (
     <div className="max-w-5xl mx-auto py-12 px-6 animate-in fade-in duration-700">
       <header className="flex items-center gap-6 mb-12">
-        <button onClick={() => navigate(-1)} className="w-14 h-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm">
+        <button onClick={() => navigate(-1)} className="w-14 h-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-100 transition-all shadow-sm">
           <ChevronLeft size={24} />
         </button>
         <div>
@@ -140,7 +140,7 @@ export default function NewBooking() {
             <form onSubmit={handleSubmit} className="space-y-10">
               {/* Listing Selection */}
               <section>
-                <SectionTitle><Badge className="bg-blue-100 text-blue-600 border-none mr-3">1</Badge> Branş Seçin</SectionTitle>
+                <SectionTitle><Badge className="bg-green-100 text-green-600 border-none mr-3">1</Badge> Branş Seçin</SectionTitle>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                   {tutor.listings?.map(listing => (
                     <SelectionCard 
@@ -149,14 +149,14 @@ export default function NewBooking() {
                       onClick={() => setSelectedListing(listing)}
                     >
                       <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                        <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
                           <Badge variant="outline" className="text-[10px] p-0 border-none font-black">{listing.lessonDuration} DK</Badge>
                         </div>
-                        {selectedListing?.id === listing.id && <CheckCircle2 className="w-5 h-5 text-blue-600" />}
+                        {selectedListing?.id === listing.id && <CheckCircle2 className="w-5 h-5 text-green-600" />}
                       </div>
                       <h4 className="font-black text-gray-900">{listing.title}</h4>
                       <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-widest">{listing.category} / {listing.subCategory}</p>
-                      <p className="text-xl font-black text-blue-600 mt-4">₺{listing.price}</p>
+                      <p className="text-xl font-black text-green-600 mt-4">₺{listing.price}</p>
                     </SelectionCard>
                   ))}
                 </div>
@@ -164,10 +164,10 @@ export default function NewBooking() {
 
               {/* Date & Time Selection */}
               <section>
-                <SectionTitle><Badge className="bg-blue-100 text-blue-600 border-none mr-3">2</Badge> Tarih ve Saat</SectionTitle>
+                <SectionTitle><Badge className="bg-green-100 text-green-600 border-none mr-3">2</Badge> Tarih ve Saat</SectionTitle>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                   <FormGroup>
-                    <label><CalendarIcon className="w-4 h-4 inline mr-2 text-blue-500" /> Tarih Seçin</label>
+                    <label><CalendarIcon className="w-4 h-4 inline mr-2 text-green-500" /> Tarih Seçin</label>
                     <input 
                       type="date" 
                       min={new Date().toISOString().split("T")[0]}
@@ -177,7 +177,7 @@ export default function NewBooking() {
                     />
                   </FormGroup>
                   <FormGroup>
-                    <label><Clock className="w-4 h-4 inline mr-2 text-blue-500" /> Saat Seçin</label>
+                    <label><Clock className="w-4 h-4 inline mr-2 text-green-500" /> Saat Seçin</label>
                     <input 
                       type="time" 
                       value={selectedTime}
@@ -190,7 +190,7 @@ export default function NewBooking() {
 
               {/* Student Note */}
               <section>
-                <SectionTitle><Badge className="bg-blue-100 text-blue-600 border-none mr-3">3</Badge> Hocaya Not (Opsiyonel)</SectionTitle>
+                <SectionTitle><Badge className="bg-green-100 text-green-600 border-none mr-3">3</Badge> Hocaya Not (Opsiyonel)</SectionTitle>
                 <FormGroup className="mt-6">
                   <textarea 
                     rows="4" 
@@ -210,7 +210,7 @@ export default function NewBooking() {
 
               <Button 
                 type="submit" 
-                className="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 font-black text-lg"
+                className="w-full h-16 rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 font-black text-lg"
                 disabled={submitting || !selectedListing || !selectedDate || !selectedTime}
               >
                 {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Rezervasyonu Onaya Gönder"}
@@ -221,8 +221,8 @@ export default function NewBooking() {
 
         {/* Right: Summary Sidebar */}
         <aside className="space-y-6">
-          <Card className="p-8 border-none shadow-2xl shadow-blue-900/5 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
+          <Card className="p-8 border-none shadow-2xl shadow-green-900/5 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
             <h3 className="text-xl font-black text-gray-900 mb-8 relative z-10">Özet Bilgiler</h3>
             
             <div className="space-y-6 relative z-10">
@@ -243,9 +243,9 @@ export default function NewBooking() {
               <div>
                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">SEÇİLEN DERS</p>
                 {selectedListing ? (
-                  <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-50">
+                  <div className="bg-green-50/50 p-4 rounded-2xl border border-green-50">
                     <p className="font-black text-gray-900 text-sm">{selectedListing.title}</p>
-                    <p className="text-xs text-blue-600 font-bold mt-1">{selectedListing.lessonDuration} Dakika</p>
+                    <p className="text-xs text-green-600 font-bold mt-1">{selectedListing.lessonDuration} Dakika</p>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-400 italic">Henüz bir branş seçilmedi.</p>
@@ -256,11 +256,11 @@ export default function NewBooking() {
                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">TARİH & SAAT</p>
                 <div className="space-y-2">
                    <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                      <CalendarIcon size={16} className="text-blue-500" /> 
+                      <CalendarIcon size={16} className="text-green-500" /> 
                       {selectedDate || "Tarih Seçilmedi"}
                    </div>
                    <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                      <Clock size={16} className="text-blue-500" /> 
+                      <Clock size={16} className="text-green-500" /> 
                       {selectedTime || "Saat Seçilmedi"}
                    </div>
                 </div>
@@ -269,7 +269,7 @@ export default function NewBooking() {
               <div className="pt-6 border-t border-gray-50">
                 <div className="flex justify-between items-end">
                    <span className="text-sm font-black text-gray-900">Toplam Ücret</span>
-                   <span className="text-2xl font-black text-blue-600">₺{selectedListing?.price || "0"}</span>
+                   <span className="text-2xl font-black text-green-600">₺{selectedListing?.price || "0"}</span>
                 </div>
               </div>
             </div>
@@ -277,13 +277,13 @@ export default function NewBooking() {
 
           <div className="bg-gray-900 rounded-[2rem] p-8 text-white shadow-xl">
              <div className="flex items-center gap-3 mb-4">
-                <MessageSquare className="text-blue-400" />
+                <MessageSquare className="text-green-400" />
                 <h4 className="font-black">Destek mi lazım?</h4>
              </div>
              <p className="text-sm text-gray-400 font-medium leading-relaxed">
                 Rezervasyon süreci hakkında bir sorunuz varsa veya yardıma ihtiyacınız olursa bizimle iletişime geçebilirsiniz.
              </p>
-             <Button variant="link" className="text-blue-400 font-black p-0 mt-4 h-auto">Yardım merkezine git <ArrowRight className="ml-2 w-4 h-4" /></Button>
+             <Button variant="link" className="text-green-400 font-black p-0 mt-4 h-auto">Yardım merkezine git <ArrowRight className="ml-2 w-4 h-4" /></Button>
           </div>
         </aside>
       </div>
@@ -301,7 +301,7 @@ const Card = styled.div`
 const SectionTitle = styled.h3`
   font-size: 18px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
 `;
@@ -309,12 +309,12 @@ const SectionTitle = styled.h3`
 const SelectionCard = styled.div`
   padding: 24px;
   border-radius: 24px;
-  border: 2px solid ${props => props.$active ? '#2d79f3' : '#f8fafc'};
+  border: 2px solid ${props => props.$active ? '#16a34a' : '#f8fafc'};
   background: ${props => props.$active ? '#f3f7ff' : '#f8fafc'};
   cursor: pointer;
   transition: all 0.2s;
   &:hover {
-    border-color: #2d79f3;
+    border-color: #16a34a;
     transform: translateY(-2px);
   }
 `;
@@ -339,13 +339,13 @@ const FormGroup = styled.div`
     background: #f8fafc;
     font-size: 15px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     width: 100%;
     transition: all 0.2s;
     
     &:focus {
       outline: none;
-      border-color: #2d79f3;
+      border-color: #16a34a;
       background: white;
       box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
     }

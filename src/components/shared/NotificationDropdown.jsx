@@ -113,7 +113,7 @@ export default function NotificationDropdown() {
           <Header>
             <div className="flex items-center gap-2">
               <h3 className="font-black text-gray-900">Bildirimler</h3>
-              {unreadCount > 0 && <span className="text-[9px] font-black bg-blue-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-sm">Yeni</span>}
+              {unreadCount > 0 && <span className="text-[9px] font-black bg-green-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-sm">Yeni</span>}
             </div>
             {notifications.length > 0 && (
               <ClearAllButton onClick={handleClearAll}>
@@ -177,32 +177,32 @@ const BellButton = styled.button`
 
   &:hover {
     background: #f8fafc;
-    color: #1e293b;
-    border-color: #e2e8f0;
+    color: var(--text-primary);
+    border-color: var(--text-primary);
     transform: translateY(-1px);
 
     .dark & {
       background: #334155;
       color: #f1f5f9;
-      border-color: #475569;
+      border-color: var(--card-border);
     }
   }
 
   .dark & {
-    background: #1e293b;
-    color: #94a3b8;
-    border-color: #334155;
+    background: var(--card-bg);
+    color: var(--text-muted);
+    border-color: var(--card-border);
   }
 
   ${props => props.$hasUnread && `
-    color: #2d79f3;
+    color: #16a34a;
     background: #f3f7ff;
-    border-color: #2d79f330;
+    border-color: #16a34a30;
 
     .dark & {
-      background: #1e3a8a30;
-      color: #60a5fa;
-      border-color: #3b82f640;
+      background: #14532d30;
+      color: #4ade80;
+      border-color: #16a34a40;
     }
   `}
 `;
@@ -225,7 +225,7 @@ const Badge = styled.span`
   padding: 0 4px;
 
   .dark & {
-    border-color: #1e293b;
+    border-color: var(--text-primary);
   }
 `;
 
@@ -243,8 +243,8 @@ const Dropdown = styled.div`
   animation: ${slideDown} 0.2s ease-out;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
   }
 `;
@@ -257,7 +257,7 @@ const Header = styled.div`
   justify-content: space-between;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
     h3 { color: #f1f5f9 !important; }
   }
 `;
@@ -280,11 +280,11 @@ const Item = styled.div`
   background: ${props => props.$isRead ? 'white' : '#f8faff'};
 
   .dark & {
-    background: ${props => props.$isRead ? '#1e293b' : '#1e3a8a20'};
+    background: ${props => props.$isRead ? '#1e293b' : '#14532d20'};
     &:hover { background: #334155; }
-    border-color: #334155 !important;
+    border-color: var(--card-border) !important;
     span.font-black { color: #f1f5f9 !important; }
-    p { color: #94a3b8 !important; }
+    p { color: var(--text-muted) !important; }
   }
 
   &:hover {
@@ -322,7 +322,7 @@ const Content = styled.div`
 const UnreadDot = styled.div`
   width: 8px;
   height: 8px;
-  background: #2d79f3;
+  background: #16a34a;
   border-radius: 50%;
   position: absolute;
   top: 20px;
@@ -336,7 +336,7 @@ const EmptyState = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
 `;
@@ -345,7 +345,7 @@ const EmptyState = styled.div`
 const ClearAllButton = styled.button`
   font-size: 11px;
   font-weight: 800;
-  color: #2d79f3;
+  color: #16a34a;
   padding: 6px 10px;
   border-radius: 8px;
   transition: all 0.2s;
@@ -353,16 +353,16 @@ const ClearAllButton = styled.button`
   border: none;
 
   &:hover {
-    background: #2d79f3;
+    background: #16a34a;
     color: white;
     transform: translateY(-1px);
   }
 
   .dark & {
-    background: #1e3a8a30;
-    color: #60a5fa;
+    background: #14532d30;
+    color: #4ade80;
     &:hover {
-      background: #3b82f6;
+      background: #16a34a;
       color: white;
     }
   }

@@ -68,7 +68,7 @@ export function TutorCard({ tutor }) {
 
   const avatar = imageUrl
     ? resolveMediaUrl(imageUrl)
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`;
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=16a34a&color=fff`;
   
   const headline = toPlainText(tutor.title || tutor.headline || "");
   const rawDescription = tutor.description || tutor.bio || "";
@@ -85,29 +85,40 @@ export function TutorCard({ tutor }) {
   }[tutor.serviceType] || tutor.serviceType || "";
 
   return (
-    <Card className="flex flex-col md:flex-row overflow-hidden border-gray-100 dark:border-[#334155] hover:shadow-2xl hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-100 dark:hover:border-blue-500 transition-all duration-300 group rounded-[2rem] bg-white dark:bg-[#1e293b]">
+    <Card 
+      className="flex flex-col md:flex-row overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group rounded-[2rem]"
+      style={{ background: "var(--card-bg)", borderColor: "var(--card-border)", boxShadow: "0 4px 20px rgba(22,163,74,0.05)" }}
+    >
       {/* Sol Panel - Avatar & Fiyat */}
-      <div className="md:w-56 bg-gray-50/50 dark:bg-[#0f172a] group-hover:bg-blue-50/30 dark:group-hover:bg-[#0b1120] transition-colors p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#334155]">
+      <div 
+        className="md:w-56 group-hover:bg-[rgba(22,163,74,0.04)] transition-colors p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r"
+        style={{ background: "var(--section-alt)", borderColor: "var(--card-border)" }}
+      >
         <div className="relative">
           <img
             src={avatar}
             alt={name}
-            className="w-28 h-28 rounded-full object-cover shadow-md mb-5 border-4 border-white dark:border-[#1e293b] group-hover:scale-105 transition-transform duration-300"
+            className="w-28 h-28 rounded-full object-cover shadow-md mb-5 border-4 group-hover:scale-105 transition-transform duration-300"
+            style={{ borderColor: "var(--card-bg)" }}
             onError={(e) => {
-              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2d79f3&color=fff`;
+              e.target.onerror = null;
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=16a34a&color=fff`;
             }}
           />
-          <span className="absolute bottom-4 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-[#1e293b] rounded-full" />
+          <span 
+            className="absolute bottom-4 right-0 w-4 h-4 bg-green-500 border-2 rounded-full" 
+            style={{ borderColor: "var(--card-bg)" }}
+          />
         </div>
-        <h3 className="font-black text-xl text-center mb-1 text-gray-900 dark:text-white">{name}</h3>
+        <h3 className="font-black text-xl text-center mb-1" style={{ color: "var(--text-primary)" }}>{name}</h3>
         <p className="text-sm font-bold flex items-center gap-1 mb-2 text-yellow-500">
           <Star className="w-4 h-4 fill-yellow-500" />
           {rating.toFixed ? rating.toFixed(1) : rating}
-          <span className="text-gray-400 font-medium text-xs ml-1">({reviewCount} Değerlendirme)</span>
+          <span className="font-medium text-xs ml-1" style={{ color: "var(--text-muted)" }}>({reviewCount} Değerlendirme)</span>
         </p>
-        <p className="font-black text-2xl text-blue-600 mt-2">
+        <p className="font-black text-2xl mt-2" style={{ color: "#16a34a" }}>
           ₺{price}
-          <span className="text-sm font-bold text-gray-400">/saat</span>
+          <span className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>/saat</span>
         </p>
       </div>
 
@@ -146,11 +157,17 @@ export function TutorCard({ tutor }) {
 
         <div className="mt-auto flex flex-col sm:flex-row gap-3 pt-4">
           <Link to={`/tutors/${tutor.id}`} className="flex-1">
-            <Button className="w-full h-12 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200">Profili İncele</Button>
+            <Button 
+              className="w-full h-12 rounded-xl font-bold text-white transition-all duration-300 hover:scale-[1.02]"
+              style={{ background: "linear-gradient(135deg, #16a34a, #22c55e)", boxShadow: "0 4px 12px rgba(22,163,74,0.3)" }}
+            >
+              Profili İncele
+            </Button>
           </Link>
           <Button 
             variant="outline" 
-            className="flex-1 h-12 rounded-xl font-bold border-gray-200 dark:border-[#475569] hover:bg-gray-50 dark:hover:bg-[#334155] dark:text-gray-200"
+            className="flex-1 h-12 rounded-xl font-bold transition-colors"
+            style={{ borderColor: "var(--card-border)", color: "var(--text-primary)", background: "transparent" }}
             onClick={handleMessage}
           >
             <MessageCircle className="w-4 h-4 mr-2" /> Mesaj Gönder

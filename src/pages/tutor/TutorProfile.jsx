@@ -219,7 +219,7 @@ export default function TutorProfile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
       </div>
     );
   }
@@ -228,10 +228,10 @@ export default function TutorProfile() {
     <Container>
       <header className="mb-6 flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-[var(--text-primary)] tracking-tight">
             Profil Yönetimi
           </h1>
-          <p className="text-gray-500 dark:text-slate-400 font-medium mt-1 text-sm">
+          <p className="text-gray-500 dark:text-[var(--text-muted)] font-medium mt-1 text-sm">
             Kişisel bilgilerinizi ve uzmanlık detaylarınızı buradan güncelleyebilirsiniz.
           </p>
         </div>
@@ -252,11 +252,11 @@ export default function TutorProfile() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <div className="flex flex-col items-center p-6 text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+              <div className="absolute top-0 left-0 w-full h-2 bg-green-600"></div>
               <div className="relative mb-6">
                 <AvatarWrapper $loading={uploadLoading}>
                   {uploadLoading ? (
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    <Loader2 className="w-8 h-8 animate-spin text-green-600" />
                   ) : profile.avatarUrl ? (
                     <img
                       src={profile.avatarUrl}
@@ -264,7 +264,7 @@ export default function TutorProfile() {
                       className="w-full h-full object-cover rounded-[2rem]"
                     />
                   ) : (
-                    <span className="text-3xl font-black text-blue-600">
+                    <span className="text-3xl font-black text-green-600">
                       {profile.fullName.charAt(0)}
                     </span>
                   )}
@@ -280,14 +280,14 @@ export default function TutorProfile() {
 
                 <button
                   onClick={() => fileInputRef.current.click()}
-                  className="absolute -bottom-1 -right-1 p-2 bg-blue-600 rounded-xl text-white shadow-lg border-2 border-white hover:bg-blue-700 transition-all hover:scale-110"
+                  className="absolute -bottom-1 -right-1 p-2 bg-green-600 rounded-xl text-white shadow-lg border-2 border-white hover:bg-green-700 transition-all hover:scale-110"
                   disabled={uploadLoading}
                 >
                   <Camera size={14} />
                 </button>
               </div>
-              <h2 className="text-xl font-black text-gray-900 dark:text-white">{profile.fullName}</h2>
-              <p className="text-blue-600 dark:text-blue-400 font-bold text-sm mt-1 uppercase tracking-widest">
+              <h2 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)]">{profile.fullName}</h2>
+              <p className="text-green-600 dark:text-green-400 font-bold text-sm mt-1 uppercase tracking-widest">
                 Doğrulanmış Eğitmen
               </p>
             </div>
@@ -298,8 +298,8 @@ export default function TutorProfile() {
           <Card>
             <form onSubmit={handleSave} className="p-6">
               <section className="mb-10">
-                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                  <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-[var(--text-primary)] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-green-600 rounded-full"></div>
                   Genel Bilgiler
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -326,7 +326,7 @@ export default function TutorProfile() {
                           setEmailCode("");
                           setEmailChangeError("");
                         }}
-                        className="px-5 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-colors whitespace-nowrap dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700"
+                        className="px-5 py-2 bg-green-50 text-green-600 rounded-xl font-bold hover:bg-green-100 transition-colors whitespace-nowrap dark:bg-[var(--card-bg)] dark:text-green-400 dark:hover:bg-slate-700"
                       >
                         Değiştir
                       </button>
@@ -435,8 +435,8 @@ export default function TutorProfile() {
               </section>
 
               <section className="mb-12">
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                  <div className="w-1.5 h-7 bg-blue-600 rounded-full"></div>
+                <h3 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)] mb-8 flex items-center gap-3">
+                  <div className="w-1.5 h-7 bg-green-600 rounded-full"></div>
                   Hakkımda & Uzmanlık
                 </h3>
                 <div className="space-y-8">
@@ -521,7 +521,7 @@ export default function TutorProfile() {
         <ModalOverlay onClick={() => setShowEmailModal(false)}>
           <ModalContent onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">
+              <h3 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)]">
                 E-posta Adresini Değiştir
               </h3>
               <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -562,7 +562,7 @@ export default function TutorProfile() {
                   <button
                     type="button"
                     onClick={() => setShowEmailModal(false)}
-                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
                   >
                     İptal
                   </button>
@@ -592,7 +592,7 @@ export default function TutorProfile() {
                   <button
                     type="button"
                     onClick={() => setEmailStep(1)}
-                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
                   >
                     Geri Dön
                   </button>
@@ -623,8 +623,8 @@ const Card = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: none;
   }
 `;
@@ -642,8 +642,8 @@ const AvatarWrapper = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
   
   ${(props) =>
@@ -665,8 +665,8 @@ const StatusBadge = styled.span`
   letter-spacing: 0.05em;
 
   .dark & {
-    background: ${(props) => (props.$active ? "#064e3b40" : "#334155")};
-    color: ${(props) => (props.$active ? "#34d399" : "#94a3b8")};
+    background: ${(props) => (props.$active ? "#064e3b40" : "var(--card-border)")};
+    color: ${(props) => (props.$active ? "#34d399" : "var(--text-muted)")};
   }
 `;
 
@@ -684,7 +684,7 @@ const FormGroup = styled.div`
     margin-left: 4px;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
@@ -697,35 +697,35 @@ const FormGroup = styled.div`
     background: #f8fafc;
     font-size: 15px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     width: 100%;
     transition: all 0.2s;
 
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
       color: #f1f5f9;
     }
 
     &:focus {
       outline: none;
-      border-color: #2d79f3;
+      border-color: #16a34a;
       background: white;
-      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.05);
 
       .dark & {
-        background: #0f172a;
-        border-color: #2d79f3;
-        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+        background: var(--page-bg);
+        border-color: #16a34a;
+        box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
       }
     }
     &:disabled {
       background: #f1f5f9;
-      color: #94a3b8;
+      color: var(--text-muted);
       cursor: not-allowed;
 
       .dark & {
-        background: #1e293b;
+        background: var(--card-bg);
         color: #475569;
       }
     }
@@ -740,18 +740,18 @@ const FormGroup = styled.div`
       transition: all 0.2s;
 
       .dark & {
-        background: #0f172a;
-        border-color: #334155;
+        background: var(--page-bg);
+        border-color: var(--card-border);
       }
 
       &:focus-within {
-        border-color: #2d79f3;
+        border-color: #16a34a;
         background: white;
-        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+        box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.05);
 
         .dark & {
-          background: #0f172a;
-          box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+          background: var(--page-bg);
+          box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
         }
       }
     }
@@ -766,21 +766,21 @@ const FormGroup = styled.div`
       border-top-right-radius: 16px;
 
       .dark & {
-        background: #1e293b;
-        border-color: #334155;
+        background: var(--card-bg);
+        border-color: var(--card-border);
       }
 
       .ql-picker-label {
-        color: #1e293b;
+        color: var(--text-primary);
         .dark & { color: #f1f5f9; }
       }
       .ql-stroke {
         stroke: #475569;
-        .dark & { stroke: #cbd5e1; }
+        .dark & { stroke: var(--text-primary); }
       }
       .ql-fill {
         fill: #475569;
-        .dark & { fill: #cbd5e1; }
+        .dark & { fill: var(--text-primary); }
       }
     }
 
@@ -789,7 +789,7 @@ const FormGroup = styled.div`
       font-family: inherit;
       font-size: 15px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--text-primary);
 
       .dark & {
         color: #f1f5f9;
@@ -803,7 +803,7 @@ const FormGroup = styled.div`
 
       &.ql-blank::before {
         font-style: normal;
-        color: #94a3b8;
+        color: var(--text-muted);
         font-weight: 500;
       }
     }
@@ -811,7 +811,7 @@ const FormGroup = styled.div`
 `;
 
 const SaveButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 16px 40px;
   border-radius: 20px;
@@ -820,7 +820,7 @@ const SaveButton = styled.button`
   display: flex;
   align-items: center;
   transition: all 0.2s;
-  box-shadow: 0 10px 20px rgba(45, 121, 243, 0.2);
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
   &:hover {
     background: #1e40af;
     transform: translateY(-2px);
@@ -854,15 +854,15 @@ const PasswordChangeLink = styled(Link)`
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 18px;
-  color: #1e293b;
+  color: var(--text-primary);
   font-size: 15px;
   font-weight: 800;
   text-decoration: none;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #2d79f3;
-    color: #2d79f3;
+    border-color: #16a34a;
+    color: #16a34a;
     background: #f3f7ff;
     transform: translateX(4px);
   }
@@ -889,7 +889,7 @@ const ModalContent = styled.div`
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   
   .dark & {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
   }
 `;

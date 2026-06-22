@@ -39,10 +39,10 @@ export default function TutorLayout() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300">
+    <div className="flex min-h-screen bg-[#f9fafb] dark:bg-[var(--page-bg)] transition-colors duration-300">
       <ScrollToTop />
       {/* Desktop Sidebar */}
-      <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
+      <aside className="w-56 border-r bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] hidden md:block shadow-sm">
         <div className="flex h-14 items-center px-6">
           <div className="flex items-center">
             <Link to="/">
@@ -60,7 +60,7 @@ export default function TutorLayout() {
               <span className="icon">{link.icon}</span> {link.label}
             </SideLink>
           ))}
-          <div className="pt-4 mt-4 border-t border-gray-100 dark:border-slate-800">
+          <div className="pt-4 mt-4 border-t border-gray-100 dark:border-[var(--card-border)]">
             <LogoutButton onClick={logout}>
               <span className="icon">🚪</span> Çıkış Yap
             </LogoutButton>
@@ -107,7 +107,7 @@ export default function TutorLayout() {
       </MobileSidebar>
 
       <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-4 md:px-6 justify-between shadow-sm">
+        <header className="h-14 border-b bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] flex items-center px-4 md:px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
             <div className="md:hidden">
               <div className="flex items-center">
@@ -124,7 +124,7 @@ export default function TutorLayout() {
               <span className="text-[11px] font-bold text-gray-900 dark:text-slate-100">
                 Eğitmen Paneli
               </span>
-              <span className="text-[9px] text-gray-500 dark:text-slate-400">
+              <span className="text-[9px] text-gray-500 dark:text-[var(--text-muted)]">
                 Hoş geldin, {user?.fullName?.split(" ")[0] || "Hocam"}
               </span>
             </div>
@@ -141,7 +141,7 @@ export default function TutorLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 pb-24 md:pb-4 bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300 overflow-x-hidden">
+        <main className="flex-1 p-4 pb-24 md:pb-4 bg-[#f9fafb] dark:bg-[var(--page-bg)] transition-colors duration-300 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
@@ -172,7 +172,7 @@ const LogoWrapper = styled.div`
     }
 
     span {
-      color: #2d79f3;
+      color: #16a34a;
     }
   }
 `;
@@ -184,16 +184,16 @@ const SideLink = styled(Link)`
   padding: 12px 12px;
   font-size: 14px;
   font-weight: 600;
-  color: ${(props) => (props.$active ? "#2d79f3" : "#4b5563")};
+  color: ${(props) => (props.$active ? "#16a34a" : "#4b5563")};
   text-decoration: none;
   border-radius: 10px;
   transition: all 0.2s ease;
   background-color: ${(props) => (props.$active ? "#f3f7ff" : "transparent")};
 
   .dark & {
-    color: ${(props) => (props.$active ? "#3b82f6" : "#94a3b8")};
+    color: ${(props) => (props.$active ? "#16a34a" : "#94a3b8")};
     background-color: ${(props) =>
-      props.$active ? "#1e3a8a40" : "transparent"};
+      props.$active ? "#14532d40" : "transparent"};
   }
 
   .icon {
@@ -203,11 +203,11 @@ const SideLink = styled(Link)`
 
   &:hover {
     background-color: ${(props) => (props.$active ? "#f3f7ff" : "#f9fafb")};
-    color: #2d79f3;
+    color: #16a34a;
 
     .dark & {
-      background-color: ${(props) => (props.$active ? "#1e3a8a60" : "#334155")};
-      color: #3b82f6;
+      background-color: ${(props) => (props.$active ? "#14532d60" : "#334155")};
+      color: #16a34a;
     }
 
     .icon {
@@ -268,7 +268,7 @@ const MobileSidebar = styled.div`
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
   
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     border-right: 1px solid #334155;
   }
 

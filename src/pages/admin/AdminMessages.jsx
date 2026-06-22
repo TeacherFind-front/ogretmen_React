@@ -210,7 +210,7 @@ export default function AdminMessages() {
           <Card>
             {loading ? (
               <LoadingContainer>
-                <Loader2 className="animate-spin text-blue-500" size={32} />
+                <Loader2 className="animate-spin text-green-500" size={32} />
                 <p>Mesajlar yükleniyor...</p>
               </LoadingContainer>
             ) : messages.length === 0 ? (
@@ -312,7 +312,7 @@ export default function AdminMessages() {
             <Card className="sticky-detail">
               {detailLoading ? (
                 <LoadingContainer>
-                  <Loader2 className="animate-spin text-blue-500" size={32} />
+                  <Loader2 className="animate-spin text-green-500" size={32} />
                   <p>Detaylar yükleniyor...</p>
                 </LoadingContainer>
               ) : selectedMsgDetail ? (
@@ -455,7 +455,7 @@ const Container = styled.div`
 const PageTitle = styled.h1`
   font-size: 28px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 
   .dark & {
@@ -469,7 +469,7 @@ const PageSubtitle = styled.p`
   margin-top: 4px;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -485,8 +485,8 @@ const FilterBar = styled.form`
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 
   @media (max-width: 992px) {
@@ -520,29 +520,29 @@ const FilterButton = styled.button`
 
   &:hover {
     background: #f8fafc;
-    color: #0f172a;
+    color: var(--text-primary);
   }
 
   &.active {
-    background: #3b82f6;
+    background: #16a34a;
     color: white;
-    border-color: #3b82f6;
+    border-color: #16a34a;
   }
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
-    color: #cbd5e1;
+    background: var(--page-bg);
+    border-color: var(--card-border);
+    color: var(--text-primary);
 
     &:hover {
-      background: #1e293b;
+      background: var(--card-bg);
       color: white;
     }
 
     &.active {
-      background: #3b82f6;
+      background: #16a34a;
       color: white;
-      border-color: #3b82f6;
+      border-color: #16a34a;
     }
   }
 `;
@@ -558,12 +558,12 @@ const SearchWrapper = styled.div`
   max-width: 480px;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
 
   .search-icon {
-    color: #94a3b8;
+    color: var(--text-muted);
     margin-left: 8px;
   }
 
@@ -574,7 +574,7 @@ const SearchWrapper = styled.div`
     padding: 8px;
     font-size: 13px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
     outline: none;
 
     .dark & {
@@ -582,12 +582,12 @@ const SearchWrapper = styled.div`
     }
 
     &::placeholder {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
   button {
-    background: #0f172a;
+    background: var(--page-bg);
     color: white;
     border: none;
     padding: 8px 16px;
@@ -598,13 +598,13 @@ const SearchWrapper = styled.div`
     transition: all 0.2s;
 
     &:hover {
-      background: #1e293b;
+      background: var(--card-bg);
     }
 
     .dark & {
-      background: #3b82f6;
+      background: #16a34a;
       &:hover {
-        background: #2563eb;
+        background: #15803d;
       }
     }
   }
@@ -638,8 +638,8 @@ const Card = styled.div`
   padding: 24px;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 
   &.sticky-detail {
@@ -654,12 +654,12 @@ const Card = styled.div`
     justify-content: center;
     padding: 60px 24px;
     text-align: center;
-    color: #94a3b8;
+    color: var(--text-muted);
     border-style: dashed;
     border-width: 2px;
 
     .icon {
-      color: #cbd5e1;
+      color: var(--text-primary);
       margin-bottom: 16px;
       .dark & {
         color: #475569;
@@ -672,7 +672,7 @@ const Card = styled.div`
       color: #475569;
       margin-bottom: 8px;
       .dark & {
-        color: #cbd5e1;
+        color: var(--text-primary);
       }
     }
 
@@ -703,8 +703,8 @@ const Table = styled.table`
     border-bottom: 1px solid #e2e8f0;
 
     .dark & {
-      color: #94a3b8;
-      border-color: #334155;
+      color: var(--text-muted);
+      border-color: var(--card-border);
     }
   }
 
@@ -716,8 +716,8 @@ const Table = styled.table`
     cursor: pointer;
 
     .dark & {
-      border-color: #334155;
-      color: #cbd5e1;
+      border-color: var(--card-border);
+      color: var(--text-primary);
     }
   }
 
@@ -728,12 +728,12 @@ const Table = styled.table`
   tr:hover td {
     background: #f8fafc;
     .dark & {
-      background: #0f172a;
+      background: var(--page-bg);
     }
   }
 
   .selected-row td {
-    background: #eff6ff;
+    background: #f0fdf4;
     .dark & {
       background: rgba(59, 130, 246, 0.1);
     }
@@ -751,7 +751,7 @@ const SenderInfo = styled.div`
 
   .name {
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
     .dark & {
       color: white;
     }
@@ -761,7 +761,7 @@ const SenderInfo = styled.div`
     font-size: 11px;
     color: #64748b;
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 `;
@@ -774,7 +774,7 @@ const SubjectText = styled.div`
   white-space: nowrap;
   color: #334155;
   .dark & {
-    color: #cbd5e1;
+    color: var(--text-primary);
   }
 `;
 
@@ -782,7 +782,7 @@ const DateText = styled.span`
   color: #64748b;
   font-size: 12px;
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -822,7 +822,7 @@ const ActionButtons = styled.div`
       }
       .dark & {
         background: #334155;
-        color: #cbd5e1;
+        color: var(--text-primary);
       }
     }
   }
@@ -838,8 +838,8 @@ const Badge = styled.span`
   letter-spacing: 0.05em;
 
   &.blue {
-    background: #eff6ff;
-    color: #3b82f6;
+    background: #f0fdf4;
+    color: #16a34a;
     .dark & {
       background: rgba(59, 130, 246, 0.15);
     }
@@ -863,7 +863,7 @@ const Badge = styled.span`
 
   &.dark-gray {
     background: #334155;
-    color: #94a3b8;
+    color: var(--text-muted);
     .dark & {
       background: rgba(51, 65, 85, 0.6);
     }
@@ -879,7 +879,7 @@ const Pagination = styled.div`
   border-top: 1px solid #f1f5f9;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   span {
@@ -910,7 +910,7 @@ const Pagination = styled.div`
 
     .dark & {
       background: #334155;
-      color: #cbd5e1;
+      color: var(--text-primary);
 
       &:hover:not(:disabled) {
         background: #475569;
@@ -934,13 +934,13 @@ const DetailHeader = styled.div`
   padding-bottom: 16px;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   h3 {
     font-size: 18px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-primary);
     .dark & {
       color: white;
     }
@@ -948,7 +948,7 @@ const DetailHeader = styled.div`
 
   .msg-id {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--text-muted);
     margin-top: 2px;
   }
 `;
@@ -956,7 +956,7 @@ const DetailHeader = styled.div`
 const CloseDetailButton = styled.button`
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
@@ -966,7 +966,7 @@ const CloseDetailButton = styled.button`
 
   &:hover {
     background: #f1f5f9;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .dark & {
     &:hover {
@@ -988,7 +988,7 @@ const InfoRow = styled.div`
   gap: 12px;
 
   .info-icon {
-    color: #3b82f6;
+    color: #16a34a;
     margin-top: 2px;
     flex-shrink: 0;
   }
@@ -997,7 +997,7 @@ const InfoRow = styled.div`
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    color: #94a3b8;
+    color: var(--text-muted);
     display: block;
     margin-bottom: 2px;
   }
@@ -1007,7 +1007,7 @@ const InfoRow = styled.div`
     color: #334155;
 
     .dark & {
-      color: #cbd5e1;
+      color: var(--text-primary);
     }
 
     &.font-bold {
@@ -1015,7 +1015,7 @@ const InfoRow = styled.div`
     }
 
     &.link {
-      color: #3b82f6;
+      color: #16a34a;
       text-decoration: none;
       &:hover {
         text-decoration: underline;
@@ -1032,7 +1032,7 @@ const StatusRow = styled.div`
   .label {
     font-size: 11px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -1043,15 +1043,15 @@ const MessageContentBox = styled.div`
   padding: 16px;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
 
   .label {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    color: #94a3b8;
+    color: var(--text-muted);
     display: block;
     margin-bottom: 8px;
   }
@@ -1063,7 +1063,7 @@ const MessageContentBox = styled.div`
     white-space: pre-wrap;
 
     .dark & {
-      color: #cbd5e1;
+      color: var(--text-primary);
     }
   }
 `;
@@ -1076,7 +1076,7 @@ const AdminActions = styled.div`
   border-bottom: 1px solid #f1f5f9;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   .btn-action {
@@ -1092,8 +1092,8 @@ const AdminActions = styled.div`
     border: none;
 
     &.btn-read {
-      background: #eff6ff;
-      color: #3b82f6;
+      background: #f0fdf4;
+      color: #16a34a;
       &:hover {
         background: #dbeafe;
       }
@@ -1110,7 +1110,7 @@ const AdminActions = styled.div`
       }
       .dark & {
         background: #334155;
-        color: #cbd5e1;
+        color: var(--text-primary);
       }
     }
 
@@ -1162,7 +1162,7 @@ const ReplyContainer = styled.div`
   .reply-text {
     font-size: 13.5px;
     line-height: 1.5;
-    color: #1e3a8a;
+    color: #14532d;
     white-space: pre-wrap;
 
     .dark & {
@@ -1179,7 +1179,7 @@ const ReplyForm = styled.form`
   label {
     font-size: 11px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
   }
 
@@ -1195,13 +1195,13 @@ const ReplyForm = styled.form`
     background: #f8fafc;
 
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
       color: white;
     }
 
     &:focus {
-      border-color: #3b82f6;
+      border-color: #16a34a;
       background: white;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
       
@@ -1212,7 +1212,7 @@ const ReplyForm = styled.form`
   }
 
   button {
-    background: #3b82f6;
+    background: #16a34a;
     color: white;
     border: none;
     padding: 12px;
@@ -1227,7 +1227,7 @@ const ReplyForm = styled.form`
     transition: all 0.2s;
 
     &:hover:not(:disabled) {
-      background: #2563eb;
+      background: #15803d;
     }
 
     &:disabled {
@@ -1251,8 +1251,8 @@ const ClosedNotice = styled.div`
 
   .dark & {
     background: rgba(51, 65, 85, 0.3);
-    border-color: #334155;
-    color: #cbd5e1;
+    border-color: var(--card-border);
+    color: var(--text-primary);
   }
 `;
 
@@ -1274,10 +1274,10 @@ const EmptyContainer = styled.div`
   justify-content: center;
   padding: 60px 20px;
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-muted);
 
   .empty-icon {
-    color: #cbd5e1;
+    color: var(--text-primary);
     margin-bottom: 12px;
     .dark & {
       color: #475569;
@@ -1290,7 +1290,7 @@ const EmptyContainer = styled.div`
     color: #475569;
     margin-bottom: 4px;
     .dark & {
-      color: #cbd5e1;
+      color: var(--text-primary);
     }
   }
 

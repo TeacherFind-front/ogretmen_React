@@ -187,7 +187,7 @@ export default function StudentProfile() {
     <Container>
       <header className="mb-12">
         <h1 className="text-4xl font-black text-gray-900 dark:text-slate-100 tracking-tight">Profil Ayarları</h1>
-        <p className="text-gray-500 dark:text-slate-400 font-medium mt-2">Kişisel bilgilerinizi ve öğrenme tercihlerinizi yönetin.</p>
+        <p className="text-gray-500 dark:text-[var(--text-muted)] font-medium mt-2">Kişisel bilgilerinizi ve öğrenme tercihlerinizi yönetin.</p>
       </header>
 
       {status.message && (
@@ -201,27 +201,27 @@ export default function StudentProfile() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <div className="flex flex-col items-center p-10 text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+              <div className="absolute top-0 left-0 w-full h-2 bg-green-600"></div>
               <div className="relative mb-6">
                 <AvatarWrapper $loading={uploadLoading}>
                   {uploadLoading ? (
-                    <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+                    <Loader2 className="w-10 h-10 animate-spin text-green-600" />
                   ) : profile.avatarUrl ? (
                     <img src={profile.avatarUrl} alt={profile.fullName} className="w-full h-full object-cover" />
                   ) : (
-                    <User size={60} className="text-blue-100" />
+                    <User size={60} className="text-green-100" />
                   )}
                 </AvatarWrapper>
                 <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
                 <button 
                   onClick={() => fileInputRef.current.click()}
-                  className="absolute -bottom-2 -right-2 p-3 bg-blue-600 rounded-2xl text-white shadow-xl border-4 border-white hover:bg-blue-700 transition-all"
+                  className="absolute -bottom-2 -right-2 p-3 bg-green-600 rounded-2xl text-white shadow-xl border-4 border-white hover:bg-green-700 transition-all"
                 >
                   <Camera size={18} />
                 </button>
               </div>
               <h2 className="text-2xl font-black text-gray-900 dark:text-slate-100">{profile.fullName}</h2>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-1 rounded-full mt-3">Öğrenci Hesabı</span>
+              <span className="text-sm font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-4 py-1 rounded-full mt-3">Öğrenci Hesabı</span>
             </div>
           </Card>
 
@@ -249,8 +249,8 @@ export default function StudentProfile() {
           <Card>
             <form onSubmit={handleSave} className="p-10 space-y-12">
               <section className="mb-10">
-                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                  <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-[var(--text-primary)] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-green-600 rounded-full"></div>
                   Kişisel Bilgiler
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -272,7 +272,7 @@ export default function StudentProfile() {
                           setEmailCode("");
                           setEmailChangeError("");
                         }}
-                        className="px-5 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-colors whitespace-nowrap dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700"
+                        className="px-5 py-2 bg-green-50 text-green-600 rounded-xl font-bold hover:bg-green-100 transition-colors whitespace-nowrap dark:bg-[var(--card-bg)] dark:text-green-400 dark:hover:bg-slate-700"
                       >
                         Değiştir
                       </button>
@@ -313,7 +313,7 @@ export default function StudentProfile() {
 
 
 
-              <div className="flex justify-end pt-8 border-t border-gray-50 dark:border-slate-800">
+              <div className="flex justify-end pt-8 border-t border-gray-50 dark:border-[var(--card-border)]">
                 <SaveButton type="submit" disabled={saveLoading}>
                   {saveLoading ? <Loader2 className="animate-spin mr-2" size={20} /> : <Save size={20} className="mr-2" />}
                   Değişiklikleri Kaydet
@@ -328,7 +328,7 @@ export default function StudentProfile() {
         <ModalOverlay onClick={() => setShowEmailModal(false)}>
           <ModalContent onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">
+              <h3 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)]">
                 E-posta Adresini Değiştir
               </h3>
               <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -359,7 +359,7 @@ export default function StudentProfile() {
                   <button
                     type="button"
                     onClick={() => setShowEmailModal(false)}
-                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
                   >
                     İptal
                   </button>
@@ -389,7 +389,7 @@ export default function StudentProfile() {
                   <button
                     type="button"
                     onClick={() => setEmailStep(1)}
-                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700"
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
                   >
                     Geri Dön
                   </button>
@@ -419,8 +419,8 @@ const Card = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   }
 `;
@@ -471,7 +471,7 @@ const FormGroup = styled.div`
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-left: 4px;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
   }
 
   input, textarea, select {
@@ -481,28 +481,28 @@ const FormGroup = styled.div`
     background: #f8fafc;
     font-size: 15px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     width: 100%;
     transition: all 0.2s;
     
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
       color: #f1f5f9;
     }
 
     &:focus { 
       outline: none; 
-      border-color: #2d79f3; 
+      border-color: #16a34a; 
       background: white; 
       box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
-      .dark & { background: #0f172a; border-color: #3b82f6; }
+      .dark & { background: var(--page-bg); border-color: #16a34a; }
     }
     &:disabled { 
       background: #f1f5f9; 
-      color: #94a3b8; 
+      color: var(--text-muted); 
       cursor: not-allowed;
-      .dark & { background: #1e293b; color: #475569; }
+      .dark & { background: var(--card-bg); color: #475569; }
     }
   }
 `;
@@ -515,31 +515,31 @@ const MenuLink = styled(Link)`
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 20px;
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 800;
   font-size: 15px;
   text-decoration: none;
   transition: all 0.2s;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
   }
 
   .icon { font-size: 20px; }
 
   &:hover {
-    border-color: #2d79f3;
-    color: #2d79f3;
+    border-color: #16a34a;
+    color: #16a34a;
     background: #f3f7ff;
     transform: translateX(4px);
-    .dark & { background: #1e3a8a30; border-color: #3b82f6; color: #3b82f6; }
+    .dark & { background: #14532d30; border-color: #16a34a; color: #16a34a; }
   }
 `;
 
 const SaveButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 18px 36px;
   border-radius: 24px;
@@ -594,7 +594,7 @@ const ModalContent = styled.div`
   box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     border: 1px solid #334155;
     box-shadow: 0 20px 40px rgba(0,0,0,0.5);
   }

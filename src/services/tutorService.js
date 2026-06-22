@@ -464,3 +464,39 @@ export async function getTutorsCount() {
   if (!res.ok) throw new Error("Öğretmen sayısı alınamadı.");
   return res.json();
 }
+
+/**
+ * İlandan fotoğraf sil
+ * @param {string} listingId
+ * @param {string} photoId
+ */
+export async function deleteListingPhoto(listingId, photoId) {
+  const res = await apiFetch(`/api/tutors/my-listings/${listingId}/photos/${photoId}`, {
+    method: "DELETE"
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err.message || "Fotoğraf silinemedi.");
+  }
+
+  return true;
+}
+
+/**
+ * Sertifika sil
+ * @param {string} id - Sertifika ID (UUID)
+ */
+export async function deleteCertificate(id) {
+  const res = await apiFetch(`/api/tutors/certificates/${id}`, {
+    method: "DELETE"
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err.message || "Sertifika silinemedi.");
+  }
+
+  return true;
+}
+

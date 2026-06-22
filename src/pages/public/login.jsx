@@ -23,11 +23,8 @@ export default function Login() {
     const fromPath = location.state?.from?.pathname;
     if (fromPath && fromPath !== "/login") return fromPath;
 
-    // Rol bazı yönlendirme
-    const r = role?.toString().toLowerCase();
-    if (r === "2" || r === "tutor") return "/tutor/dashboard";
-    if (r === "3" || r === "admin" || r === "4" || r === "superadmin") return "/admin/dashboard";
-    return "/student/dashboard";
+    // Giriş sonrası varsayılan olarak ana sayfaya yönlendir
+    return "/";
   };
 
   const [data, setData] = useState({
@@ -151,24 +148,19 @@ export default function Login() {
       
       toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
       
-      // Role based routing
-      if (backendResponse.role === "tutor" || backendResponse.role === "2") {
-        navigate("/tutor/dashboard");
-      } else if (backendResponse.role === "admin" || backendResponse.role === "3") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/student/dashboard");
-      }
+      // Giriş sonrası yönlendirme
+      navigate(getRedirectPath(backendResponse.role));
       
     } catch (err) {
       console.error("Sosyal Giriş Hatası:", err);
       // Firebase errors
       if (err.code === 'auth/popup-closed-by-user') {
-        setError("Giriş penceresi kapatıldı.");
+        toast.error("Google ile giriş iptal edildi.");
+        return; // Don't show general error
       } else {
         setError(err.message || "Sosyal hesap ile giriş yapılamadı.");
+        toast.error("Giriş yapılamadı.");
       }
-      toast.error("Giriş yapılamadı.");
     } finally {
       setLoading(false);
     }
@@ -179,10 +171,10 @@ export default function Login() {
       <StyledWrapper>
         <form className="form" onSubmit={handleLogin}>
           <div className="flex-column text-center mb-4">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-[var(--text-primary)]">
               Hoş Geldiniz
             </h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
+            <p className="text-sm text-gray-500 dark:text-[var(--text-muted)] mt-2">
               Devam etmek için giriş yapın
             </p>
           </div>
@@ -203,12 +195,12 @@ export default function Login() {
               />
               
               {emailSuggestions.length > 0 && (
-                <ul className="suggestions-list shadow-xl border border-gray-100 dark:border-[#334155] bg-white dark:bg-[#1e293b] absolute top-full left-0 right-0 z-50 rounded-xl mt-2 overflow-hidden">
+                <ul className="suggestions-list shadow-xl border border-gray-100 dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)] absolute top-full left-0 right-0 z-50 rounded-xl mt-2 overflow-hidden">
                   {emailSuggestions.map((suggestion, index) => (
                     <li
                       key={index}
                       onClick={() => handleSuggestionClick(suggestion)}
-                      className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-[#334155] cursor-pointer text-sm text-gray-600 dark:text-slate-300 transition-colors border-b border-gray-50 dark:border-[#334155] last:border-0"
+                      className="px-4 py-2 hover:bg-green-50 dark:hover:bg-[var(--section-alt)] cursor-pointer text-sm text-gray-600 dark:text-[var(--text-primary)] transition-colors border-b border-gray-50 dark:border-[var(--card-border)] last:border-0"
                     >
                       {suggestion}
                     </li>
@@ -302,7 +294,7 @@ const StyledWrapper = styled.div`
     flex-direction: column;
     gap: 20px;
     background-color: rgba(255, 255, 255, 0.9);
-    .dark & { background-color: #1e293b; border-color: #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+    .dark & { background-color: var(--card-bg); border-color: var(--card-border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
     backdrop-filter: blur(10px);
     padding: 40px;
     width: 100%;
@@ -323,7 +315,7 @@ const StyledWrapper = styled.div`
 
   .flex-column > label {
     color: #1a1a1a;
-    .dark & { color: #cbd5e1; }
+    .dark & { color: var(--text-primary); }
     font-weight: 500;
     font-size: 14px;
     margin-bottom: 6px;
@@ -339,25 +331,25 @@ const StyledWrapper = styled.div`
     padding: 0 16px;
     transition: all 0.2s ease;
     background-color: #f9fafb;
-    .dark & { border-color: #334155; background-color: #0f172a; }
+    .dark & { border-color: var(--card-border); background-color: var(--page-bg); }
   }
 
   .inputForm svg {
     color: #6b7280;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
     flex-shrink: 0;
     margin-right: 8px;
   }
 
   .inputForm:focus-within {
-    border-color: #2d79f3;
-    background-color: #ffffff;
-    .dark & { background-color: #020617; border-color: #3b82f6; }
-    box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+    border-color: #16a34a;
+    background-color: var(--card-bg);
+    .dark & { background-color: var(--card-bg); border-color: #16a34a; }
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
   }
 
   .inputForm:focus-within svg {
-    color: #2d79f3;
+    color: #16a34a;
   }
 
   .input {
@@ -368,7 +360,7 @@ const StyledWrapper = styled.div`
     box-shadow: none !important;
     font-size: 15px;
     color: #111827;
-    .dark & { color: white; }
+    .dark & { color: var(--text-primary); }
     width: 100%;
     height: 100%;
     padding: 0 4px !important;
@@ -385,12 +377,12 @@ const StyledWrapper = styled.div`
   .flex-row > div > label {
     font-size: 14px;
     color: #4b5563;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
   }
 
   .span {
     font-size: 14px;
-    color: #2d79f3;
+    color: #16a34a;
     font-weight: 600;
     cursor: pointer;
   }
@@ -401,25 +393,23 @@ const StyledWrapper = styled.div`
 
   .button-submit {
     margin-top: 12px;
-    background-color: #111827;
-    .dark & { background-color: #3b82f6; }
+    background: linear-gradient(135deg, #16a34a, #22c55e);
     border: none;
-    color: white;
+    color: var(--text-primary);
     font-size: 16px;
     font-weight: 600;
     border-radius: 14px;
     height: 52px;
     width: 100%;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.2);
   }
 
   .button-submit:hover {
-    background-color: #1f2937;
-    .dark & { background-color: #2563eb; }
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #15803d, #16a34a);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
   }
 
   .social-divider {
@@ -436,7 +426,7 @@ const StyledWrapper = styled.div`
     content: '';
     flex: 1;
     border-bottom: 1px solid #e5e7eb;
-    .dark & { border-bottom-color: #334155; }
+    .dark & { border-bottom-color: var(--card-border); }
   }
 
   .social-divider::before {
@@ -460,7 +450,7 @@ const StyledWrapper = styled.div`
     font-weight: 500;
     color: #374151;
     background: white;
-    .dark & { background: #0f172a; color: #cbd5e1; border-color: #334155; }
+    .dark & { background: var(--page-bg); color: var(--text-primary); border-color: var(--card-border); }
     cursor: pointer;
     transition: all 0.2s ease;
   }
@@ -468,13 +458,13 @@ const StyledWrapper = styled.div`
   .social-btn:hover {
     background-color: #f9fafb;
     border-color: #d1d5db;
-    .dark & { background-color: #1e293b; border-color: #475569; }
+    .dark & { background-color: var(--card-bg); border-color: var(--card-border); }
   }
 
   .p {
     text-align: center;
     color: #4b5563;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
     font-size: 14px;
     margin-top: 16px;
   }

@@ -82,7 +82,7 @@ export default function TutorSocialMedia() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
       </div>
     );
   }
@@ -91,10 +91,10 @@ export default function TutorSocialMedia() {
     <Container>
       <header className="mb-6 flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-[var(--text-primary)] tracking-tight">
             Sosyal Medya Ayarları
           </h1>
-          <p className="text-gray-500 dark:text-slate-400 font-medium mt-1 text-sm">
+          <p className="text-gray-500 dark:text-[var(--text-muted)] font-medium mt-1 text-sm">
             Öğrencilerinizin sizinle iletişime geçebileceği sosyal medya hesaplarınızı buradan yönetin.
           </p>
         </div>
@@ -117,9 +117,9 @@ export default function TutorSocialMedia() {
             <div className="bg-red-50 dark:bg-red-900/10 border-2 border-red-100 dark:border-red-900/30 p-6 sm:p-8 rounded-[2rem] relative overflow-hidden transition-colors">
               <div className="flex items-center gap-3 mb-4">
                 <Share2 className="text-red-500" size={24} />
-                <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Sosyal Bağlantılarım</h3>
+                <h3 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)] tracking-tight">Sosyal Bağlantılarım</h3>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 text-sm font-medium mb-6 leading-relaxed">
+              <p className="text-slate-600 dark:text-[var(--text-muted)] text-sm font-medium mb-6 leading-relaxed">
                 Sosyal medya hesaplarınızı ekleyin, öğrencilerin size kolayca ulaşmasını sağlayın. Bu bilgiler profil sayfanızda görüntülenecektir.
               </p>
 
@@ -152,7 +152,7 @@ export default function TutorSocialMedia() {
                   />
                 </FormGroup>
                 <FormGroup>
-                  <label className="flex items-center gap-2"><FaFacebook size={14} className="text-blue-600" /> Facebook Adresiniz</label>
+                  <label className="flex items-center gap-2"><FaFacebook size={14} className="text-green-600" /> Facebook Adresiniz</label>
                   <input
                     type="text"
                     placeholder="Örn: facebook.com/kullaniciadi"
@@ -161,7 +161,7 @@ export default function TutorSocialMedia() {
                   />
                 </FormGroup>
                 <FormGroup>
-                  <label className="flex items-center gap-2"><FaLinkedin size={14} className="text-blue-500" /> LinkedIn Adresiniz</label>
+                  <label className="flex items-center gap-2"><FaLinkedin size={14} className="text-green-500" /> LinkedIn Adresiniz</label>
                   <input
                     type="text"
                     placeholder="Örn: linkedin.com/in/kullaniciadi"
@@ -204,8 +204,8 @@ const Card = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: none;
   }
 `;
@@ -224,7 +224,7 @@ const FormGroup = styled.div`
     margin-left: 4px;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
@@ -235,33 +235,33 @@ const FormGroup = styled.div`
     background: #f8fafc;
     font-size: 15px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     width: 100%;
     transition: all 0.2s;
 
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
       color: #f1f5f9;
     }
 
     &:focus {
       outline: none;
-      border-color: #2d79f3;
+      border-color: #16a34a;
       background: white;
-      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.05);
 
       .dark & {
-        background: #0f172a;
-        border-color: #2d79f3;
-        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+        background: var(--page-bg);
+        border-color: #16a34a;
+        box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
       }
     }
   }
 `;
 
 const SaveButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 16px 40px;
   border-radius: 20px;
@@ -270,7 +270,7 @@ const SaveButton = styled.button`
   display: flex;
   align-items: center;
   transition: all 0.2s;
-  box-shadow: 0 10px 20px rgba(45, 121, 243, 0.2);
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
   &:hover {
     background: #1e40af;
     transform: translateY(-2px);

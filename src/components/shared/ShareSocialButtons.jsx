@@ -10,7 +10,7 @@ const ShareSocialButtons = ({ url, title }) => {
         </svg>
       ),
       color: 'hover:bg-black hover:text-white',
-      darkColor: 'dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-white dark:hover:text-black',
+      darkColor: 'dark:bg-[var(--card-bg)] dark:text-[var(--text-primary)] dark:hover:bg-white dark:hover:text-black',
       link: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
       bgColor: 'bg-slate-100'
     },
@@ -22,9 +22,9 @@ const ShareSocialButtons = ({ url, title }) => {
         </svg>
       ),
       color: 'hover:bg-[#1877f2] hover:text-white',
-      darkColor: 'dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-[#1877f2] dark:hover:text-white',
+      darkColor: 'dark:bg-[var(--card-bg)] dark:text-[var(--text-primary)] dark:hover:bg-[#1877f2] dark:hover:text-white',
       link: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      bgColor: 'bg-[#eff6ff]'
+      bgColor: 'bg-[#f0fdf4]'
     },
     {
       name: 'LinkedIn',
@@ -34,7 +34,7 @@ const ShareSocialButtons = ({ url, title }) => {
         </svg>
       ),
       color: 'hover:bg-[#0a66c2] hover:text-white',
-      darkColor: 'dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-[#0a66c2] dark:hover:text-white',
+      darkColor: 'dark:bg-[var(--card-bg)] dark:text-[var(--text-primary)] dark:hover:bg-[#0a66c2] dark:hover:text-white',
       link: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
       bgColor: 'bg-[#f0f9ff]'
     },
@@ -46,7 +46,7 @@ const ShareSocialButtons = ({ url, title }) => {
         </svg>
       ),
       color: 'hover:bg-[#25D366] hover:text-white',
-      darkColor: 'dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-[#25D366] dark:hover:text-white',
+      darkColor: 'dark:bg-[var(--card-bg)] dark:text-[var(--text-primary)] dark:hover:bg-[#25D366] dark:hover:text-white',
       link: `https://api.whatsapp.com/send?text=${encodeURIComponent(`${title} ${url}`)}`,
       bgColor: 'bg-[#f0fdf4]'
     }
@@ -62,10 +62,10 @@ const ShareSocialButtons = ({ url, title }) => {
           rel="noopener noreferrer"
           className="flex flex-col items-center gap-2 group transition-all duration-300"
         >
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${social.bgColor} ${social.color} ${social.darkColor} shadow-sm border border-transparent dark:border-slate-700`}>
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${social.bgColor} ${social.color} ${social.darkColor} shadow-sm border border-transparent dark:border-[var(--card-border)]`}>
             {social.icon}
           </div>
-          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors uppercase tracking-tight">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-[var(--text-muted)] group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors uppercase tracking-tight">
             {social.name}
           </span>
         </a>

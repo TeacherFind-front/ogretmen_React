@@ -135,7 +135,7 @@ const PageWrapper = styled.div`
   overflow-x: hidden;
 
   .dark & {
-    background: #0f172a;
+    background: var(--page-bg);
   }
 `;
 
@@ -153,28 +153,28 @@ const HeroSection = styled.div`
 const Badge = styled.span`
   display: inline-block;
   padding: 6px 16px;
-  background: #eff6ff;
-  color: #3b82f6;
+  background: #f0fdf4;
+  color: #16a34a;
   border-radius: 20px;
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 24px;
 
   .dark & {
-    background: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    background: rgba(22, 163, 74, 0.2);
+    color: #4ade80;
   }
 `;
 
 const Title = styled.h1`
   font-size: 48px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   line-height: 1.2;
   margin-bottom: 20px;
 
   .dark & {
-    color: #f8fafc;
+    color: var(--text-primary);
   }
 
   @media (max-width: 768px) {
@@ -183,7 +183,7 @@ const Title = styled.h1`
 `;
 
 const Highlight = styled.span`
-  color: #3b82f6;
+  color: #16a34a;
 `;
 
 const Subtitle = styled.p`
@@ -194,7 +194,7 @@ const Subtitle = styled.p`
   margin: 0 auto;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 
   @media (max-width: 768px) {
@@ -219,7 +219,7 @@ const StatsWrapper = styled.div`
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
 
   .dark & {
-    background: #1e293b;
+    background: var(--card-bg);
     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
   }
 
@@ -240,23 +240,23 @@ const StatCard = styled.div`
 const StatValue = styled.h3`
   font-size: 36px;
   font-weight: 800;
-  color: #3b82f6;
+  color: #16a34a;
   margin-bottom: 8px;
 
   .dark & {
-    color: #60a5fa;
+    color: #4ade80;
   }
 `;
 
 const StatLabel = styled.p`
   font-size: 14px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
   .dark & {
-    color: #cbd5e1;
+    color: var(--text-primary);
   }
 `;
 
@@ -270,11 +270,11 @@ const SectionTitle = styled.h2`
   text-align: center;
   font-size: 32px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 40px;
 
   .dark & {
-    color: #f8fafc;
+    color: var(--text-primary);
   }
 `;
 
@@ -301,8 +301,8 @@ const FeatureCard = styled.div`
   transition: all 0.3s ease;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
   }
 
   &:hover {
@@ -325,11 +325,11 @@ const IconWrapper = styled.div`
   margin-bottom: 20px;
 
   &.blue {
-    background: #eff6ff;
-    color: #3b82f6;
+    background: #f0fdf4;
+    color: #16a34a;
     .dark & {
-      background: rgba(59, 130, 246, 0.2);
-      color: #60a5fa;
+      background: rgba(22, 163, 74, 0.2);
+      color: #4ade80;
     }
   }
   &.green {
@@ -377,11 +377,11 @@ const IconWrapper = styled.div`
 const FeatureTitle = styled.h3`
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 12px;
 
   .dark & {
-    color: #f8fafc;
+    color: var(--text-primary);
   }
 `;
 
@@ -391,7 +391,7 @@ const FeatureDesc = styled.p`
   line-height: 1.6;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -402,24 +402,24 @@ const MissionSection = styled.div`
 `;
 
 const MissionContent = styled.div`
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #14532d 0%, #16a34a 100%);
   padding: 50px;
   border-radius: 24px;
   text-align: center;
-  color: white;
-  box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.4);
+  color: var(--text-primary);
+  box-shadow: 0 20px 40px -10px rgba(22, 163, 74, 0.4);
 
   .dark & {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    background: linear-gradient(135deg, var(--page-bg) 0%, #14532d 100%);
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
   }
 
   ${SectionTitle} {
-    color: white;
+    color: var(--text-primary);
     margin-bottom: 20px;
 
     .dark & {
-      color: white;
+      color: var(--text-primary);
     }
   }
 

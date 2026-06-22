@@ -113,9 +113,6 @@ export default function TutorMessages() {
     try {
       const data = await getConversations();
       setConversations(data);
-      if (data.length > 0 && !selectedConv) {
-        setSelectedConv(data[0]);
-      }
     } catch (err) {
       console.error("Conversations load failed", err);
     } finally {
@@ -163,7 +160,7 @@ export default function TutorMessages() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <Loader2 className="w-10 h-10 animate-spin text-green-600" />
         <p className="text-gray-500 font-medium">Mesaj kutunuz yükleniyor...</p>
       </div>
     );
@@ -173,14 +170,14 @@ export default function TutorMessages() {
     <Container>
       <header className="mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-slate-100 tracking-tight">Mesajlarım</h1>
-        <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Öğrencilerinle olan iletişimi anlık olarak takip et.</p>
+        <p className="text-gray-500 dark:text-[var(--text-muted)] text-sm mt-1">Öğrencilerinle olan iletişimi anlık olarak takip et.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[750px]">
         {/* Mesaj Listesi */}
         <div className="md:col-span-1">
           <Card className="h-full flex flex-col shadow-sm">
-            <div className="p-4 border-b dark:border-slate-700">
+            <div className="p-4 border-b dark:border-[var(--card-border)]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <SearchInput placeholder="Öğrenci ara..." />
@@ -204,6 +201,7 @@ export default function TutorMessages() {
                             src={resolveMediaUrl(conv.otherUserAvatarUrl)} 
                             alt={conv.otherUserName} 
                             onError={(e) => {
+                              e.currentTarget.onerror = null;
                               e.currentTarget.src = "/placeholder-avatar.png";
                             }}
                             className="w-full h-full object-cover" 
@@ -216,13 +214,13 @@ export default function TutorMessages() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-gray-900 dark:text-white truncate">{conv.otherUserName || "Kullanıcı"}</span>
+                        <span className="font-bold text-gray-900 dark:text-[var(--text-primary)] truncate">{conv.otherUserName || "Kullanıcı"}</span>
                         <span className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">
                           {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' }) : ""}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500 dark:text-slate-400 truncate">{conv.lastMessage}</span>
+                        <span className="text-xs text-gray-500 dark:text-[var(--text-muted)] truncate">{conv.lastMessage}</span>
                         {conv.unreadCount > 0 && <UnreadBadge>{conv.unreadCount}</UnreadBadge>}
                         <button 
                           onClick={async (e) => {
@@ -255,10 +253,10 @@ export default function TutorMessages() {
 
         {/* Mesaj İçeriği */}
         <div className="md:col-span-2">
-          <Card className="h-full flex flex-col shadow-lg border-blue-50">
+          <Card className="h-full flex flex-col shadow-lg border-green-50">
             {selectedConv ? (
               <>
-                <div className="p-5 border-b dark:border-slate-700 flex items-center justify-between bg-white dark:bg-[#1e293b] z-10">
+                <div className="p-5 border-b dark:border-[var(--card-border)] flex items-center justify-between bg-white dark:bg-[var(--card-bg)] z-10">
                   <div className="flex items-center gap-4">
                     <Avatar $large $hasImage={!!selectedConv.otherUserAvatarUrl}>
                       {selectedConv.otherUserAvatarUrl ? (
@@ -266,6 +264,7 @@ export default function TutorMessages() {
                           src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} 
                           alt={selectedConv.otherUserName} 
                           onError={(e) => {
+                            e.currentTarget.onerror = null;
                             e.currentTarget.src = "/placeholder-avatar.png";
                           }}
                           className="w-full h-full object-cover" 
@@ -275,7 +274,7 @@ export default function TutorMessages() {
                       )}
                     </Avatar>
                     <div>
-                      <h3 className="font-bold text-gray-900 dark:text-white">{selectedConv.otherUserName || "Kullanıcı"}</h3>
+                      <h3 className="font-bold text-gray-900 dark:text-[var(--text-primary)]">{selectedConv.otherUserName || "Kullanıcı"}</h3>
                       {selectedConv.otherUserIsOnline ? (
                         <span className="text-[11px] text-green-500 font-bold flex items-center gap-1">
                           <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Çevrimiçi
@@ -325,10 +324,10 @@ export default function TutorMessages() {
                         <button className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
                           <MoreVertical className="w-5 h-5 text-gray-400" />
                         </button>
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[var(--card-bg)] rounded-xl shadow-xl border border-gray-100 dark:border-[var(--card-border)] opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
                           <button 
                             onClick={() => setSelectionMode(true)}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-[var(--text-primary)] hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
                           >
                             <CheckCircle2 size={16} /> Mesaj Seç
                           </button>
@@ -338,9 +337,9 @@ export default function TutorMessages() {
                   </div>
                 </div>
 
-                <div className="flex-1 bg-[#f8fafc] dark:bg-[#0f172a] p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <div className="flex-1 bg-[#f8fafc] dark:bg-[var(--page-bg)] p-6 overflow-y-auto custom-scrollbar space-y-4">
                   {msgLoading && messages.length === 0 ? (
-                    <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-blue-400" /></div>
+                    <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-green-400" /></div>
                   ) : (
                     messages.map((m, i) => {
                       const isMine = m.senderId === user?.userId;
@@ -353,7 +352,7 @@ export default function TutorMessages() {
                               onClick={() => setSelectedMessages(prev => 
                                 prev.includes(m.id || i) ? prev.filter(id => id !== (m.id || i)) : [...prev, m.id || i]
                               )}
-                              className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
+                              className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
                             >
                               {isSelected && <Check size={14} strokeWidth={3} />}
                             </button>
@@ -380,7 +379,7 @@ export default function TutorMessages() {
                               {!selectionMode && (
                                 <button 
                                   onClick={() => setReplyTo(m)}
-                                  className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all shrink-0 mx-2"
+                                  className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all shrink-0 mx-2"
                                 >
                                   <Reply size={16} />
                                 </button>
@@ -394,15 +393,15 @@ export default function TutorMessages() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 border-t dark:border-slate-700 bg-white dark:bg-[#1e293b]">
+                <div className="p-4 border-t dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)]">
                   {replyTo && (
-                    <div className="mb-4 flex items-start justify-between bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border-l-4 border-blue-500">
+                    <div className="mb-4 flex items-start justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-xl border-l-4 border-green-500">
                       <div className="flex-1 min-w-0 pr-4">
-                        <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1.5">
+                        <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1 flex items-center gap-1.5">
                           <CornerUpLeft size={12} />
                           {replyTo.senderId === user?.userId ? 'Kendi mesajınıza yanıt veriyorsunuz' : 'Yanıt veriyorsunuz'}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-slate-300 truncate">
+                        <div className="text-sm text-gray-600 dark:text-[var(--text-primary)] truncate">
                           {replyTo.content}
                         </div>
                       </div>
@@ -431,11 +430,11 @@ export default function TutorMessages() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-400 p-10 text-center">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-4">
                   <Send className="w-10 h-10 opacity-20 dark:text-slate-500" />
                 </div>
-                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Henüz Seçim Yapılmadı</h3>
-                <p className="text-sm dark:text-slate-400 max-w-xs">Mesajlaşmaya başlamak için sol taraftan bir öğrenci seçin.</p>
+                <h3 className="font-bold text-gray-900 dark:text-[var(--text-primary)] mb-1">Henüz Seçim Yapılmadı</h3>
+                <p className="text-sm dark:text-[var(--text-muted)] max-w-xs">Mesajlaşmaya başlamak için sol taraftan bir öğrenci seçin.</p>
               </div>
             )}
           </Card>
@@ -455,16 +454,16 @@ const SearchInput = styled.input`
   transition: all 0.2s;
   
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
   }
   
   &:focus { 
     outline: none; 
-    border-color: #2d79f3; 
+    border-color: #16a34a; 
     background: white; 
-    .dark & { background: #0f172a; border-color: #3b82f6; }
+    .dark & { background: var(--page-bg); border-color: #16a34a; }
   }
 `;
 
@@ -475,19 +474,19 @@ const ConversationItem = styled.div`
   padding: 16px 20px;
   cursor: pointer;
   transition: all 0.2s;
-  background: ${props => props.$active ? '#eff6ff' : 'transparent'};
-  border-left: 4px solid ${props => props.$active ? '#2d79f3' : 'transparent'};
+  background: ${props => props.$active ? '#f0fdf4' : 'transparent'};
+  border-left: 4px solid ${props => props.$active ? '#16a34a' : 'transparent'};
   
   .dark & {
-    background: ${props => props.$active ? '#1e3a8a30' : 'transparent'};
-    border-left-color: ${props => props.$active ? '#3b82f6' : 'transparent'};
+    background: ${props => props.$active ? '#14532d30' : 'transparent'};
+    border-left-color: ${props => props.$active ? '#16a34a' : 'transparent'};
     span { color: #f1f5f9 !important; }
-    p { color: #94a3b8 !important; }
+    p { color: var(--text-muted) !important; }
   }
 
   &:hover {
     background: #f8fafc;
-    .dark & { background: #33415540; }
+    .dark & { background: var(--card-border)40; }
   }
 `;
 
@@ -502,7 +501,7 @@ const OnlineStatus = styled.div`
   border-radius: 50%;
 
   .dark & {
-    border-color: #0f172a;
+    border-color: var(--text-primary);
   }
 `;
 
@@ -522,8 +521,8 @@ const ConversationCard = styled.div`
     border: 1px solid #f1f5f9;
 
     .dark & {
-      background: #1e293b;
-      border-color: #334155;
+      background: var(--card-bg);
+      border-color: var(--card-border);
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
   ` : `
@@ -535,7 +534,7 @@ const ConversationCard = styled.div`
 
   .dark & {
     h4 { color: #f1f5f9 !important; }
-    p { color: #94a3b8 !important; }
+    p { color: var(--text-muted) !important; }
   }
 `;
 
@@ -543,7 +542,7 @@ const Avatar = styled.div`
   width: ${props => props.$large ? '48px' : '40px'};
   height: ${props => props.$large ? '48px' : '40px'};
   border-radius: 14px;
-  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #2d79f3 0%, #1e40af 100%)'};
+  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #16a34a 0%, #1e40af 100%)'};
   color: white;
   display: flex;
   align-items: center;
@@ -551,7 +550,7 @@ const Avatar = styled.div`
   font-weight: 800;
   font-size: ${props => props.$large ? '18px' : '15px'};
   flex-shrink: 0;
-  box-shadow: ${props => props.$hasImage ? 'none' : '0 4px 10px rgba(45, 121, 243, 0.2)'};
+  box-shadow: ${props => props.$hasImage ? 'none' : '0 4px 10px rgba(22, 163, 74, 0.2)'};
   overflow: hidden;
 `;
 
@@ -581,15 +580,15 @@ const MessageBubble = styled.div`
   font-size: 14px;
   line-height: 1.6;
   position: relative;
-  background: ${props => props.$isMine ? '#2d79f3' : 'white'};
-  color: ${props => props.$isMine ? 'white' : '#1e293b'};
-  box-shadow: ${props => props.$isMine ? '0 4px 12px rgba(45, 121, 243, 0.15)' : '0 2px 5px rgba(0,0,0,0.03)'};
+  background: ${props => props.$isMine ? '#16a34a' : 'white'};
+  color: ${props => props.$isMine ? 'white' : 'var(--text-primary, #334155)'};
+  box-shadow: ${props => props.$isMine ? '0 4px 12px rgba(22, 163, 74, 0.15)' : '0 2px 5px rgba(0,0,0,0.03)'};
   border-bottom-${props => props.$isMine ? 'right' : 'left'}-radius: 4px;
   
   .dark & {
-    background: ${props => props.$isMine ? '#2563eb' : '#1e293b'};
+    background: ${props => props.$isMine ? '#15803d' : 'var(--card-bg)'};
     color: #f1f5f9;
-    border: ${props => props.$isMine ? 'none' : '1px solid #334155'};
+    border: ${props => props.$isMine ? 'none' : '1px solid var(--card-border)'};
   }
 
   .time {
@@ -610,8 +609,8 @@ const InputWrapper = styled.div`
   transition: all 0.2s;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
   
   input {
@@ -620,7 +619,7 @@ const InputWrapper = styled.div`
     background: transparent;
     border: none;
     font-size: 14px;
-    color: #1e293b;
+    color: var(--text-primary);
     .dark & { color: #f1f5f9; }
     &:focus { outline: none; }
   }
@@ -630,13 +629,13 @@ const SendButton = styled.button`
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(45, 121, 243, 0.2);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
   
   &:hover:not(:disabled) {
     background: #1e40af;
@@ -656,7 +655,7 @@ const Container = styled.div`
   margin: 0 auto;
   .dark & {
     h3 { color: #f1f5f9 !important; }
-    p { color: #94a3b8 !important; }
+    p { color: var(--text-muted) !important; }
   }
 `;
 
@@ -668,8 +667,8 @@ const Card = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
   }
 `;

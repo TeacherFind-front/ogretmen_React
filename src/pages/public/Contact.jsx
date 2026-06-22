@@ -202,7 +202,7 @@ const PageWrapper = styled.div`
   padding-bottom: 80px;
 
   .dark & {
-    background: #0f172a;
+    background: var(--page-bg);
   }
 `;
 
@@ -220,27 +220,27 @@ const HeaderSection = styled.div`
 const Badge = styled.span`
   display: inline-block;
   padding: 6px 16px;
-  background: #eff6ff;
-  color: #3b82f6;
+  background: #f0fdf4;
+  color: #16a34a;
   border-radius: 20px;
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 24px;
 
   .dark & {
-    background: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    background: rgba(22, 163, 74, 0.2);
+    color: #4ade80;
   }
 `;
 
 const Title = styled.h1`
   font-size: 42px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 16px;
 
   .dark & {
-    color: #f8fafc;
+    color: var(--text-primary);
   }
 
   @media (max-width: 768px) {
@@ -254,7 +254,7 @@ const Subtitle = styled.p`
   line-height: 1.6;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -282,8 +282,8 @@ const FormSection = styled.form`
   border: 1px solid #f1f5f9;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
   }
 
@@ -295,18 +295,18 @@ const FormSection = styled.form`
 const SectionTitle = styled.h2`
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 24px;
   display: flex;
   align-items: center;
   gap: 12px;
 
   .icon {
-    color: #3b82f6;
+    color: #16a34a;
   }
 
   .dark & {
-    color: #f8fafc;
+    color: var(--text-primary);
   }
 `;
 
@@ -319,10 +319,10 @@ const InputGroup = styled.div`
   label {
     font-size: 14px;
     font-weight: 600;
-    color: #475569;
+    color: var(--text-muted);
 
     .dark & {
-      color: #cbd5e1;
+      color: var(--text-primary);
     }
   }
 
@@ -334,28 +334,28 @@ const InputGroup = styled.div`
     border-radius: 12px;
     font-size: 15px;
     background: #f8fafc;
-    color: #0f172a;
+    color: var(--text-primary);
     transition: all 0.2s;
     outline: none;
 
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
-      color: white;
+      background: var(--page-bg);
+      border-color: var(--card-border);
+      color: var(--text-primary);
     }
 
     &:focus {
-      border-color: #3b82f6;
+      border-color: #16a34a;
       background: white;
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
 
       .dark & {
-        background: #020617;
+        background: var(--page-bg);
       }
     }
 
     &::placeholder {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
@@ -368,8 +368,8 @@ const InputGroup = styled.div`
 const SubmitButton = styled.button`
   width: 100%;
   padding: 16px;
-  background: #3b82f6;
-  color: white;
+  background: #16a34a;
+  color: var(--text-primary);
   border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
@@ -381,7 +381,7 @@ const SubmitButton = styled.button`
   margin-top: 10px;
 
   &:hover {
-    background: #2563eb;
+    background: #15803d;
     transform: translateY(-2px);
   }
 
@@ -406,8 +406,8 @@ const InfoCard = styled.div`
   flex-grow: 1;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
   }
 
@@ -423,7 +423,7 @@ const InfoDesc = styled.p`
   margin-bottom: 30px;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -450,11 +450,11 @@ const IconCircle = styled.div`
   flex-shrink: 0;
 
   &.blue {
-    background: #eff6ff;
-    color: #3b82f6;
+    background: #f0fdf4;
+    color: #16a34a;
     .dark & {
-      background: rgba(59, 130, 246, 0.2);
-      color: #60a5fa;
+      background: rgba(22, 163, 74, 0.2);
+      color: #4ade80;
     }
   }
   &.green {
@@ -479,21 +479,21 @@ const InfoDetails = styled.div`
   h4 {
     font-size: 14px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
     margin-bottom: 4px;
 
     .dark & {
-      color: #f8fafc;
+      color: var(--text-primary);
     }
   }
 
   p {
     font-size: 15px;
-    color: #475569;
+    color: var(--text-muted);
     line-height: 1.5;
 
     .dark & {
-      color: #cbd5e1;
+      color: var(--text-primary);
     }
   }
 `;
@@ -506,7 +506,7 @@ const MapContainer = styled.div`
   border: 1px solid #e2e8f0;
 
   .dark & {
-    border-color: #334155;
+    border-color: var(--card-border);
   }
 
   .map-placeholder {
@@ -517,12 +517,12 @@ const MapContainer = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #94a3b8;
+    color: var(--text-muted);
     gap: 8px;
 
     .dark & {
-      background: #0f172a;
-      color: #475569;
+      background: var(--page-bg);
+      color: var(--text-muted);
     }
 
     span {

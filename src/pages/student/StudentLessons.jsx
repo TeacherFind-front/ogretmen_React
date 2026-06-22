@@ -115,7 +115,7 @@ export default function StudentLessons() {
              <p className="text-gray-400 font-bold text-lg">
                {activeTab === "past" ? "Tamamlanmış ders bulunamadı." : "Yaklaşan dersiniz bulunmuyor."}
              </p>
-             <Button variant="link" className="text-blue-600 font-black mt-2" onClick={() => navigate("/tutors")}>Hemen bir hoca bul →</Button>
+             <Button variant="link" className="text-green-600 font-black mt-2" onClick={() => navigate("/tutors")}>Hemen bir hoca bul →</Button>
           </div>
         ) : (
           filteredBookings.map((booking, i) => (
@@ -135,17 +135,17 @@ export default function StudentLessons() {
                 <div className="flex-1 text-center md:text-left space-y-2">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                     <h3 className="font-black text-xl text-gray-900">{booking.tutorName}</h3>
-                    <Badge variant="outline" className="w-fit mx-auto md:mx-0 px-3 py-1 rounded-lg border-blue-100 text-blue-600 font-bold text-[10px] uppercase tracking-widest bg-blue-50/30">
+                    <Badge variant="outline" className="w-fit mx-auto md:mx-0 px-3 py-1 rounded-lg border-green-100 text-green-600 font-bold text-[10px] uppercase tracking-widest bg-green-50/30">
                       {booking.lessonTitle || "Özel Ders"}
                     </Badge>
                   </div>
                   <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-sm font-bold text-gray-400">
                     <span className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl">
-                      <Calendar className="w-4 h-4 text-blue-500" /> 
+                      <Calendar className="w-4 h-4 text-green-500" /> 
                       {new Date(booking.startTime).toLocaleDateString("tr-TR", { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                     <span className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl">
-                      <Clock className="w-4 h-4 text-blue-500" /> 
+                      <Clock className="w-4 h-4 text-green-500" /> 
                       {new Date(booking.startTime).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })} - {new Date(booking.endTime).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -194,7 +194,7 @@ export default function StudentLessons() {
 
       <footer className="mt-20 pt-10 border-t border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="flex items-center gap-4 p-6 bg-white rounded-3xl border border-gray-50 shadow-sm">
-           <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600"><Video size={20} /></div>
+           <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600"><Video size={20} /></div>
            <div>
               <p className="font-black text-gray-900 text-sm">Online Dersler</p>
               <p className="text-xs text-gray-400 font-medium">Jitsi altyapısı ile kesintisiz görüşme.</p>
@@ -227,11 +227,11 @@ const TabButton = styled.button`
   transition: all 0.2s;
   ${props => props.$active ? `
     background: white;
-    color: #2d79f3;
+    color: #16a34a;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   ` : `
     color: #64748b;
-    &:hover { color: #2d79f3; }
+    &:hover { color: #16a34a; }
   `}
 `;
 
@@ -294,7 +294,7 @@ const ActionMenu = styled.button`
   transition: all 0.2s;
   &:hover {
     background: #f1f5f9;
-    color: #1e293b;
+    color: var(--text-primary);
     transform: scale(1.05);
   }
 `;

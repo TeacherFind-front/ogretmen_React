@@ -195,14 +195,14 @@ export default function TutorsList() {
     : categories.flatMap(c => c.subjects || []);
 
   return (
-    <div className="bg-gray-50/50 dark:bg-[#0f172a] min-h-screen transition-colors duration-300">
+    <div className="min-h-screen transition-colors duration-300" style={{ background: "var(--page-bg)" }}>
       {/* Hero Header */}
-      <div className="bg-white dark:bg-[#1e293b] border-b dark:border-[#334155] py-10 px-6 mb-8 transition-colors duration-300">
+      <div className="border-b py-10 px-6 mb-8 transition-colors duration-300" style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}>
         <div className="container mx-auto max-w-7xl">
-          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">
+          <h1 className="text-4xl font-extrabold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>
             Eğitmenleri Keşfedin
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 max-w-2xl font-medium">
+          <p className="max-w-2xl font-medium" style={{ color: "var(--text-muted)" }}>
             Hedeflerinize ulaşmanıza yardımcı olacak binlerce uzman eğitmen
             arasından size en uygun olanı bulun.
           </p>
@@ -211,13 +211,14 @@ export default function TutorsList() {
 
       <div className="container mx-auto max-w-7xl py-8 px-6 flex flex-col lg:flex-row gap-10">
         {/* Mobil Filtre Butonu */}
-        <div className="lg:hidden flex justify-between items-center bg-white dark:bg-[#1e293b] p-4 rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm">
-          <span className="font-bold text-gray-900 dark:text-white">
+        <div className="lg:hidden flex justify-between items-center p-4 rounded-2xl border shadow-sm" style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}>
+          <span className="font-bold" style={{ color: "var(--text-primary)" }}>
             {totalCount} Eğitmen Bulundu
           </span>
           <Button
             variant="outline"
-            className="rounded-xl border-gray-200"
+            className="rounded-xl"
+            style={{ borderColor: "var(--card-border)", color: "var(--text-primary)" }}
             onClick={() => setIsMobileFilterOpen(true)}
           >
             <SlidersHorizontal className="w-4 h-4 mr-2" />
@@ -234,13 +235,14 @@ export default function TutorsList() {
         )}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-[#1e293b] transform transition-transform duration-300 overflow-y-auto lg:relative lg:translate-x-0 lg:w-72 lg:z-auto lg:bg-transparent ${isMobileFilterOpen ? "translate-x-0" : "-translate-x-full"}`}
+          className={`fixed inset-y-0 left-0 z-50 w-80 transform transition-transform duration-300 overflow-y-auto lg:relative lg:translate-x-0 lg:w-72 lg:z-auto lg:!bg-transparent ${isMobileFilterOpen ? "translate-x-0" : "-translate-x-full"}`}
+          style={{ background: "var(--page-bg)" }}
         >
-          <div className="lg:sticky lg:top-28 bg-white dark:bg-[#1e293b] p-6 lg:rounded-3xl lg:border border-gray-100 dark:border-[#334155] lg:shadow-xl space-y-8 min-h-full lg:min-h-0">
-            <div className="flex items-center justify-between pb-4 border-b dark:border-[#334155]">
+          <div className="lg:sticky lg:top-28 p-6 lg:rounded-3xl lg:border lg:shadow-xl space-y-8 min-h-full lg:min-h-0" style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}>
+            <div className="flex items-center justify-between pb-4 border-b dark:border-[var(--card-border)]">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                <SlidersHorizontal className="w-5 h-5 text-green-600" />
+                <h3 className="font-bold text-gray-900 dark:text-[var(--text-primary)] text-lg">
                   Filtreler
                 </h3>
               </div>
@@ -260,7 +262,7 @@ export default function TutorsList() {
               </label>
               <div className="relative">
                 <Input
-                  className="pl-4 h-11 rounded-xl bg-gray-50/50 dark:bg-[#334155] border-gray-100 dark:border-[#475569] dark:text-white focus:bg-white dark:focus:bg-[#0f172a] transition-all"
+                  className="pl-4 h-11 rounded-xl bg-gray-50/50 dark:bg-[var(--card-border)] border-gray-100 dark:border-[var(--card-border)] dark:text-[var(--text-primary)] focus:bg-white dark:focus:bg-[var(--page-bg)] transition-all"
                   placeholder="İsim veya konu..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange("search", e.target.value)}
@@ -275,24 +277,24 @@ export default function TutorsList() {
               </label>
               <div className="relative" ref={catRef}>
                 <div
-                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[var(--card-border)] bg-gray-50/50 dark:bg-[var(--card-border)] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-green-300"
                   onClick={() => { setCatOpen(o => !o); setCatSearch(""); }}
                 >
-                  <span className={filters.category ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                  <span className={filters.category ? "text-gray-800 dark:text-[var(--text-primary)]" : "text-gray-400 dark:text-gray-400"}>
                     {filters.category || "Tüm Kategoriler"}
                   </span>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${catOpen ? "rotate-180" : ""}`} />
                 </div>
                 {catOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-[360px] flex flex-col">
-                    <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[var(--card-bg)] rounded-2xl shadow-2xl border border-gray-100 dark:border-[var(--card-border)] z-50 overflow-hidden max-h-[360px] flex flex-col">
+                    <div className="p-2 border-b border-gray-50 dark:border-[var(--card-border)]">
                       <input
                         autoFocus
                         type="text"
                         placeholder="Ara..."
                         value={catSearch}
                         onChange={e => setCatSearch(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
+                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[var(--card-border)] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
                       />
                     </div>
                     <div className="overflow-y-auto max-h-[290px]">
@@ -300,7 +302,7 @@ export default function TutorsList() {
                         onMouseDown={e => e.preventDefault()}
                         onClick={() => { handleFilterChange("category", ""); setCatOpen(false); }}
                         className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
-                          !filters.category ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-600 dark:text-gray-300"
+                          !filters.category ? "bg-green-50 dark:bg-green-900/30 text-green-600" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-600 dark:text-gray-300"
                         }`}
                       >Tüm Kategoriler</button>
                       {categories
@@ -310,8 +312,8 @@ export default function TutorsList() {
                             key={cat.category}
                             onMouseDown={e => e.preventDefault()}
                             onClick={() => { handleFilterChange("category", cat.category); setCatOpen(false); }}
-                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[#334155] ${
-                              filters.category === cat.category ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[var(--card-border)] ${
+                              filters.category === cat.category ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-700 dark:text-gray-200"
                             }`}
                           >
                             <Book className="w-3 h-3 shrink-0 text-gray-300" />
@@ -331,24 +333,24 @@ export default function TutorsList() {
               </label>
               <div className="relative" ref={subRef}>
                 <div
-                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[var(--card-border)] bg-gray-50/50 dark:bg-[var(--card-border)] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-green-300"
                   onClick={() => { setSubOpen(o => !o); setSubSearch(""); }}
                 >
-                  <span className={filters.subjectId ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                  <span className={filters.subjectId ? "text-gray-800 dark:text-[var(--text-primary)]" : "text-gray-400 dark:text-gray-400"}>
                     {availableSubjects.find(s => String(s.id) === String(filters.subjectId))?.name || "Tüm Branşlar"}
                   </span>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${subOpen ? "rotate-180" : ""}`} />
                 </div>
                 {subOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-[360px] flex flex-col">
-                    <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[var(--card-bg)] rounded-2xl shadow-2xl border border-gray-100 dark:border-[var(--card-border)] z-50 overflow-hidden max-h-[360px] flex flex-col">
+                    <div className="p-2 border-b border-gray-50 dark:border-[var(--card-border)]">
                       <input
                         autoFocus
                         type="text"
                         placeholder="Branş ara..."
                         value={subSearch}
                         onChange={e => setSubSearch(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
+                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[var(--card-border)] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
                       />
                     </div>
                     <div className="overflow-y-auto max-h-[290px]">
@@ -356,7 +358,7 @@ export default function TutorsList() {
                         onMouseDown={e => e.preventDefault()}
                         onClick={handleSubjectClear}
                         className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
-                          !filters.subjectId ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-600 dark:text-gray-300"
+                          !filters.subjectId ? "bg-green-50 dark:bg-green-900/30 text-green-600" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-600 dark:text-gray-300"
                         }`}
                       >Tüm Branşlar</button>
                       {availableSubjects
@@ -366,8 +368,8 @@ export default function TutorsList() {
                             key={sub.id}
                             onMouseDown={e => e.preventDefault()}
                             onClick={() => handleSubjectSelect(sub)}
-                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[#334155] ${
-                              String(filters.subjectId) === String(sub.id) ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[var(--card-border)] ${
+                              String(filters.subjectId) === String(sub.id) ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-700 dark:text-gray-200"
                             }`}
                           >
                             <Book className="w-3 h-3 shrink-0 text-gray-300" />
@@ -387,24 +389,24 @@ export default function TutorsList() {
               </label>
               <div className="relative" ref={cityRef}>
                 <div
-                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[var(--card-border)] bg-gray-50/50 dark:bg-[var(--card-border)] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-green-300"
                   onClick={() => { setCityOpen(o => !o); setCitySearch(""); }}
                 >
-                  <span className={filters.cityId ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                  <span className={filters.cityId ? "text-gray-800 dark:text-[var(--text-primary)]" : "text-gray-400 dark:text-gray-400"}>
                     {cities.find(c => String(c.id) === String(filters.cityId))?.name || "Fark Etmez"}
                   </span>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${cityOpen ? "rotate-180" : ""}`} />
                 </div>
                 {cityOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden max-h-[360px] flex flex-col">
-                    <div className="p-2 border-b border-gray-50 dark:border-[#334155]">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[var(--card-bg)] rounded-2xl shadow-2xl border border-gray-100 dark:border-[var(--card-border)] z-50 overflow-hidden max-h-[360px] flex flex-col">
+                    <div className="p-2 border-b border-gray-50 dark:border-[var(--card-border)]">
                       <input
                         autoFocus
                         type="text"
                         placeholder="şehir ara..."
                         value={citySearch}
                         onChange={e => setCitySearch(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#334155] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
+                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[var(--card-border)] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
                       />
                     </div>
                     <div className="overflow-y-auto max-h-[290px]">
@@ -412,7 +414,7 @@ export default function TutorsList() {
                         onMouseDown={e => e.preventDefault()}
                         onClick={() => { handleFilterChange("cityId", ""); setCityOpen(false); }}
                         className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
-                          !filters.cityId ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-600 dark:text-gray-300"
+                          !filters.cityId ? "bg-green-50 dark:bg-green-900/30 text-green-600" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-600 dark:text-gray-300"
                         }`}
                       >Fark Etmez</button>
                       {cities
@@ -422,8 +424,8 @@ export default function TutorsList() {
                             key={city.id}
                             onMouseDown={e => e.preventDefault()}
                             onClick={() => { handleFilterChange("cityId", city.id); setCityOpen(false); }}
-                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[#334155] ${
-                              String(filters.cityId) === String(city.id) ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[var(--card-border)] ${
+                              String(filters.cityId) === String(city.id) ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-700 dark:text-gray-200"
                             }`}
                           >
                             <MapPin className="w-3 h-3 shrink-0 text-gray-300" />
@@ -443,23 +445,23 @@ export default function TutorsList() {
               </label>
               <div className="relative" ref={serviceRef}>
                 <div
-                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[#475569] bg-gray-50/50 dark:bg-[#334155] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-blue-300"
+                  className="w-full h-11 rounded-xl border border-gray-100 dark:border-[var(--card-border)] bg-gray-50/50 dark:bg-[var(--card-border)] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-green-300"
                   onClick={() => setServiceOpen(o => !o)}
                 >
-                  <span className={filters.serviceType ? "text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-400"}>
+                  <span className={filters.serviceType ? "text-gray-800 dark:text-[var(--text-primary)]" : "text-gray-400 dark:text-gray-400"}>
                     {SERVICE_OPTIONS.find(o => o.value === filters.serviceType)?.label || "Tümü"}
                   </span>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${serviceOpen ? "rotate-180" : ""}`} />
                 </div>
                 {serviceOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] z-50 overflow-hidden">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[var(--card-bg)] rounded-2xl shadow-2xl border border-gray-100 dark:border-[var(--card-border)] z-50 overflow-hidden">
                     {SERVICE_OPTIONS.map(opt => (
                       <button
                         key={opt.value}
                         onMouseDown={e => e.preventDefault()}
                         onClick={() => { handleFilterChange("serviceType", opt.value); setServiceOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors border-b border-gray-50 dark:border-[#334155] last:border-0 ${
-                          filters.serviceType === opt.value ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-gray-200"
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors border-b border-gray-50 dark:border-[var(--card-border)] last:border-0 ${
+                          filters.serviceType === opt.value ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-700 dark:text-gray-200"
                         }`}
                       >
                         <LayoutGrid className="w-3 h-3 shrink-0 text-gray-300" />
@@ -480,7 +482,7 @@ export default function TutorsList() {
                 <Input
                   type="number"
                   placeholder="Min"
-                  className="h-11 rounded-xl bg-gray-50/50 dark:bg-[#334155] border-gray-100 dark:border-[#475569] dark:text-white"
+                  className="h-11 rounded-xl bg-gray-50/50 dark:bg-[var(--card-border)] border-gray-100 dark:border-[var(--card-border)] dark:text-[var(--text-primary)]"
                   value={filters.minPrice}
                   onChange={(e) =>
                     handleFilterChange("minPrice", e.target.value)
@@ -489,7 +491,7 @@ export default function TutorsList() {
                 <Input
                   type="number"
                   placeholder="Max"
-                  className="h-11 rounded-xl bg-gray-50/50 dark:bg-[#334155] border-gray-100 dark:border-[#475569] dark:text-white"
+                  className="h-11 rounded-xl bg-gray-50/50 dark:bg-[var(--card-border)] border-gray-100 dark:border-[var(--card-border)] dark:text-[var(--text-primary)]"
                   value={filters.maxPrice}
                   onChange={(e) =>
                     handleFilterChange("maxPrice", e.target.value)
@@ -499,7 +501,7 @@ export default function TutorsList() {
             </div>
 
             <Button
-              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 font-bold"
+              className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200 font-bold"
               onClick={() => {
                 setFilters((f) => ({ ...f, page: 1 }));
                 setIsMobileFilterOpen(false);
@@ -513,11 +515,11 @@ export default function TutorsList() {
         {/* Main Content */}
         <main className="flex-1 shrink min-w-0">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 lg:mb-8 gap-4">
-            <h2 className="hidden lg:flex text-xl font-bold text-gray-900 dark:text-white items-center gap-2">
+            <h2 className="hidden lg:flex text-xl font-bold text-gray-900 dark:text-[var(--text-primary)] items-center gap-2">
               {loading && filters.page === 1 ? (
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <Loader2 className="w-5 h-5 animate-spin text-green-600" />
               ) : (
-                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm">
+                <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-sm">
                   {totalCount}
                 </span>
               )}
@@ -526,7 +528,7 @@ export default function TutorsList() {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <SortAsc className="w-4 h-4 text-gray-400" />
               <select
-                className="h-11 rounded-xl border border-gray-200 dark:border-[#475569] bg-white dark:bg-[#1e293b] px-4 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-100 w-full md:w-auto"
+                className="h-11 rounded-xl border border-gray-200 dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)] px-4 text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-green-100 w-full md:w-auto"
                 value={filters.sort}
                 onChange={(e) => handleFilterChange("sort", e.target.value)}
               >
@@ -561,10 +563,10 @@ export default function TutorsList() {
                   {[1, 2, 3].map((i) => (
                     <div
                       key={i}
-                      className="flex flex-col md:flex-row bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-[#334155] rounded-[2rem] overflow-hidden shadow-sm h-auto md:h-56"
+                      className="flex flex-col md:flex-row bg-white dark:bg-[var(--card-bg)] border border-gray-100 dark:border-[var(--card-border)] rounded-[2rem] overflow-hidden shadow-sm h-auto md:h-56"
                     >
                       {/* Left Side Skeleton */}
-                      <div className="md:w-56 bg-gray-50/50 dark:bg-[#0f172a] p-8 flex flex-col items-center justify-center border-r border-gray-100 dark:border-[#334155]">
+                      <div className="md:w-56 bg-gray-50/50 dark:bg-[var(--page-bg)] p-8 flex flex-col items-center justify-center border-r border-gray-100 dark:border-[var(--card-border)]">
                         <Skeleton
                           width="112px"
                           height="112px"
@@ -609,11 +611,11 @@ export default function TutorsList() {
               )}
 
               {!loading && tutors.length === 0 && (
-                <div className="text-center py-32 bg-white dark:bg-[#1e293b] rounded-3xl border border-gray-100 dark:border-[#334155] shadow-sm">
-                  <div className="w-20 h-20 bg-gray-50 dark:bg-[#334155] rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-center py-32 bg-white dark:bg-[var(--card-bg)] rounded-3xl border border-gray-100 dark:border-[var(--card-border)] shadow-sm">
+                  <div className="w-20 h-20 bg-gray-50 dark:bg-[var(--card-border)] rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search className="w-10 h-10 text-gray-200 dark:text-gray-500" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-[var(--text-primary)] mb-2">
                     Sonuç Bulunamadı
                   </h3>
                   <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
@@ -626,7 +628,7 @@ export default function TutorsList() {
                 <div className="pt-10 flex justify-center">
                   <Button
                     variant="outline"
-                    className="h-12 px-10 rounded-xl font-bold border-gray-200 dark:border-[#475569] dark:text-gray-300 hover:bg-white dark:hover:bg-[#334155] hover:border-blue-600 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
+                    className="h-12 px-10 rounded-xl font-bold border-gray-200 dark:border-[var(--card-border)] dark:text-gray-300 hover:bg-white dark:hover:bg-[var(--card-border)] hover:border-green-600 dark:hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all"
                     onClick={handleLoadMore}
                   >
                     Daha Fazla Eğitmen Yükle

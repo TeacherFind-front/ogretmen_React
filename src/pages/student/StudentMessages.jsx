@@ -137,8 +137,6 @@ export default function StudentMessages() {
       
       if (selection) {
         setSelectedConv(selection);
-      } else if (updatedData.length > 0 && !selectedConv) {
-        setSelectedConv(updatedData[0]);
       }
     } catch (err) {
       console.error("Conversations load failed", err);
@@ -199,24 +197,24 @@ export default function StudentMessages() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <Loader2 className="w-10 h-10 animate-spin text-green-600" />
         <p className="text-gray-500 font-medium">Mesaj kutunuz yükleniyor...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] border border-gray-100 dark:border-slate-800 flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl relative">
+    <div className="bg-white dark:bg-[var(--page-bg)] rounded-[2.5rem] border border-gray-100 dark:border-[var(--card-border)] flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl relative">
       
       {/* Sidebar */}
-      <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r dark:border-slate-800 flex-col bg-gray-50/50 dark:bg-[#0f172a]/40 shrink-0`}>
-        <div className="p-6 border-b dark:border-slate-800 bg-white dark:bg-[#1e293b]">
+      <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r dark:border-[var(--card-border)] flex-col bg-gray-50/50 dark:bg-[var(--page-bg)]/40 shrink-0`}>
+        <div className="p-6 border-b dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)]">
           <div className="relative group">
-             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-500 transition-colors" size={18} />
              <input 
               type="text" 
               placeholder="Mesajlarda ara..." 
-              className="w-full h-12 bg-gray-100 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 text-sm font-bold text-gray-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" 
+              className="w-full h-12 bg-gray-100 dark:bg-[var(--card-bg)] border-none rounded-2xl pl-12 pr-4 text-sm font-bold text-gray-700 dark:text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-green-500/20 transition-all" 
              />
           </div>
         </div>
@@ -236,6 +234,7 @@ export default function StudentMessages() {
                        src={resolveMediaUrl(conv.otherUserAvatarUrl)} 
                        alt={conv.otherUserName} 
                        onError={(e) => {
+                         e.currentTarget.onerror = null;
                          e.currentTarget.src = "/placeholder-avatar.png";
                        }}
                        className="w-full h-full object-cover" 
@@ -284,11 +283,11 @@ export default function StudentMessages() {
       </div>
 
       {/* Chat Area */}
-      <div className={`${!selectedConv ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-white dark:bg-[#1e293b] w-full md:w-auto absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`}>
+      <div className={`${!selectedConv ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-white dark:bg-[var(--card-bg)] w-full md:w-auto absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`}>
         {selectedConv ? (
           <>
             {/* Chat Header */}
-            <div className="h-20 border-b dark:border-slate-800 px-4 md:px-8 flex items-center justify-between bg-white dark:bg-[#1e293b] shrink-0">
+            <div className="h-20 border-b dark:border-[var(--card-border)] px-4 md:px-8 flex items-center justify-between bg-white dark:bg-[var(--card-bg)] shrink-0">
                <div className="flex items-center gap-3 md:gap-4">
                   <button 
                     className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
@@ -302,6 +301,7 @@ export default function StudentMessages() {
                         src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} 
                         alt={selectedConv.otherUserName} 
                         onError={(e) => {
+                          e.currentTarget.onerror = null;
                           e.currentTarget.src = "/placeholder-avatar.png";
                         }}
                         className="w-full h-full object-cover" 
@@ -361,13 +361,13 @@ export default function StudentMessages() {
                    </>
                  ) : (
                    <div className="relative group/menu">
-                     <button className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-slate-100 flex items-center justify-center transition-all">
+                     <button className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-[var(--card-bg)] text-gray-400 hover:text-gray-900 dark:hover:text-slate-100 flex items-center justify-center transition-all">
                        <MoreVertical size={20} />
                      </button>
-                     <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
+                     <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[var(--card-bg)] rounded-xl shadow-xl border border-gray-100 dark:border-[var(--card-border)] opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
                        <button 
                          onClick={() => setSelectionMode(true)}
-                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
+                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-[var(--text-primary)] hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
                        >
                          <CheckCircle2 size={16} /> Mesaj Seç
                        </button>
@@ -378,7 +378,7 @@ export default function StudentMessages() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-gray-50/30 dark:bg-[#0f172a]/50">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-gray-50/30 dark:bg-[var(--page-bg)]/50">
               {messages.map((m, i) => {
                 const isMine = m.senderId === user?.userId;
                 const isSelected = selectedMessages.includes(m.id || i);
@@ -390,7 +390,7 @@ export default function StudentMessages() {
                         onClick={() => setSelectedMessages(prev => 
                           prev.includes(m.id || i) ? prev.filter(id => id !== (m.id || i)) : [...prev, m.id || i]
                         )}
-                        className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
+                        className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
                       >
                         {isSelected && <Check size={14} strokeWidth={3} />}
                       </button>
@@ -400,7 +400,7 @@ export default function StudentMessages() {
                        {!selectionMode && !isMine && (
                          <button 
                            onClick={() => setReplyTo(m)}
-                           className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all shrink-0 mr-2"
+                           className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all shrink-0 mr-2"
                          >
                            <Reply size={16} />
                          </button>
@@ -421,7 +421,7 @@ export default function StudentMessages() {
                                {new Date(m.sentAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                              </span>
                              {isMine && (
-                               <span className="text-blue-500"><CheckCheck size={12} /></span>
+                               <span className="text-green-500"><CheckCheck size={12} /></span>
                              )}
                           </div>
                        </div>
@@ -429,7 +429,7 @@ export default function StudentMessages() {
                        {!selectionMode && isMine && (
                          <button 
                            onClick={() => setReplyTo(m)}
-                           className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all shrink-0 ml-2"
+                           className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all shrink-0 ml-2"
                          >
                            <Reply size={16} />
                          </button>
@@ -442,16 +442,16 @@ export default function StudentMessages() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 md:p-6 border-t dark:border-slate-800 bg-white dark:bg-[#1e293b] shrink-0">
+            <div className="p-4 md:p-6 border-t dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)] shrink-0">
               
               {replyTo && (
-                <div className="mb-4 flex items-start justify-between bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border-l-4 border-blue-500">
+                <div className="mb-4 flex items-start justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-xl border-l-4 border-green-500">
                   <div className="flex-1 min-w-0 pr-4">
-                    <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1.5">
+                    <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1 flex items-center gap-1.5">
                       <CornerUpLeft size={12} />
                       {replyTo.senderId === user?.userId ? 'Kendi mesajınıza yanıt veriyorsunuz' : 'Yanıt veriyorsunuz'}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-slate-300 truncate">
+                    <div className="text-sm text-gray-600 dark:text-[var(--text-primary)] truncate">
                       {replyTo.content}
                     </div>
                   </div>
@@ -464,17 +464,17 @@ export default function StudentMessages() {
                 </div>
               )}
 
-              <form onSubmit={handleSend} className="flex items-center gap-3 md:gap-4 bg-gray-50 dark:bg-slate-800 p-2 pl-6 rounded-[2rem] border border-gray-100 dark:border-slate-700 focus-within:border-blue-200 dark:focus-within:border-blue-500/50 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:shadow-xl transition-all">
+              <form onSubmit={handleSend} className="flex items-center gap-3 md:gap-4 bg-gray-50 dark:bg-[var(--card-bg)] p-2 pl-6 rounded-[2rem] border border-gray-100 dark:border-[var(--card-border)] focus-within:border-green-200 dark:focus-within:border-green-500/50 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:shadow-xl transition-all">
                 <input 
                   placeholder="Mesajınızı buraya yazın..." 
-                  className="flex-1 h-12 bg-transparent border-none focus:ring-0 font-bold text-gray-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500" 
+                  className="flex-1 h-12 bg-transparent border-none focus:ring-0 font-bold text-gray-700 dark:text-[var(--text-primary)] placeholder:text-gray-400 dark:placeholder:text-slate-500" 
                   value={newMsg}
                   onChange={(e) => setNewMsg(e.target.value)}
                 />
                 <button 
                   type="submit" 
                   disabled={!newMsg.trim()}
-                  className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700 disabled:opacity-30 disabled:shadow-none transition-all shrink-0"
+                  className="w-12 h-12 rounded-2xl bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 disabled:opacity-30 disabled:shadow-none transition-all shrink-0"
                 >
                   <Send size={18} />
                 </button>
@@ -482,8 +482,8 @@ export default function StudentMessages() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/30 dark:bg-[#0f172a]/20">
-             <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2.5rem] flex items-center justify-center text-blue-200 dark:text-blue-500/40 mb-6 animate-bounce duration-[3000ms]">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/30 dark:bg-[var(--page-bg)]/20">
+             <div className="w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-[2.5rem] flex items-center justify-center text-green-200 dark:text-green-500/40 mb-6 animate-bounce duration-[3000ms]">
                 <Send size={40} />
              </div>
              <h2 className="text-2xl font-black text-gray-900 dark:text-slate-100 mb-2">Canlı Sohbet</h2>
@@ -511,8 +511,8 @@ const ConversationCard = styled.div`
     border: 1px solid #f1f5f9;
 
     .dark & {
-      background: #1e293b;
-      border-color: #334155;
+      background: var(--card-bg);
+      border-color: var(--card-border);
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
   ` : `
@@ -524,7 +524,7 @@ const ConversationCard = styled.div`
 
   .dark & {
     h4 { color: #f1f5f9 !important; }
-    p { color: #94a3b8 !important; }
+    p { color: var(--text-muted) !important; }
   }
 `;
 
@@ -532,7 +532,7 @@ const Avatar = styled.div`
   width: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
   height: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
   border-radius: ${props => props.$large ? '20px' : '14px'};
-  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #2d79f3 0%, #1e40af 100%)'};
+  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #16a34a 0%, #1e40af 100%)'};
   color: white;
   display: flex;
   align-items: center;
@@ -555,7 +555,7 @@ const OnlineStatus = styled.div`
   border-radius: 50%;
 
   .dark & {
-    border-color: #0f172a;
+    border-color: var(--text-primary);
   }
 `;
 
@@ -583,27 +583,27 @@ const MessageBubble = styled.div`
   font-weight: 600;
   line-height: 1.5;
   ${props => props.$isMine ? `
-    background: #2d79f3;
+    background: #16a34a;
     color: white;
     border-bottom-right-radius: 4px;
     box-shadow: 0 8px 16px rgba(45, 121, 243, 0.15);
   ` : `
     background: white;
-    color: #1e293b;
+    color: var(--text-primary);
     border-bottom-left-radius: 4px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.02);
     border: 1px solid #f1f5f9;
 
     .dark & {
-      background: #1e293b;
+      background: var(--card-bg);
       color: #f1f5f9;
-      border-color: #334155;
+      border-color: var(--card-border);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
   `}
 
   .dark & {
-    background-color: #0f172a;
-    border-color: #334155;
+    background-color: var(--page-bg);
+    border-color: var(--card-border);
   }
 `;

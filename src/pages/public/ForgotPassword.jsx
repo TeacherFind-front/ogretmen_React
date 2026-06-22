@@ -87,14 +87,14 @@ const ForgotPassword = () => {
           <form className="form" onSubmit={handleRequestCode}>
             <div className="text-center mb-4">
               <div className="flex justify-center mb-6">
-                <div className="bg-blue-50 p-4 rounded-3xl text-blue-600">
+                <div className="bg-green-50 p-4 rounded-3xl text-green-600">
                   <Mail size={32} />
                 </div>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-[var(--text-primary)]">
                 Şifremi Unuttum
               </h1>
-              <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
+              <p className="text-sm text-gray-500 dark:text-[var(--text-muted)] mt-2">
                 Sıfırlama kodu almak için e-postanızı girin
               </p>
             </div>
@@ -137,16 +137,16 @@ const ForgotPassword = () => {
                   <ShieldCheck size={32} />
                 </div>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-[var(--text-primary)]">
                 Şifreyi Sıfırla
               </h1>
-              <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
+              <p className="text-sm text-gray-500 dark:text-[var(--text-muted)] mt-2">
                 E-postanıza gelen kodu ve yeni şifrenizi girin
               </p>
             </div>
 
             <div className="flex-column items-center">
-              <label className="mb-4 dark:text-slate-200">Doğrulama Kodu</label>
+              <label className="mb-4 dark:text-[var(--text-primary)]">Doğrulama Kodu</label>
               <div className="flex justify-center gap-2 mb-6">
                 {code.map((digit, idx) => (
                   <OtpInput
@@ -190,7 +190,7 @@ const ForgotPassword = () => {
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors"
+              className="text-xs font-bold text-gray-400 hover:text-green-600 transition-colors"
             >
               E-postayı Değiştir
             </button>
@@ -241,7 +241,7 @@ const StyledWrapper = styled.div`
     display: block;
 
     .dark & {
-      color: #e2e8f0;
+      color: var(--text-primary);
     }
   }
 
@@ -256,8 +256,8 @@ const StyledWrapper = styled.div`
     background-color: #f9fafb;
 
     .dark & {
-      background-color: #0f172a;
-      border-color: #334155;
+      background-color: var(--page-bg);
+      border-color: var(--card-border);
     }
   }
 
@@ -268,18 +268,18 @@ const StyledWrapper = styled.div`
   }
 
   .inputForm:focus-within {
-    border-color: #2d79f3;
+    border-color: #16a34a;
     background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
 
     .dark & {
-      background-color: #0f172a;
-      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+      background-color: var(--page-bg);
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
     }
   }
 
   .inputForm:focus-within svg {
-    color: #2d79f3;
+    color: #16a34a;
   }
 
   .input {
@@ -312,7 +312,7 @@ const StyledWrapper = styled.div`
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 
     .dark & {
-      background-color: #2d79f3;
+      background-color: #16a34a;
       &:hover {
         background-color: #1e40af;
       }
@@ -332,12 +332,12 @@ const StyledWrapper = styled.div`
     margin-top: 16px;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
   .span {
-    color: #2d79f3;
+    color: #16a34a;
     font-weight: 600;
     cursor: pointer;
     margin-left: 4px;
@@ -356,24 +356,24 @@ const OtpInput = styled.input`
   text-align: center;
   font-size: 20px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   background: #f8fafc;
   transition: all 0.2s;
   outline: none;
 
   &:focus {
-    border-color: #2d79f3;
+    border-color: #16a34a;
     background: white;
-    box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
 
     .dark & {
-      background: #0f172a;
+      background: var(--page-bg);
     }
   }
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
   }
 `;

@@ -121,9 +121,9 @@ export default function StudentDashboard() {
           title="Mesajlarım"
           value={stats?.totalMessages || 0}
           sub="Tüm zamanlar"
-          icon={<MessageCircle className="h-6 w-6 text-blue-600" />}
+          icon={<MessageCircle className="h-6 w-6 text-green-600" />}
           trend="Aktif"
-          color="#3b82f6"
+          color="#16a34a"
         />
         <StatCard
           title="Favori Hocalarım"
@@ -145,11 +145,11 @@ export default function StudentDashboard() {
 
       <div className="grid gap-10 lg:grid-cols-7">
         {/* Next Lessons List */}
-        <Card className="lg:col-span-4 border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="p-8 border-b border-gray-50 dark:border-slate-700 bg-gray-50/30 dark:bg-slate-800/30">
+        <Card className="lg:col-span-4 border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="p-8 border-b border-gray-50 dark:border-[var(--card-border)] bg-gray-50/30 dark:bg-[var(--card-bg)]">
             <div className="flex justify-between items-center">
               <CardTitle className="text-xl font-black text-gray-900 dark:text-slate-100 flex items-center gap-3">
-                <Zap className="w-6 h-6 text-blue-600 fill-blue-600" /> Platform Duyuruları
+                <Zap className="w-6 h-6 text-green-600 fill-green-600" /> Platform Duyuruları
               </CardTitle>
             </div>
           </CardHeader>
@@ -166,8 +166,8 @@ export default function StudentDashboard() {
         </Card>
 
         {/* Favori Hocalarım Section */}
-        <Card className="lg:col-span-3 border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="p-8 border-b border-gray-50 dark:border-slate-700">
+        <Card className="lg:col-span-3 border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="p-8 border-b border-gray-50 dark:border-[var(--card-border)]">
             <div className="flex justify-between items-center">
               <CardTitle className="text-xl font-black text-gray-900 dark:text-slate-100 flex items-center gap-3">
                 <Heart className="w-6 h-6 text-red-500 fill-red-500" /> Favori Hocalarım
@@ -186,7 +186,7 @@ export default function StudentDashboard() {
               <div className="text-center py-12">
                 <Heart className="w-12 h-12 text-gray-100 mx-auto mb-4" />
                 <p className="text-gray-400 font-bold text-sm">Henüz favori hocanız yok.</p>
-                <Button variant="link" className="text-blue-600 font-bold text-xs mt-2" onClick={() => navigate("/tutors")}>Hemen Keşfet →</Button>
+                <Button variant="link" className="text-green-600 font-bold text-xs mt-2" onClick={() => navigate("/tutors")}>Hemen Keşfet →</Button>
               </div>
             ) : (
               favorites.slice(0, 3).map((item) => {
@@ -206,11 +206,11 @@ export default function StudentDashboard() {
                         alt={name}
                       />
                       <div>
-                        <h4 className="font-bold text-gray-900 dark:text-white text-sm group-hover:text-blue-600 transition-colors">{name}</h4>
-                        <p className="text-[10px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest">{tutor.subject || tutor.category || "Genel"}</p>
+                        <h4 className="font-bold text-gray-900 dark:text-[var(--text-primary)] text-sm group-hover:text-green-600 transition-colors">{name}</h4>
+                        <p className="text-[10px] text-gray-500 dark:text-[var(--text-muted)] font-bold uppercase tracking-widest">{tutor.subject || tutor.category || "Genel"}</p>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
                   </div>
                 );
               })
@@ -232,20 +232,20 @@ export default function StudentDashboard() {
 }
 
 const StatCard = ({ title, value, sub, icon, trend, color }) => (
-  <Card className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2rem] overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+  <Card className="border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2rem] overflow-hidden group hover:-translate-y-1 transition-all duration-300">
     <CardContent className="p-8">
       <div className="flex justify-between items-start mb-6">
-        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-700/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-colors">
+        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[var(--card-bg)] group-hover:bg-green-50 dark:group-hover:bg-green-900/30 transition-colors">
           {icon}
         </div>
-        <Badge className="bg-gray-100 dark:bg-slate-700 hover:bg-gray-100 text-gray-500 dark:text-slate-300 border-none px-3 py-1 rounded-lg text-[10px] font-black">
+        <Badge className="bg-gray-100 dark:bg-[var(--card-bg)] hover:bg-gray-100 text-gray-500 dark:text-[var(--text-primary)] border-none px-3 py-1 rounded-lg text-[10px] font-black">
           {trend}
         </Badge>
       </div>
       <div>
         <div className="text-4xl font-black text-gray-900 dark:text-slate-100 mb-2">{value}</div>
         <div className="text-sm font-bold text-gray-900 dark:text-slate-100">{title}</div>
-        <div className="text-xs text-gray-400 dark:text-slate-400 font-medium mt-1">{sub}</div>
+        <div className="text-xs text-gray-400 dark:text-[var(--text-muted)] font-medium mt-1">{sub}</div>
       </div>
     </CardContent>
   </Card>

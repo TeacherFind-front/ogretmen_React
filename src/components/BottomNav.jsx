@@ -44,7 +44,7 @@ export default function BottomNav({ onMenuClick }) {
       <div className="h-16 md:hidden"></div>
       
       {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 z-[100] w-full h-16 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-2xl border-t border-gray-200 dark:border-[#1e293b] md:hidden flex items-center justify-around px-2 pb-safe">
+      <nav className="fixed bottom-0 left-0 z-[100] w-full h-16 bg-white/80 dark:bg-[var(--page-bg)]/80 backdrop-blur-2xl border-t border-gray-200 dark:border-[#1e293b] md:hidden flex items-center justify-around px-2 pb-safe">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
           return (
@@ -52,7 +52,7 @@ export default function BottomNav({ onMenuClick }) {
               key={index}
               to={item.path}
               className={`flex flex-col items-center justify-center w-full h-full space-y-1 no-underline transition-colors duration-200 ${
-                active ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                active ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
               }`}
             >
               <div className={`transition-transform duration-200 ${active ? "scale-110" : "scale-100"}`}>

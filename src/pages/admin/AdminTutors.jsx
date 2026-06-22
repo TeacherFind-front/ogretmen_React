@@ -28,6 +28,17 @@ import {
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
+const stripHtml = (html) => {
+  if (!html) return "";
+  const withoutJson = html.replace(/---LESSON_RATES_JSON---[\s\S]*?---END_LESSON_RATES_JSON---/, "").trim();
+  return withoutJson.replace(/<[^>]*>/g, "");
+};
+
+const getDisplayDescription = (desc) => {
+  if (!desc) return "";
+  return desc.replace(/---LESSON_RATES_JSON---[\s\S]*?---END_LESSON_RATES_JSON---/, "").trim();
+};
+
 export default function AdminTutors() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -165,7 +176,7 @@ export default function AdminTutors() {
     { id: "Active", label: "Yayında (Onaylı)", color: "border-emerald-500 text-emerald-500" },
     { id: "Passive", label: "Pasif", color: "border-slate-500 text-slate-500" },
     { id: "Rejected", label: "Reddedilenler", color: "border-red-500 text-red-500" },
-    { id: "All", label: "Tümü", color: "border-blue-500 text-blue-500" }
+    { id: "All", label: "Tümü", color: "border-green-500 text-green-500" }
   ];
 
   function getStatusBadge(status) {
@@ -175,11 +186,11 @@ export default function AdminTutors() {
       case "Active":
         return <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none">Yayında</Badge>;
       case "Passive":
-        return <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-none">Pasif</Badge>;
+        return <Badge className="bg-slate-100 dark:bg-[var(--card-bg)] text-slate-600 dark:text-[var(--text-muted)] border-none">Pasif</Badge>;
       case "Rejected":
         return <Badge className="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-none">Reddedildi</Badge>;
       default:
-        return <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-none">{status}</Badge>;
+        return <Badge className="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-none">{status}</Badge>;
     }
   }
 
@@ -187,16 +198,16 @@ export default function AdminTutors() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">İlan Yönetimi</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Sistemdeki tüm öğretmen ilanlarını denetleyin, onaylayın veya tamamen silin.</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-[var(--text-primary)] tracking-tight">İlan Yönetimi</h1>
+          <p className="text-slate-500 dark:text-[var(--text-muted)] font-medium mt-1">Sistemdeki tüm öğretmen ilanlarını denetleyin, onaylayın veya tamamen silin.</p>
         </div>
-        <div className="flex bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm w-full md:w-auto transition-colors">
+        <div className="flex bg-white dark:bg-[var(--card-bg)] p-1.5 rounded-2xl border border-slate-100 dark:border-[var(--card-border)] shadow-sm w-full md:w-auto transition-colors">
            <div className="relative flex-1 md:w-80">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input 
                 type="text" 
                 placeholder="İlan adı veya öğretmen ara..." 
-                className="w-full h-11 bg-transparent border-none pl-11 pr-4 text-sm font-medium outline-none dark:text-slate-200"
+                className="w-full h-11 bg-transparent border-none pl-11 pr-4 text-sm font-medium outline-none dark:text-[var(--text-primary)]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -205,7 +216,7 @@ export default function AdminTutors() {
       </div>
 
       {/* Modern Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-px">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-[var(--card-border)] pb-px">
         {tabItems.map((tab) => (
           <button
             key={tab.id}
@@ -223,27 +234,27 @@ export default function AdminTutors() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">
-           <Loader2 className="animate-spin h-10 w-10 text-blue-600" />
+           <Loader2 className="animate-spin h-10 w-10 text-green-600" />
            <p className="text-slate-400 font-bold animate-pulse">İlan listesi yükleniyor...</p>
         </div>
       ) : filteredListings.length === 0 ? (
-        <Card className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] py-20 transition-colors">
+        <Card className="border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2.5rem] py-20 transition-colors">
           <CardContent className="flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+            <div className="w-24 h-24 bg-slate-50 dark:bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-6">
                <AlertCircle className="h-12 w-12 text-slate-400" />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">İlan Bulunamadı</h2>
-            <p className="text-slate-500 dark:text-slate-400 max-w-sm font-medium">Bu kategoride veya arama kriterinde herhangi bir ilan bulunmuyor.</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--text-primary)] mb-2">İlan Bulunamadı</h2>
+            <p className="text-slate-500 dark:text-[var(--text-muted)] max-w-sm font-medium">Bu kategoride veya arama kriterinde herhangi bir ilan bulunmuyor.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-6">
           {filteredListings.map((listing) => (
-            <Card key={listing.id} className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2rem] overflow-hidden group hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all duration-500 border border-slate-100/50 dark:border-slate-800/50">
+            <Card key={listing.id} className="border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2rem] overflow-hidden group hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all duration-500 border border-slate-100/50 dark:border-[var(--card-border)]/50">
               <div className="flex flex-col lg:flex-row">
                 <div className="p-8 flex-1">
                   <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-none px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    <Badge className="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-none px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
                        {listing.category}
                     </Badge>
                     {getStatusBadge(listing.status)}
@@ -252,32 +263,35 @@ export default function AdminTutors() {
                     </span>
                   </div>
 
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{listing.title}</h3>
-                  <p className="text-slate-500 dark:text-slate-400 font-medium mb-6 line-clamp-2 text-sm leading-relaxed">{listing.description}</p>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-[var(--text-primary)] mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">{listing.title}</h3>
+                  <p className="text-slate-500 dark:text-[var(--text-muted)] font-medium mb-6 line-clamp-2 text-sm leading-relaxed">{stripHtml(listing.description)}</p>
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400">
+                        <div className="w-10 h-10 bg-slate-50 dark:bg-[var(--card-bg)] rounded-xl flex items-center justify-center text-slate-400">
                            <User className="w-5 h-5" />
                         </div>
                         <div>
                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">Eğitmen</p>
-                           <p className="text-sm font-bold text-slate-900 dark:text-slate-200">{listing.tutorName}</p>
+                           <p className="text-sm font-bold text-slate-900 dark:text-[var(--text-primary)]">{listing.tutorName}</p>
                         </div>
                      </div>
                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400">
+                        <div className="w-10 h-10 bg-slate-50 dark:bg-[var(--card-bg)] rounded-xl flex items-center justify-center text-slate-400">
                            <Tag className="w-5 h-5" />
                         </div>
-                        <div>
-                           <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">Saatlik Ücret</p>
-                           <p className="text-sm font-black text-blue-600 dark:text-blue-400">₺{listing.price}</p>
-                        </div>
+                         <div>
+                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">Saatlik Ücret</p>
+                            <p className="text-sm font-extrabold text-slate-900 dark:text-[var(--text-primary)]">
+                              <span className="text-xs text-emerald-600 dark:text-emerald-400 mr-0.5">₺</span>
+                              {listing.price?.toLocaleString('tr-TR')} <span className="text-[10px] text-slate-400 font-bold">/ saat</span>
+                            </p>
+                         </div>
                      </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50/50 dark:bg-slate-800/50 p-8 flex flex-col justify-center gap-4 lg:w-80 border-l border-slate-100 dark:border-slate-700">
+                <div className="bg-slate-50/50 dark:bg-[var(--card-bg)]/50 p-8 flex flex-col justify-center gap-4 lg:w-80 border-l border-slate-100 dark:border-[var(--card-border)]">
                   <a 
                     href={`/tutors/${listing.id}`} 
                     target="_blank" 
@@ -286,7 +300,7 @@ export default function AdminTutors() {
                   >
                     <Button 
                       variant="outline" 
-                      className="w-full h-12 rounded-xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-bold text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all dark:text-slate-200"
+                      className="w-full h-12 rounded-xl bg-white dark:bg-[var(--card-bg)] border-slate-200 dark:border-[var(--card-border)] font-bold text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all dark:text-[var(--text-primary)]"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" /> Detayları Gör
                     </Button>
@@ -326,33 +340,34 @@ export default function AdminTutors() {
       {/* İlan Detay Modalı */}
       {selectedListingDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border-none shadow-2xl rounded-3xl relative">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-[var(--page-bg)] border-none shadow-2xl rounded-3xl relative">
             <button 
               onClick={() => setSelectedListingDetail(null)}
-              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-[var(--card-bg)] rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
               <XCircle className="w-6 h-6 text-slate-500" />
             </button>
             <CardContent className="p-8">
               <div className="mb-6">
-                <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-none mb-3 px-3 py-1 text-xs">
+                <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-none mb-3 px-3 py-1 text-xs">
                   {selectedListingDetail.category}
                 </Badge>
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">{selectedListingDetail.title}</h2>
-                <div className="flex items-center gap-4 text-sm font-medium text-slate-500 dark:text-slate-400">
+                <h2 className="text-3xl font-black text-slate-900 dark:text-[var(--text-primary)] mb-2">{selectedListingDetail.title}</h2>
+                <div className="flex items-center gap-4 text-sm font-medium text-slate-500 dark:text-[var(--text-muted)]">
                   <span className="flex items-center gap-1"><User className="w-4 h-4"/> {selectedListingDetail.tutorName || selectedListingDetail.teacherName}</span>
-                  <span className="flex items-center gap-1"><Tag className="w-4 h-4"/> ₺{selectedListingDetail.price} / saat</span>
+                  <span className="flex items-center gap-1"><Tag className="w-4 h-4"/> <span className="font-extrabold text-slate-950 dark:text-white">₺{selectedListingDetail.price?.toLocaleString('tr-TR')}</span> / saat</span>
                 </div>
               </div>
 
               <div className="prose dark:prose-invert max-w-none">
                 <h4 className="text-lg font-bold mb-2">İlan Açıklaması</h4>
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
-                  {selectedListingDetail.description}
-                </p>
+                <div 
+                  className="text-slate-600 dark:text-[var(--text-primary)] leading-relaxed bg-slate-50 dark:bg-[var(--card-bg)]/50 p-4 rounded-2xl prose dark:prose-invert max-w-none text-sm"
+                  dangerouslySetInnerHTML={{ __html: getDisplayDescription(selectedListingDetail.description) }}
+                />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-[var(--card-border)]">
                 {selectedListingDetail.status === 'PendingApproval' && (
                   <>
                     <Button 
@@ -386,21 +401,21 @@ export default function AdminTutors() {
       {/* Silme Onay Modalı */}
       {deleteConfirmListing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <Card className="w-full max-w-md bg-white dark:bg-[#1e293b] border-none shadow-2xl rounded-3xl relative overflow-hidden">
+          <Card className="w-full max-w-md bg-white dark:bg-[var(--card-bg)] border-none shadow-2xl rounded-3xl relative overflow-hidden">
             <CardContent className="p-8">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center text-red-500">
                   <Trash2 className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">İlanı Silmek İstediğinize Emin misiniz?</h3>
-                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm leading-relaxed">
-                  <span className="font-bold text-slate-700 dark:text-slate-200">"{deleteConfirmListing.title}"</span> başlıklı ilan kalıcı olarak silinecektir. Bu işlem geri alınamaz!
+                <h3 className="text-xl font-black text-slate-900 dark:text-[var(--text-primary)]">İlanı Silmek İstediğinize Emin misiniz?</h3>
+                <p className="text-slate-500 dark:text-[var(--text-muted)] font-medium text-sm leading-relaxed">
+                  <span className="font-bold text-slate-700 dark:text-[var(--text-primary)]">"{deleteConfirmListing.title}"</span> başlıklı ilan kalıcı olarak silinecektir. Bu işlem geri alınamaz!
                 </p>
               </div>
               <div className="flex gap-3 mt-8">
                 <Button
                   variant="outline"
-                  className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-700 font-bold dark:text-slate-200"
+                  className="flex-1 h-12 rounded-xl border-slate-200 dark:border-[var(--card-border)] font-bold dark:text-[var(--text-primary)]"
                   onClick={() => setDeleteConfirmListing(null)}
                   disabled={deleteLoading}
                 >
@@ -423,7 +438,7 @@ export default function AdminTutors() {
       {/* Red Gerekçesi Modalı */}
       {rejectConfirmListing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <Card className="w-full max-w-md bg-white dark:bg-[#1e293b] border-none shadow-2xl rounded-3xl relative overflow-hidden">
+          <Card className="w-full max-w-md bg-white dark:bg-[var(--card-bg)] border-none shadow-2xl rounded-3xl relative overflow-hidden">
             <CardContent className="p-8">
               <div className="flex flex-col space-y-4">
                 <div className="flex items-center gap-3">
@@ -431,7 +446,7 @@ export default function AdminTutors() {
                     <AlertCircle className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white">İlanı Reddet</h3>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-[var(--text-primary)]">İlanı Reddet</h3>
                     <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Lütfen eğitmenin görebileceği bir gerekçe yazın.</p>
                   </div>
                 </div>
@@ -439,7 +454,7 @@ export default function AdminTutors() {
                 <div className="mt-4">
                   <textarea
                     rows={4}
-                    className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-transparent text-sm font-medium outline-none focus:border-blue-500 dark:focus:border-blue-400 dark:text-slate-200 resize-none transition-colors"
+                    className="w-full p-4 rounded-2xl border border-slate-200 dark:border-[var(--card-border)] bg-transparent text-sm font-medium outline-none focus:border-green-500 dark:focus:border-green-400 dark:text-[var(--text-primary)] resize-none transition-colors"
                     placeholder="Red gerekçesini buraya yazın..."
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
@@ -449,7 +464,7 @@ export default function AdminTutors() {
               <div className="flex gap-3 mt-6">
                 <Button
                   variant="outline"
-                  className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-700 font-bold dark:text-slate-200"
+                  className="flex-1 h-12 rounded-xl border-slate-200 dark:border-[var(--card-border)] font-bold dark:text-[var(--text-primary)]"
                   onClick={() => setRejectConfirmListing(null)}
                   disabled={actionLoading}
                 >

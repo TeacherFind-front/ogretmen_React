@@ -75,7 +75,7 @@ export default function AdminSettings() {
   if (initialLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <Loader2 className="w-10 h-10 animate-spin text-green-600" />
         <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
           Sistem Ayarları Yükleniyor...
         </p>
@@ -94,17 +94,17 @@ export default function AdminSettings() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-[var(--text-primary)] tracking-tight">
             Sistem Ayarları
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">
+          <p className="text-slate-500 dark:text-[var(--text-muted)] font-medium">
             Platformun global parametrelerini ve güvenlik ayarlarını yönetin.
           </p>
         </div>
         <Button
           onClick={handleSave}
           disabled={loading}
-          className="h-12 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow-lg shadow-blue-200 flex items-center gap-2 transition-all active:scale-95"
+          className="h-12 px-8 rounded-xl bg-green-600 hover:bg-green-700 text-white font-black shadow-lg shadow-green-200 flex items-center gap-2 transition-all active:scale-95"
         >
           {loading ? (
             "Kaydediliyor..."
@@ -124,8 +124,8 @@ export default function AdminSettings() {
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-sm transition-all ${
                 activeTab === tab.id
-                  ? "bg-slate-900 dark:bg-blue-600 text-white shadow-xl shadow-slate-200 dark:shadow-none"
-                  : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700"
+                  ? "bg-slate-900 dark:bg-green-600 text-white shadow-xl shadow-slate-200 dark:shadow-none"
+                  : "bg-white dark:bg-[var(--card-bg)] text-slate-500 dark:text-[var(--text-muted)] hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-[var(--card-border)]"
               }`}
             >
               <tab.icon size={20} />
@@ -136,10 +136,10 @@ export default function AdminSettings() {
 
         <div className="flex-1">
           {activeTab === "general" && (
-            <Card className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden border border-slate-100/50 dark:border-slate-800/50 transition-colors">
-              <CardHeader className="p-8 border-b border-slate-50 dark:border-slate-800">
-                <CardTitle className="text-xl font-black flex items-center gap-3 dark:text-white">
-                  <Settings className="text-blue-600 dark:text-blue-400" /> Site
+            <Card className="border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2.5rem] overflow-hidden border border-slate-100/50 dark:border-[var(--card-border)]/50 transition-colors">
+              <CardHeader className="p-8 border-b border-slate-50 dark:border-[var(--card-border)]">
+                <CardTitle className="text-xl font-black flex items-center gap-3 dark:text-[var(--text-primary)]">
+                  <Settings className="text-green-600 dark:text-green-400" /> Site
                   Bilgileri
                 </CardTitle>
               </CardHeader>
@@ -154,7 +154,7 @@ export default function AdminSettings() {
                       onChange={(e) =>
                         setSettings({ ...settings, siteTitle: e.target.value })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-[var(--text-primary)]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -169,7 +169,7 @@ export default function AdminSettings() {
                           contactEmail: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-[var(--text-primary)]"
                     />
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function AdminSettings() {
                           instagramLink: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-[var(--text-primary)]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -202,7 +202,7 @@ export default function AdminSettings() {
                           facebookLink: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-[var(--text-primary)]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -217,7 +217,7 @@ export default function AdminSettings() {
                           twitterLink: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-[var(--text-primary)]"
                     />
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export default function AdminSettings() {
                           linkedinLink: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-[var(--text-primary)]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -250,17 +250,17 @@ export default function AdminSettings() {
                           youtubeLink: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-bold focus:bg-white dark:focus:bg-slate-900 dark:text-[var(--text-primary)]"
                     />
                   </div>
                 </div>
 
-                <div className="p-6 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-900/50 flex items-center justify-between">
+                <div className="p-6 bg-green-50 dark:bg-green-500/10 rounded-2xl border border-green-100 dark:border-green-900/50 flex items-center justify-between">
                   <div>
-                    <h4 className="text-blue-900 dark:text-blue-200 font-black text-sm">
+                    <h4 className="text-green-900 dark:text-green-200 font-black text-sm">
                       Bakım Modu
                     </h4>
-                    <p className="text-blue-600 dark:text-blue-400 text-xs font-bold mt-1">
+                    <p className="text-green-600 dark:text-green-400 text-xs font-bold mt-1">
                       Aktif edilirse site ziyaretçilere kapatılır.
                     </p>
                   </div>
@@ -271,7 +271,7 @@ export default function AdminSettings() {
                         maintenanceMode: !settings.maintenanceMode,
                       })
                     }
-                    className={`w-14 h-8 rounded-full p-1 transition-all ${settings.maintenanceMode ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                    className={`w-14 h-8 rounded-full p-1 transition-all ${settings.maintenanceMode ? "bg-green-600" : "bg-slate-300 dark:bg-[var(--card-bg)]"}`}
                   >
                     <div
                       className={`w-6 h-6 bg-white rounded-full transition-all ${settings.maintenanceMode ? "translate-x-6" : "translate-x-0"}`}
@@ -283,21 +283,21 @@ export default function AdminSettings() {
           )}
 
           {activeTab === "financial" && (
-            <Card className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden border border-slate-100/50 dark:border-slate-800/50 transition-colors">
-              <CardHeader className="p-8 border-b border-slate-50 dark:border-slate-800">
-                <CardTitle className="text-xl font-black flex items-center gap-3 dark:text-white">
+            <Card className="border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2.5rem] overflow-hidden border border-slate-100/50 dark:border-[var(--card-border)]/50 transition-colors">
+              <CardHeader className="p-8 border-b border-slate-50 dark:border-[var(--card-border)]">
+                <CardTitle className="text-xl font-black flex items-center gap-3 dark:text-[var(--text-primary)]">
                   <Percent className="text-emerald-600 dark:text-emerald-400" />{" "}
                   Finansal Parametreler
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 <div className="grid md:grid-cols-2 gap-8">
-                  <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-[2rem] space-y-4">
+                  <div className="p-6 bg-slate-50 dark:bg-[var(--card-bg)] rounded-[2rem] space-y-4">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center">
                         <Percent size={16} />
                       </div>
-                      <span className="text-sm font-black text-slate-900 dark:text-white">
+                      <span className="text-sm font-black text-slate-900 dark:text-[var(--text-primary)]">
                         Komisyon Oranı (%)
                       </span>
                     </div>
@@ -310,19 +310,19 @@ export default function AdminSettings() {
                           commissionRate: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-black text-xl dark:text-white"
+                      className="h-12 rounded-xl border-slate-200 dark:border-[var(--card-border)] bg-white dark:bg-[var(--page-bg)] font-black text-xl dark:text-[var(--text-primary)]"
                     />
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">
                       Her başarılı ödemeden alınacak pay.
                     </p>
                   </div>
 
-                  <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-[2rem] space-y-4">
+                  <div className="p-6 bg-slate-50 dark:bg-[var(--card-bg)] rounded-[2rem] space-y-4">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400 rounded-lg flex items-center justify-center">
                         <HardDrive size={16} />
                       </div>
-                      <span className="text-sm font-black text-slate-900 dark:text-white">
+                      <span className="text-sm font-black text-slate-900 dark:text-[var(--text-primary)]">
                         Min. Çekim Tutarı (₺)
                       </span>
                     </div>
@@ -335,7 +335,7 @@ export default function AdminSettings() {
                           minWithdrawal: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-black text-xl dark:text-white"
+                      className="h-12 rounded-xl border-slate-200 dark:border-[var(--card-border)] bg-white dark:bg-[var(--page-bg)] font-black text-xl dark:text-[var(--text-primary)]"
                     />
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">
                       Eğitmenlerin talep edebileceği alt limit.
@@ -347,9 +347,9 @@ export default function AdminSettings() {
           )}
 
           {activeTab === "security" && (
-            <Card className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden border border-slate-100/50 dark:border-slate-800/50 transition-colors">
-              <CardHeader className="p-8 border-b border-slate-50 dark:border-slate-800">
-                <CardTitle className="text-xl font-black flex items-center gap-3 dark:text-white">
+            <Card className="border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2.5rem] overflow-hidden border border-slate-100/50 dark:border-[var(--card-border)]/50 transition-colors">
+              <CardHeader className="p-8 border-b border-slate-50 dark:border-[var(--card-border)]">
+                <CardTitle className="text-xl font-black flex items-center gap-3 dark:text-[var(--text-primary)]">
                   <Lock className="text-purple-600 dark:text-purple-400" />{" "}
                   Güvenlik & SEO
                 </CardTitle>
@@ -368,7 +368,7 @@ export default function AdminSettings() {
                           googleAnalyticsId: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 font-mono dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] font-mono dark:text-[var(--text-primary)]"
                       placeholder="UA-XXXXXX-X"
                     />
                   </div>
@@ -384,7 +384,7 @@ export default function AdminSettings() {
                           siteKeywords: e.target.value,
                         })
                       }
-                      className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 dark:text-slate-200"
+                      className="h-12 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border-slate-100 dark:border-[var(--card-border)] dark:text-[var(--text-primary)]"
                       placeholder="özel hoca, matematik dersi, online eğitim"
                     />
                   </div>
@@ -401,7 +401,7 @@ export default function AdminSettings() {
                         siteDescription: e.target.value,
                       })
                     }
-                    className="w-full h-32 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 text-sm font-medium outline-none focus:border-purple-300 dark:focus:border-purple-600 transition-all dark:text-slate-200"
+                    className="w-full h-32 rounded-xl bg-slate-50 dark:bg-[var(--card-bg)] border border-slate-100 dark:border-[var(--card-border)] p-4 text-sm font-medium outline-none focus:border-purple-300 dark:focus:border-purple-600 transition-all dark:text-[var(--text-primary)]"
                     placeholder="Türkiye'nin en büyük özel ders platformu..."
                   />
                 </div>
