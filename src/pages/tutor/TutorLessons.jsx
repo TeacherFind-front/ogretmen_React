@@ -14,7 +14,7 @@ import {
   uploadCertificate,
   deleteCertificate,
 } from "@/services/tutorService";
-import { getCategories } from "@/services/locationService";
+import { getSubjectsHierarchy } from "@/services/locationService";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { resolveMediaUrl } from "@/utils/helpers";
@@ -75,7 +75,7 @@ export default function TutorLessons() {
     title: "",
     category: "",
     subCategory: "",
-    subjectId: "",
+    subjectIds: [],
     price: "",
     description: "",
     serviceType: 1,
@@ -88,7 +88,7 @@ export default function TutorLessons() {
       try {
         const [listings, cats, profileData] = await Promise.all([
           getMyListings(),
-          getCategories(),
+          getSubjectsHierarchy(),
           getMyProfile(),
         ]);
         // Backend'den silinmiş (isActive = false) ilanları filtrele
@@ -125,7 +125,7 @@ export default function TutorLessons() {
       title: "",
       category: categories[0]?.category || "",
       subCategory: "",
-      subjectId: "",
+      subjectIds: [],
       price: "",
       description: "",
       serviceType: 1,
@@ -156,11 +156,32 @@ export default function TutorLessons() {
     setExistingCerts(profile?.certificates?.$values || profile?.certificates || []);
     setNewCerts([]);
 
+    const courseSubjectIds = course.subjectIds?.$values || course.subjectIds || (course.subjectId ? [course.subjectId] : []);
+    
+    let foundCategory = course.category || "";
+    let foundSubCategory = course.subCategory || "";
+    
+    // Hiyerarşiden subjectIds'ye göre kategorileri bulmayı dene
+    if (categories && courseSubjectIds.length > 0 && (!foundCategory || !foundSubCategory)) {
+      const primaryId = courseSubjectIds[0];
+      for (const cat of categories) {
+        if (cat.subjects) {
+          for (const sub of cat.subjects) {
+            if (sub.options && sub.options.some(o => o.id === primaryId)) {
+              foundCategory = cat.category;
+              foundSubCategory = sub.name;
+              break;
+            }
+          }
+        }
+      }
+    }
+
     setFormData({
       title: course.title,
-      category: course.category,
-      subCategory: course.subCategory,
-      subjectId: course.subjectId,
+      category: foundCategory,
+      subCategory: foundSubCategory,
+      subjectIds: courseSubjectIds,
       price: course.price,
       description: displayDescription,
       serviceType:
@@ -240,10 +261,16 @@ export default function TutorLessons() {
         finalDescription += `\n\n---LESSON_RATES_JSON---\n${JSON.stringify(currentLessonRates)}\n---END_LESSON_RATES_JSON---`;
       }
 
+      if (!formData.subjectIds || formData.subjectIds.length === 0) {
+        setSubmitting(false);
+        return alert("Lütfen en az bir ders seçeneği seçiniz.");
+      }
+
       const payload = {
         ...formData,
         description: finalDescription,
-        subjectId: formData.subjectId ? parseInt(formData.subjectId) : null,
+        subjectId: formData.subjectIds[0],
+        subjectIds: formData.subjectIds.map(Number),
         price: p,
         lessonDuration: parseInt(formData.lessonDuration),
         serviceType: parseInt(formData.serviceType),
@@ -357,7 +384,7 @@ export default function TutorLessons() {
                   />
                 </FormGroup>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <FormGroup>
                     <label>
                       <Tag className="w-4 h-4 inline mr-2 text-emerald-500" />{" "}
@@ -366,18 +393,15 @@ export default function TutorLessons() {
                     <select
                       value={formData.category}
                       onChange={(e) => {
-                        const cat = categories.find(
-                          (c) => c.category === e.target.value,
-                        );
                         setFormData({
                           ...formData,
                           category: e.target.value,
-                          subCategory: cat?.subjects[0]?.name || "",
-                          subjectId: cat?.subjects[0]?.id || "",
+                          subCategory: "",
+                          subjectIds: [],
                         });
                       }}
                     >
-                      <option value="">Seçiniz...</option>
+                      <option value="">Kategori seçin...</option>
                       {categories.map((c) => (
                         <option key={c.category} value={c.category}>
                           {c.category}
@@ -386,32 +410,72 @@ export default function TutorLessons() {
                     </select>
                   </FormGroup>
                   <FormGroup>
-                    <label>Branş</label>
+                    <label>
+                      <BookOpen className="w-4 h-4 inline mr-2 text-blue-500" />{" "}
+                      Branş
+                    </label>
                     <select
-                      value={formData.subjectId}
+                      value={formData.subCategory}
                       onChange={(e) => {
-                        const subId = e.target.value;
-                        const sub = categories
-                          .find((c) => c.category === formData.category)
-                          ?.subjects.find(
-                            (s) => s.id.toString() === subId.toString(),
-                          );
                         setFormData({
                           ...formData,
-                          subjectId: subId,
-                          subCategory: sub?.name || "",
+                          subCategory: e.target.value,
+                          subjectIds: [],
                         });
                       }}
                     >
-                      <option value="">Seçiniz...</option>
+                      <option value="">Branş seçin...</option>
                       {categories
                         .find((c) => c.category === formData.category)
-                        ?.subjects.map((s) => (
-                          <option key={s.id} value={s.id}>
+                        ?.subjects?.map((s) => (
+                          <option key={s.name} value={s.name}>
                             {s.name}
                           </option>
                         ))}
                     </select>
+                  </FormGroup>
+                  <FormGroup className="col-span-1 md:col-span-3">
+                    <label>
+                      <GraduationCap className="w-4 h-4 inline mr-2 text-amber-500" />{" "}
+                      Seviye / Alan Seçimi <span className="text-xs text-gray-400 font-normal ml-2">(Birden fazla seçebilirsiniz)</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {categories
+                        .find((c) => c.category === formData.category)
+                        ?.subjects?.find((s) => s.name === formData.subCategory)
+                        ?.options?.length === 0 && (
+                          <p className="text-sm text-gray-500">Bu branş için alt seviye bulunamadı.</p>
+                      )}
+                      {categories
+                        .find((c) => c.category === formData.category)
+                        ?.subjects?.find((s) => s.name === formData.subCategory)
+                        ?.options?.map((o) => {
+                          const isSelected = formData.subjectIds?.includes(o.id);
+                          return (
+                            <button
+                              key={o.id}
+                              type="button"
+                              onClick={() => {
+                                const currentIds = formData.subjectIds || [];
+                                setFormData({
+                                  ...formData,
+                                  subjectIds: isSelected
+                                    ? currentIds.filter(id => id !== o.id)
+                                    : [...currentIds, o.id]
+                                });
+                              }}
+                              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 border ${
+                                isSelected 
+                                  ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm" 
+                                  : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                              }`}
+                            >
+                              {isSelected && <CheckCircle2 size={14} />}
+                              {o.label}
+                            </button>
+                          );
+                        })}
+                    </div>
                   </FormGroup>
                 </div>
 
@@ -542,7 +606,7 @@ export default function TutorLessons() {
                     ))}
 
                     {/* Yükleme Butonu */}
-                    {(existingPhotos.length + newPhotos.length) < 5 && (
+                    {(existingPhotos.length + newPhotos.length) < 2 && (
                       <PhotoUploadBtn
                         type="button"
                         onClick={() => photoInputRef.current?.click()}
@@ -561,8 +625,8 @@ export default function TutorLessons() {
                     onChange={(e) => {
                       const files = Array.from(e.target.files || []);
                       const total = existingPhotos.length + newPhotos.length + files.length;
-                      if (total > 5) {
-                        alert("Bir ilana en fazla 5 fotoğraf yükleyebilirsiniz.");
+                      if (total > 2) {
+                        alert("Bir ilana en fazla 2 fotoğraf yükleyebilirsiniz.");
                         return;
                       }
                       setNewPhotos(prev => [...prev, ...files]);

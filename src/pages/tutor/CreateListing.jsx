@@ -32,7 +32,7 @@ import {
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import {
-  getCategories,
+  getSubjectsHierarchy,
   getCities,
   getDistricts,
   getNeighborhoods,
@@ -70,6 +70,7 @@ const CreateListing = () => {
     youtubeVideoUrl: "",
     categoryId: "",
     category: "",
+    subCategory: "",
     subjectIds: [],
     subjectNames: [],
     cityId: "",
@@ -100,7 +101,7 @@ const CreateListing = () => {
     const fetchData = async () => {
       try {
         const [catData, cityData, profileData] = await Promise.all([
-          getCategories(),
+          getSubjectsHierarchy(),
           getCities(),
           getMyProfile(),
         ]);
@@ -166,20 +167,27 @@ const CreateListing = () => {
       }
       const normalizedPrice = Math.round(p / 50) * 50;
 
-      const primarySubjectId =
-        formData.subjectIds.length > 0 ? formData.subjectIds[0] : null;
+      if (!formData.subjectIds || formData.subjectIds.length === 0) {
+        setLoading(false);
+        return toast.error("Lütfen en az bir ders seçeneği seçiniz.");
+      }
+
+      const primarySubjectId = parseInt(formData.subjectIds[0]);
       const selectedCat = categories.find(
         (c) => c.category === formData.category,
       );
-      const primarySubject = selectedCat?.subjects.find(
-        (s) => s.id === primarySubjectId,
+      const selectedSubject = selectedCat?.subjects?.find(
+        (s) => s.name === formData.subCategory,
+      );
+      const selectedOption = selectedSubject?.options?.find(
+        (o) => o.id === primarySubjectId,
       );
 
       // Ek dersleri ve ücretlerini (lessonRates) description alanına JSON etiketleri olarak ekle
       let finalDescription = formData.description.trim();
       if (formData.lessonRates && formData.lessonRates.length > 0) {
         const mappedRates = formData.lessonRates.map((lr) => ({
-          title: lr.title || primarySubject?.name || "Özel Ders",
+          title: lr.title || selectedOption?.label || "Özel Ders",
           duration: parseInt(lr.duration) || 60,
           type: lr.type || "both",
           onlinePrice: parseFloat(lr.onlinePrice) || 0,
@@ -192,13 +200,13 @@ const CreateListing = () => {
         title: formData.title.trim(),
         description: finalDescription,
         youtubeVideoUrl: formData.youtubeVideoUrl?.trim() || null,
-        subjectId: primarySubjectId ? parseInt(primarySubjectId) : null,
+        subjectId: primarySubjectId,
         subjectIds: formData.subjectIds.map((id) => parseInt(id)),
         cityId: formData.cityId || null,
         districtId: formData.districtId || null,
         neighborhoodId: formData.neighborhoodId || null,
         category: formData.category,
-        subCategory: primarySubject?.name || "",
+        subCategory: formData.subCategory,
         lessonDuration: parseInt(formData.lessonDuration) || 60,
         price: normalizedPrice,
         serviceType,
@@ -251,28 +259,25 @@ const CreateListing = () => {
   const renderStep1 = () => {
     const availableSubjects =
       categories.find((c) => c.category === formData.category)?.subjects || [];
-    const filteredSubjects = availableSubjects.filter((s) =>
-      s.name.toLowerCase().includes(branchSearch.toLowerCase()),
-    );
-    const toggleSubject = (subject) => {
-      const isSelected = formData.subjectIds.includes(subject.id);
-      if (isSelected) {
-        setFormData({
-          ...formData,
-          subjectIds: formData.subjectIds.filter((id) => id !== subject.id),
-          subjectNames: formData.subjectNames.filter((n) => n !== subject.name),
-        });
-      } else {
-        setFormData({
-          ...formData,
-          subjectIds: [...formData.subjectIds, subject.id],
-          subjectNames: [...formData.subjectNames, subject.name],
-        });
-      }
+    
+    const selectedSubject = availableSubjects.find((s) => s.name === formData.subCategory);
+    const availableOptions = selectedSubject?.options || [];
+
+    const toggleOption = (option) => {
+      const currentIds = formData.subjectIds || [];
+      const isSelected = currentIds.includes(option.id);
+      
+      setFormData({
+        ...formData,
+        subjectIds: isSelected 
+          ? currentIds.filter(id => id !== option.id) 
+          : [...currentIds, option.id]
+      });
     };
 
     return (
       <StepBody>
+        {/* Kategori Seçimi */}
         <SectionCard>
           <SectionIcon
             style={{
@@ -290,10 +295,9 @@ const CreateListing = () => {
               setFormData({
                 ...formData,
                 category: e.target.value,
+                subCategory: "",
                 subjectIds: [],
-                subjectNames: [],
               });
-              setBranchSearch("");
             }}
           >
             <option value="">Kategori seçin...</option>
@@ -305,6 +309,7 @@ const CreateListing = () => {
           </ModernSelect>
         </SectionCard>
 
+        {/* Branş Seçimi */}
         {formData.category && (
           <SectionCard style={{ marginTop: 20 }}>
             <SectionIcon
@@ -314,81 +319,62 @@ const CreateListing = () => {
             >
               <BookOpen size={20} color="#16a34a" />
             </SectionIcon>
+            <SectionTitle>Ders Branşı</SectionTitle>
+            <SectionHint>Spesifik ders branşını veya dili seçin</SectionHint>
+            <ModernSelect
+              id="subCategory"
+              value={formData.subCategory}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  subCategory: e.target.value,
+                  subjectIds: [],
+                });
+              }}
+            >
+              <option value="">Branş seçin...</option>
+              {availableSubjects.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </ModernSelect>
+          </SectionCard>
+        )}
+
+        {/* Seviye / Alan Seçimi */}
+        {formData.subCategory && (
+          <SectionCard style={{ marginTop: 20 }}>
+            <SectionIcon
+              style={{
+                background: "linear-gradient(135deg, #f59e0b20, #fbbf2420)",
+              }}
+            >
+              <GraduationCap size={20} color="#f59e0b" />
+            </SectionIcon>
             <div className="flex items-center gap-3 mb-1">
-              <SectionTitle style={{ margin: 0 }}>Ders Branşı</SectionTitle>
-              {formData.subjectIds.length > 0 && (
+              <SectionTitle style={{ margin: 0 }}>Seviye / Alan</SectionTitle>
+              {formData.subjectIds?.length > 0 && (
                 <CountBadge>{formData.subjectIds.length} seçili</CountBadge>
               )}
             </div>
-            <SectionHint>Birden fazla branş seçebilirsiniz</SectionHint>
+            <SectionHint>Ders vereceğiniz seviyeleri seçin (Birden fazla seçebilirsiniz)</SectionHint>
 
-            {formData.subjectNames.length > 0 && (
-              <SelectedChipsRow>
-                {formData.subjectNames.map((name, idx) => (
-                  <SelectedChip key={idx}>
-                    <CheckCircle2 size={11} />
-                    {name}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const id = formData.subjectIds[idx];
-                        setFormData({
-                          ...formData,
-                          subjectIds: formData.subjectIds.filter(
-                            (i) => i !== id,
-                          ),
-                          subjectNames: formData.subjectNames.filter(
-                            (_, i) => i !== idx,
-                          ),
-                        });
-                      }}
-                    >
-                      <X size={11} />
-                    </button>
-                  </SelectedChip>
-                ))}
-                {formData.subjectIds.length > 1 && (
-                  <ClearBtn
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        subjectIds: [],
-                        subjectNames: [],
-                      })
-                    }
-                  >
-                    Temizle
-                  </ClearBtn>
-                )}
-              </SelectedChipsRow>
-            )}
-
-            <SearchBox>
-              <Search size={15} />
-              <input
-                type="text"
-                placeholder="Branş ara..."
-                value={branchSearch}
-                onChange={(e) => setBranchSearch(e.target.value)}
-              />
-            </SearchBox>
-
-            <ChipsGrid>
-              {filteredSubjects.length === 0 ? (
-                <NoResult>Sonuç bulunamadı.</NoResult>
+            <ChipsGrid style={{ marginTop: '15px' }}>
+              {availableOptions.length === 0 ? (
+                <NoResult>Bu branş için alt seviye bulunamadı.</NoResult>
               ) : (
-                filteredSubjects.map((s) => {
-                  const sel = formData.subjectIds.includes(s.id);
+                availableOptions.map((o) => {
+                  const sel = formData.subjectIds?.includes(o.id);
                   return (
                     <Chip
-                      key={s.id}
+                      key={o.id}
                       $selected={sel}
                       type="button"
-                      onClick={() => toggleSubject(s)}
+                      onClick={() => toggleOption(o)}
                     >
                       {sel && <CheckCircle2 size={12} />}
-                      {s.name}
+                      {o.label}
                     </Chip>
                   );
                 })
@@ -403,8 +389,10 @@ const CreateListing = () => {
             onClick={() => {
               if (!formData.category)
                 return toast.error("Lütfen kategori seçin.");
-              if (formData.subjectIds.length === 0)
-                return toast.error("Lütfen en az bir branş seçin.");
+              if (!formData.subCategory)
+                return toast.error("Lütfen branş seçin.");
+              if (!formData.subjectIds || formData.subjectIds.length === 0)
+                return toast.error("Lütfen en az bir ders seçeneği seçiniz.");
               setStep(2);
             }}
           >

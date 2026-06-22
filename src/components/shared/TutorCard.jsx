@@ -141,9 +141,20 @@ export function TutorCard({ tutor }) {
         </p>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {tutor.subject && (
-            <Badge variant="secondary">{tutor.subject}</Badge>
-          )}
+          {/* Çoklu subject options desteği */}
+          {(() => {
+            const options = tutor.subjectOptions?.$values || tutor.subjectOptions || [];
+            if (options.length > 0) {
+              return options.slice(0, 4).map((opt, idx) => (
+                <Badge key={idx} variant="secondary">{opt.label || opt.name || opt}</Badge>
+              ));
+            }
+            // Fallback: tek subject
+            if (tutor.subject) {
+              return <Badge variant="secondary">{tutor.subject}</Badge>;
+            }
+            return null;
+          })()}
           {serviceTypeLabel && (
             <Badge variant="outline">{serviceTypeLabel}</Badge>
           )}

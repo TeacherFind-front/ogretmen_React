@@ -4,7 +4,7 @@ import { TutorCard } from "@/components/shared/TutorCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getTutors } from "@/services/tutorService";
-import { getCities, getCategories } from "@/services/locationService";
+import { getCities, getSubjectsHierarchy } from "@/services/locationService";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
   Search,
@@ -51,6 +51,11 @@ export default function TutorsList() {
   const [catSearch, setCatSearch] = useState("");
   const [subSearch, setSubSearch] = useState("");
   const [citySearch, setCitySearch] = useState("");
+  // 3. seviye (Branş) seçim state'i
+  const [selectedSubjectName, setSelectedSubjectName] = useState(searchParams.get("subjectName") || "");
+  const [optOpen, setOptOpen] = useState(false);
+  const [optSearch, setOptSearch] = useState("");
+  const optRef = useRef(null);
   const catRef = useRef(null);
   const subRef = useRef(null);
   const cityRef = useRef(null);
@@ -67,6 +72,7 @@ export default function TutorsList() {
     const handler = (e) => {
       if (catRef.current && !catRef.current.contains(e.target)) setCatOpen(false);
       if (subRef.current && !subRef.current.contains(e.target)) setSubOpen(false);
+      if (optRef.current && !optRef.current.contains(e.target)) setOptOpen(false);
       if (cityRef.current && !cityRef.current.contains(e.target)) setCityOpen(false);
       if (serviceRef.current && !serviceRef.current.contains(e.target)) setServiceOpen(false);
     };
@@ -78,7 +84,7 @@ export default function TutorsList() {
     getCities()
       .then(setCities)
       .catch(() => {});
-    getCategories()
+    getSubjectsHierarchy()
       .then(setCategories)
       .catch(() => {});
   }, []);
@@ -131,9 +137,10 @@ export default function TutorsList() {
   const handleFilterChange = (key, value) => {
     let newFilters = { ...filters, [key]: value, page: 1 };
     
-    // Kategori değiştiğinde branşı sıfırla
+    // Kategori değiştiğinde branş ve option sıfırla
     if (key === "category") {
       newFilters.subjectId = "";
+      setSelectedSubjectName("");
     }
     
     setFilters(newFilters);
@@ -148,42 +155,44 @@ export default function TutorsList() {
     
     if (key === "category") {
       newParams.delete("subjectId");
+      newParams.delete("subjectName");
     }
     setSearchParams(newParams);
   };
 
-  const handleSubjectSelect = (subject) => {
-    const parentCategory = categories.find(c => 
-      c.subjects?.some(s => String(s.id) === String(subject.id))
-    );
-    
-    const newFilters = { 
-      ...filters, 
-      subjectId: String(subject.id), 
-      page: 1 
-    };
-    
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("subjectId", String(subject.id));
-
-    if (parentCategory) {
-      newFilters.category = parentCategory.category;
-      newParams.set("category", parentCategory.category);
-    }
-    
-    setFilters(newFilters);
-    setSearchParams(newParams);
+  // Branş seçildiğinde subjectId'yi sıfırla, branş adını tut
+  const handleSubjectNameSelect = (subjectName) => {
+    setSelectedSubjectName(subjectName);
     setSubOpen(false);
-  };
-
-  const handleSubjectClear = () => {
+    // Branş değişince option sıfırla
     const newFilters = { ...filters, subjectId: "", page: 1 };
     setFilters(newFilters);
-    
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("subjectId");
+    if (subjectName) newParams.set("subjectName", subjectName);
+    else newParams.delete("subjectName");
+    setSearchParams(newParams);
+  };
+
+  // Option (3. seviye) seçildiğinde subjectId'yi URL'e yaz
+  const handleOptionSelect = (option, subjectName) => {
+    setSelectedSubjectName(subjectName);
+    setOptOpen(false);
+    const newFilters = { ...filters, subjectId: String(option.id), page: 1 };
+    setFilters(newFilters);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("subjectId", String(option.id));
+    newParams.set("subjectName", subjectName);
+    setSearchParams(newParams);
+  };
+
+  const handleOptionClear = () => {
+    const newFilters = { ...filters, subjectId: "", page: 1 };
+    setFilters(newFilters);
     const newParams = new URLSearchParams(searchParams);
     newParams.delete("subjectId");
     setSearchParams(newParams);
-    setSubOpen(false);
+    setOptOpen(false);
   };
 
   const handleLoadMore = () => {
@@ -193,6 +202,14 @@ export default function TutorsList() {
   const availableSubjects = filters.category
     ? (categories.find(c => c.category === filters.category)?.subjects || [])
     : categories.flatMap(c => c.subjects || []);
+  
+  // Seçili branşa ait option'lar (3. seviye)
+  const availableOptions = selectedSubjectName
+    ? (availableSubjects.find(s => s.name === selectedSubjectName)?.options || [])
+    : [];
+  
+  // Seçili option'un label'ını göster
+  const selectedOptionLabel = availableOptions.find(o => String(o.id) === String(filters.subjectId))?.label || null;
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={{ background: "var(--page-bg)" }}>
@@ -326,7 +343,7 @@ export default function TutorsList() {
               </div>
             </div>
 
-            {/* Branş - Modern Combobox */}
+            {/* Branş - Seçince Option'ları Göster */}
             <div className="space-y-3">
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
                 <Book className="w-3 h-3" /> Branş / Ders
@@ -336,8 +353,8 @@ export default function TutorsList() {
                   className="w-full h-11 rounded-xl border border-gray-100 dark:border-[var(--card-border)] bg-gray-50/50 dark:bg-[var(--card-border)] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-green-300"
                   onClick={() => { setSubOpen(o => !o); setSubSearch(""); }}
                 >
-                  <span className={filters.subjectId ? "text-gray-800 dark:text-[var(--text-primary)]" : "text-gray-400 dark:text-gray-400"}>
-                    {availableSubjects.find(s => String(s.id) === String(filters.subjectId))?.name || "Tüm Branşlar"}
+                  <span className={selectedSubjectName ? "text-gray-800 dark:text-[var(--text-primary)]" : "text-gray-400 dark:text-gray-400"}>
+                    {selectedSubjectName || "Tüm Branşlar"}
                   </span>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${subOpen ? "rotate-180" : ""}`} />
                 </div>
@@ -356,20 +373,20 @@ export default function TutorsList() {
                     <div className="overflow-y-auto max-h-[290px]">
                       <button
                         onMouseDown={e => e.preventDefault()}
-                        onClick={handleSubjectClear}
+                        onClick={() => { handleSubjectNameSelect(""); }}
                         className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
-                          !filters.subjectId ? "bg-green-50 dark:bg-green-900/30 text-green-600" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-600 dark:text-gray-300"
+                          !selectedSubjectName ? "bg-green-50 dark:bg-green-900/30 text-green-600" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-600 dark:text-gray-300"
                         }`}
                       >Tüm Branşlar</button>
                       {availableSubjects
                         .filter(s => s.name.toLocaleLowerCase("tr-TR").includes(subSearch.toLocaleLowerCase("tr-TR")))
                         .map(sub => (
                           <button
-                            key={sub.id}
+                            key={sub.name}
                             onMouseDown={e => e.preventDefault()}
-                            onClick={() => handleSubjectSelect(sub)}
+                            onClick={() => handleSubjectNameSelect(sub.name)}
                             className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[var(--card-border)] ${
-                              String(filters.subjectId) === String(sub.id) ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-700 dark:text-gray-200"
+                              selectedSubjectName === sub.name ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-700 dark:text-gray-200"
                             }`}
                           >
                             <Book className="w-3 h-3 shrink-0 text-gray-300" />
@@ -381,6 +398,64 @@ export default function TutorsList() {
                 )}
               </div>
             </div>
+
+            {/* Seviye / Alan (3. Seviye Option) */}
+            {selectedSubjectName && (
+              <div className="space-y-3">
+                <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                  <Book className="w-3 h-3" /> Seviye / Alan
+                </label>
+                <div className="relative" ref={optRef}>
+                  <div
+                    className="w-full h-11 rounded-xl border border-gray-100 dark:border-[var(--card-border)] bg-gray-50/50 dark:bg-[var(--card-border)] px-4 flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200 transition-all hover:border-green-300"
+                    onClick={() => { setOptOpen(o => !o); setOptSearch(""); }}
+                  >
+                    <span className={filters.subjectId ? "text-gray-800 dark:text-[var(--text-primary)]" : "text-gray-400 dark:text-gray-400"}>
+                      {selectedOptionLabel || "Tüm Seviyeler"}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${optOpen ? "rotate-180" : ""}`} />
+                  </div>
+                  {optOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[var(--card-bg)] rounded-2xl shadow-2xl border border-gray-100 dark:border-[var(--card-border)] z-50 overflow-hidden max-h-[360px] flex flex-col">
+                      <div className="p-2 border-b border-gray-50 dark:border-[var(--card-border)]">
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Seviye ara..."
+                          value={optSearch}
+                          onChange={e => setOptSearch(e.target.value)}
+                          className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[var(--card-border)] rounded-lg outline-none text-gray-700 dark:text-gray-200 placeholder:text-gray-400"
+                        />
+                      </div>
+                      <div className="overflow-y-auto max-h-[290px]">
+                        <button
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={handleOptionClear}
+                          className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors ${
+                            !filters.subjectId ? "bg-green-50 dark:bg-green-900/30 text-green-600" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-600 dark:text-gray-300"
+                          }`}
+                        >Tüm Seviyeler</button>
+                        {availableOptions
+                          .filter(o => o.label.toLocaleLowerCase("tr-TR").includes(optSearch.toLocaleLowerCase("tr-TR")))
+                          .map(opt => (
+                            <button
+                              key={opt.id}
+                              onMouseDown={e => e.preventDefault()}
+                              onClick={() => handleOptionSelect(opt, selectedSubjectName)}
+                              className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-left transition-colors border-t border-gray-50 dark:border-[var(--card-border)] ${
+                                String(filters.subjectId) === String(opt.id) ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "hover:bg-gray-50 dark:hover:bg-[var(--card-border)] text-gray-700 dark:text-gray-200"
+                              }`}
+                            >
+                              <Book className="w-3 h-3 shrink-0 text-gray-300" />
+                              {opt.label}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Şehir - Modern Combobox */}
             <div className="space-y-3">
