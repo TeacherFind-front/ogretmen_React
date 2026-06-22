@@ -11,18 +11,13 @@ jobs:
   deploy-frontend:
     runs-on: self-hosted
 
+    # Dynamically set path: main -> production, Develop -> staging
     env:
-      SITE_PATH: C:\Sites\OzelDersVip\frontend
+      SITE_PATH: ${{ github.ref == 'refs/heads/main' && 'C:\Sites\OzelDersVip\frontend' || 'C:\Sites\OzelDersVip\staging' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Show Node version
-        shell: powershell
-        run: |
-          node -v
-          npm.cmd -v
 
       - name: Install dependencies
         shell: powershell
@@ -63,12 +58,13 @@ jobs:
             New-Item -ItemType Directory -Path $sitePath -Force | Out-Null
           }
 
-          Get-ChildItem -Path $sitePath -Force | Remove-Item -Recurse -Force
+          # Clean folder but keep web.config
+          Get-ChildItem -Path $sitePath -Exclude "web.config" -Force | Remove-Item -Recurse -Force
           Copy-Item -Path "$distPath\*" -Destination $sitePath -Recurse -Force
 
       - name: Test frontend domain
         shell: powershell
         continue-on-error: true
         run: |
-          Start-Sleep -Seconds 5
-          Invoke-WebRequest -UseBasicParsing https://ozeldersvip.com -TimeoutSec 30 | Select-Object StatusCode, Content
+          $url = ${{ github.ref == 'refs/heads/main' && 'https://ozeldersvip.com' || 'https://test.ozeldersvip.com' }}
+          Invoke-WebRequest -UseBasicParsing $url -TimeoutSec 30 | Select-Object StatusCode
