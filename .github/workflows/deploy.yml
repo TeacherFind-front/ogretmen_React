@@ -26,7 +26,11 @@ jobs:
 
       - name: Install dependencies
         shell: powershell
-        run: npm.cmd ci
+        run: |
+          if (Test-Path "node_modules") {
+            Remove-Item -Path "node_modules" -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          npm install --force
 
       - name: Create production env
         shell: powershell
