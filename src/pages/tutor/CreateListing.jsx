@@ -1697,9 +1697,9 @@ const rateFieldBase = `
   width:100%; padding:10px 14px;
   background:#f8fafc; border:2px solid #f1f5f9;
   border-radius:12px; font-size:14px; font-weight:700;
-  color:var(--card-bg); outline:none; transition:all 0.2s;
+  color:var(--text-primary); outline:none; transition:all 0.2s;
   &:focus { border-color:#16a34a; background:white; }
-  &::placeholder { color: var(--text-primary); font-weight: 500; }
+  &::placeholder { color: var(--text-muted); font-weight: 500; }
 
   .dark & {
     background: var(--page-bg);
