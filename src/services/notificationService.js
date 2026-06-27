@@ -4,9 +4,19 @@ import { apiFetch } from "./api";
  * Bildirimleri getir
  */
 export async function getNotifications() {
-  const res = await apiFetch("/api/notifications");
-  if (!res || !res.ok) throw new Error("Bildirimler yüklenemedi.");
-  return res.json(); // [{ id, type, title, message, senderName, link, isRead, createdAt }]
+  try {
+    const res = await apiFetch("/api/notifications");
+    if (!res || !res.ok) {
+      if (res?.status >= 500) {
+        console.warn("Notifications API returned 500, failing silently to avoid UI crash.");
+      }
+      return [];
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Notifications Fetch Error:", err);
+    return [];
+  }
 }
 
 /**
@@ -28,4 +38,19 @@ export async function markAllAsRead() {
     method: "PUT"
   });
   return res && res.ok;
+}
+
+/**
+ * Tüm bildirimleri sil (Backend eklendiğinde çalışacak)
+ */
+export async function clearAllNotifications() {
+  try {
+    const res = await apiFetch("/api/notifications/clear", {
+      method: "DELETE"
+    });
+    return res && res.ok;
+  } catch (err) {
+    console.error("Notifications Clear Error:", err);
+    return false;
+  }
 }

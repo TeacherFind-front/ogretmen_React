@@ -66,7 +66,7 @@ export default function StudentReview() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <Loader2 className="w-10 h-10 animate-spin text-green-600" />
         <p className="text-gray-500 font-medium">Yükleniyor...</p>
       </div>
     );
@@ -99,11 +99,11 @@ export default function StudentReview() {
       <header className="mb-10">
         <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">Deneyiminizi Paylaşın</h1>
         <p className="text-gray-500 text-lg font-medium">
-          <span className="text-blue-600 font-black">{booking?.tutorName}</span> ile yaptığınız <span className="text-gray-900 font-bold">{booking?.lessonTitle}</span> dersi nasıldı?
+          <span className="text-green-600 font-black">{booking?.tutorName}</span> ile yaptığınız <span className="text-gray-900 font-bold">{booking?.lessonTitle}</span> dersi nasıldı?
         </p>
       </header>
 
-      <Card className="rounded-[2.5rem] border-gray-100 shadow-2xl shadow-blue-900/5 overflow-hidden bg-white">
+      <Card className="rounded-[2.5rem] border-gray-100 shadow-2xl shadow-green-900/5 overflow-hidden bg-white">
         <CardContent className="p-10">
           <form onSubmit={handleSubmit} className="space-y-10">
             {/* Star Rating */}
@@ -132,7 +132,7 @@ export default function StudentReview() {
                   <MessageSquare size={20} />
                 </div>
                 <textarea
-                  className="w-full min-h-[200px] p-6 pl-14 bg-gray-50 border-2 border-gray-50 rounded-3xl outline-none focus:border-blue-100 focus:bg-white transition-all text-gray-700 font-medium resize-none"
+                  className="w-full min-h-[200px] p-6 pl-14 bg-gray-50 border-2 border-gray-50 rounded-3xl outline-none focus:border-green-100 focus:bg-white transition-all text-gray-700 font-medium resize-none"
                   placeholder="Ders anlatımı, hoca iletişimi ve materyaller hakkında ne düşünüyorsunuz?"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
@@ -145,7 +145,7 @@ export default function StudentReview() {
               <Button 
                 type="submit" 
                 disabled={submitting}
-                className="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 font-black text-lg transition-all"
+                className="w-full h-16 rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 font-black text-lg transition-all"
               >
                 {submitting ? (
                   <Loader2 className="w-6 h-6 animate-spin" />

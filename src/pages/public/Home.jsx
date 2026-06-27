@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/Card";
 import {
   Star,
   ChevronRight,
@@ -16,134 +15,191 @@ import {
   ChevronLeft,
   BookOpen,
   MapPin,
+  Sparkles,
+  ArrowRight,
+  CheckCircle,
+  Users,
+  Award,
+  Zap,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { getTutors } from "@/services/tutorService";
+import { useTheme } from "next-themes";
+import { getTutors, getTutorsCount } from "@/services/tutorService";
 import { getCategories } from "@/services/locationService";
-import BASE_URL, { getImageUrl } from "@/services/api";
+import { toPlainText, resolveMediaUrl } from "@/utils/helpers";
+
+// ─── Renk Sabitleri ──────────────────────────────────────────────────────────
+const GREEN_PRIMARY = "#16a34a"; // Koyu canlı yeşil
+const GREEN_LIGHT = "#22c55e"; // Parlak yeşil
+const GREEN_GLOW = "#4ade80"; // Neon glow yeşili
+const DIAMOND_WHITE = "#F0FDF4"; // Elmas beyazı (çok hafif yeşil tonu)
+const DIAMOND_DARK = "#DCFCE7"; // Biraz daha doygun elmas beyaz
 
 // ─── Categories ──────────────────────────────────────────────────────────────
 const CATEGORY_ICONS = {
-  "Matematik": Calculator,
+  Matematik: Calculator,
   "Fen Bilimleri": FlaskConical,
-  "Yazılım": Code,
+  Yazılım: Code,
   "Yabancı Dil": Languages,
   "Sınav Hazırlık": GraduationCap,
-  "Müzik": Music,
-  "İngilizce": Languages,
+  Müzik: Music,
+  İngilizce: Languages,
   "Kişisel Gelişim": Star,
-  "Sanat": Music,
-  "Spor": Play
+  Sanat: Music,
+  Spor: Play,
 };
 
 const CATEGORIES = [
   {
+    id: "Türkçe",
+    label: "Türkçe ve Edebiyat",
+    sub: "Diksiyon (Her Seviye)",
+    icon: BookOpen,
+    queryValue: "Türkçe ve Edebiyat",
+  },
+  {
     id: "Matematik",
     label: "Matematik",
-    sub: "Bilgisayarlı (TYT/AYT)",
+    sub: "Analitik Geometri",
     icon: Calculator,
     queryValue: "Matematik",
   },
   {
-    id: "Fen Bilimleri",
-    label: "Fen Bilimleri",
-    sub: "Rasyonel Fizik/Açık lise",
-    icon: FlaskConical,
-    queryValue: "Fen Bilimleri",
-  },
-  {
-    id: "Yazılım",
-    label: "Yazılım & Kodlama",
-    sub: "Vector & Seans Kodlamanız",
-    icon: Code,
-    queryValue: "Yazılım",
-  },
-  {
-    id: "Dil",
-    label: "Dil Kursları",
-    sub: "Seviye Tespit Sınavları ve Kurslar",
+    id: "İngilizce",
+    label: "İngilizce",
+    sub: "Yabancı Dil Eğitimleri",
     icon: Languages,
-    queryValue: "Yabancı Dil",
+    queryValue: "İngilizce",
   },
   {
-    id: "Sinav",
-    label: "YKS/LGS Hazırlık",
-    sub: "LGS, YGS ve TYT Hazırlık",
-    icon: GraduationCap,
-    queryValue: "Sınav Hazırlık",
+    id: "Fizik",
+    label: "Fizik",
+    sub: "Akışkanlar Mekaniği",
+    icon: FlaskConical,
+    queryValue: "Fizik",
   },
   {
-    id: "Muzik",
-    label: "Müzik & Sanat",
-    sub: "Bateri, Piyano vb. İnceleme ve Kurslar",
-    icon: Music,
-    queryValue: "Müzik",
+    id: "Almanca",
+    label: "Almanca Sınavları",
+    sub: "Abitur Hazırlık (Lise)",
+    icon: BookOpen,
+    queryValue: "Almanca Sınavları",
+  },
+  {
+    id: "Akıl Zeka",
+    label: "Akıl ve Zeka Oyunları",
+    sub: "Başlangıç Seviyesi",
+    icon: Zap,
+    queryValue: "Akıl ve Zeka Oyunları",
   },
 ];
 
+const STATS = [
+  { icon: Users, value: null, label: "Uzman Eğitmen", key: "tutors" },
+  { icon: Award, value: "10.000+", label: "Başarılı Ders" },
+  { icon: Star, value: "4.9", label: "Ortalama Puan" },
+  { icon: CheckCircle, value: "%98", label: "Memnuniyet" },
+];
+
+// ─── Teacher Card ─────────────────────────────────────────────────────────────
 function TeacherCard({ teacher }) {
   const navigate = useNavigate();
-  
   return (
-    <div 
+    <div
       onClick={() => navigate(`/tutors/${teacher.id}`)}
-      className="cursor-pointer bg-white dark:bg-[#0f172a] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#1e293b] flex flex-col group transition-all hover:shadow-xl"
+      className="cursor-pointer rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-2xl hover:-translate-y-2"
+      style={{
+        background: "var(--card-bg)",
+        border: "1px solid var(--card-border)",
+        boxShadow: "0 4px 24px rgba(22,163,74,0.06)",
+      }}
     >
-      {/* Visuals - Tek Büyük Fotoğraf */}
-      <div className="relative h-60 w-full overflow-hidden">
+      {/* Fotoğraf */}
+      <div className="relative h-56 w-full overflow-hidden">
         <img
           src={
             teacher.imageUrl ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.teacherName || "Öğretmen")}&background=2d79f3&color=fff&size=512`
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.teacherName || "Öğretmen")}&background=16a34a&color=fff&size=512`
           }
           alt={teacher.teacherName || "Eğitmen"}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.teacherName || "Öğretmen")}&background=2d79f3&color=fff&size=512`; }}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.teacherName || "Öğretmen")}&background=16a34a&color=fff&size=512`;
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#052e16]/70 via-transparent to-transparent" />
+        {/* Rating badge */}
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow">
+          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          <span className="text-xs font-bold text-gray-800">
+            {teacher.rating
+              ? typeof teacher.rating === "number"
+                ? teacher.rating.toFixed(1)
+                : teacher.rating
+              : "0.0"}
+          </span>
+        </div>
       </div>
 
-      {/* Info */}
-      <div className="p-4 flex flex-col gap-1.5">
-        <div className="flex justify-between items-start">
-          <div>
-            <h4 className="font-bold text-gray-900 dark:text-white text-sm leading-tight">
-              {teacher.teacherName}
-            </h4>
-            <p className="text-[11px] text-gray-500 font-medium">
-              ({teacher.headline || "Eğitmen"})
-            </p>
-          </div>
-          <div className="flex items-center gap-0.5 bg-yellow-50 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded-md">
-            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-[11px] font-bold text-yellow-700">
-              {teacher.rating || "4.8"}
-            </span>
-          </div>
+      {/* Bilgiler */}
+      <div className="p-5 flex flex-col gap-2">
+        <div>
+          <h4
+            className="font-bold text-sm leading-tight transition-colors duration-300"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {teacher.teacherName}
+          </h4>
+          <p className="text-xs text-green-500 font-semibold mt-0.5">
+            {teacher.headline || "Eğitmen"}
+          </p>
         </div>
-
-        <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
+        <p
+          className="text-xs line-clamp-2 leading-relaxed transition-colors duration-300"
+          style={{ color: "var(--text-muted)" }}
+        >
           {teacher.about ||
-            "Eğitimde 10 yılı aşkın tecrübe ile öğrencilerin başarısına odaklanıyoruz..."}
+            "Öğrencilerin başarısına odaklanan deneyimli eğitmenimiz."}
         </p>
-
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50 dark:border-[#1e293b]">
-          <div className="flex flex-col">
-            <span className="text-base font-black text-gray-900 dark:text-white">
-              {teacher.price} TL
-              <span className="text-[10px] font-normal text-gray-400">/sa</span>
+        <div
+          className="flex items-center justify-between mt-1 pt-3 border-t transition-colors duration-300"
+          style={{ borderColor: "var(--card-border)" }}
+        >
+          <span
+            className="text-lg font-black transition-colors duration-300"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {teacher.price} TL
+            <span
+              className="text-[10px] font-normal"
+              style={{ color: "var(--text-muted)" }}
+            >
+              /sa
             </span>
-          </div>
-          <div className="flex gap-1.5">
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`/tutors/${teacher.id}`); }}
-              className="p-1.5 rounded-lg bg-gray-50 dark:bg-[#1e293b] text-gray-400 hover:bg-blue-50 dark:hover:bg-[#334155] hover:text-blue-500 transition-colors"
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/tutors/${teacher.id}`);
+              }}
+              className="p-2 rounded-xl border text-green-500 hover:bg-green-500/10 transition-colors"
+              style={{ borderColor: "var(--card-border)" }}
             >
               <MessageCircle className="w-4 h-4" />
             </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`/tutors/${teacher.id}`); }}
-              className="p-1.5 rounded-lg bg-[#009688] text-white hover:bg-[#00796b] transition-colors shadow-md shadow-teal-100"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/tutors/${teacher.id}`);
+              }}
+              className="p-2 rounded-xl text-white transition-colors"
+              style={{
+                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                boxShadow: "0 4px 12px rgba(22,163,74,0.35)",
+              }}
             >
               <Calendar className="w-4 h-4" />
             </button>
@@ -154,8 +210,13 @@ function TeacherCard({ teacher }) {
   );
 }
 
+// ─── Ana Sayfa ────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const waveColor = isDark ? "#213d2b" : "#f0fdf4";
+
   const [tutors, setTutors] = useState([]);
   const [totalTutors, setTotalTutors] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -167,23 +228,83 @@ export default function Home() {
   const [gridCategories, setGridCategories] = useState(CATEGORIES);
   const [allCategories, setAllCategories] = useState([]);
 
+  const [subjectSearch, setSubjectSearch] = useState("");
+  const [subjectOpen, setSubjectOpen] = useState(false);
+  const [subjectFocused, setSubjectFocused] = useState(false);
+  const subjectRef = useRef(null);
+
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [locationFocused, setLocationFocused] = useState(false);
+  const locationRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (subjectRef.current && !subjectRef.current.contains(e.target)) {
+        setSubjectOpen(false);
+        setSubjectFocused(false);
+      }
+      if (locationRef.current && !locationRef.current.contains(e.target)) {
+        setLocationOpen(false);
+        setLocationFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const LOCATION_OPTIONS = [
+    { value: "", label: "Hepsi" },
+    { value: "online", label: "Online" },
+    { value: "yuz-yuze", label: "Yüz Yüze" },
+    { value: "her-ikisi", label: "Her İkisi" },
+  ];
+  const selectedLocationLabel =
+    LOCATION_OPTIONS.find((o) => o.value === selectedLocation)?.label ||
+    "Ders türü seçin...";
+
+  const subjectOptions =
+    allCategories.length > 0
+      ? allCategories.map((c) => c.category)
+      : ["Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca"];
+  const filteredSubjects = subjectOptions.filter((s) =>
+    s
+      .toLocaleLowerCase("tr-TR")
+      .includes(subjectSearch.toLocaleLowerCase("tr-TR")),
+  );
+
   useEffect(() => {
     fetchTutors();
     fetchCategories();
+    fetchTutorsCount();
   }, []);
+
+  const fetchTutorsCount = async () => {
+    try {
+      const data = await getTutorsCount();
+      if (data && typeof data.count === "number") setTotalTutors(data.count);
+    } catch (err) {
+      console.error("Failed to fetch tutor count:", err);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
       const data = await getCategories();
       if (Array.isArray(data) && data.length > 0) {
         setAllCategories(data);
-        setGridCategories(data.slice(0, 6).map(c => ({
-          id: c.category,
-          label: c.category,
-          sub: c.subjects?.slice(0, 2).map(s => s.name).join(", ") || "Alanında Uzmanlar",
-          icon: CATEGORY_ICONS[c.category] || BookOpen,
-          queryValue: c.category
-        })));
+        setGridCategories(
+          data.slice(0, 6).map((c) => ({
+            id: c.category,
+            label: c.category,
+            sub:
+              c.subjects
+                ?.slice(0, 2)
+                .map((s) => s.name)
+                .join(", ") || "Alanında Uzmanlar",
+            icon: CATEGORY_ICONS[c.category] || BookOpen,
+            queryValue: c.category,
+          })),
+        );
       }
     } catch (err) {
       console.error("Categories fetch failed", err);
@@ -204,15 +325,14 @@ export default function Home() {
           });
         }
       }
-    }, 4000); // 4 saniyede bir otomatik kaydırma
+    }, 4000);
     return () => clearInterval(interval);
   }, [tutors]);
 
   const scroll = (direction) => {
     if (scrollContainerRef.current) {
-      const scrollAmount = direction === "left" ? -344 : 344;
       scrollContainerRef.current.scrollBy({
-        left: scrollAmount,
+        left: direction === "left" ? -344 : 344,
         behavior: "smooth",
       });
     }
@@ -220,19 +340,12 @@ export default function Home() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (selectedSubject) {
-      params.append("category", selectedSubject);
-    }
-    
+    if (selectedSubject) params.append("category", selectedSubject);
     let serviceType = "";
     if (selectedLocation === "online") serviceType = "1";
     else if (selectedLocation === "yuz-yuze") serviceType = "2";
     else if (selectedLocation === "her-ikisi") serviceType = "3";
-    
-    if (serviceType) {
-      params.append("serviceType", serviceType);
-    }
-    
+    if (serviceType) params.append("serviceType", serviceType);
     navigate(`/tutors?${params.toString()}`);
   };
 
@@ -240,24 +353,35 @@ export default function Home() {
     setLoading(true);
     try {
       const response = await getTutors({ page: 1, pageSize: 6 });
-
       if (response && response.totalCount !== undefined) {
-        setTotalTutors(response.totalCount);
+        setTotalTutors((prev) => (prev > 0 ? prev : response.totalCount));
       }
-
-      const realTutors = (response.items || []).map((tutor) => ({
-        id: tutor.id,
-        teacherName: tutor.teacherName,
-        headline: tutor.title,
-        rating: tutor.rating,
-        about: tutor.description,
-        price: tutor.price,
-        imageUrl:
-          tutor.photos && tutor.photos.length > 0
-            ? getImageUrl(tutor.photos[0].photoUrl)
-            : `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.teacherName || "Öğretmen")}&background=2d79f3&color=fff&size=512`,
-      }));
-
+      const realTutors = (response.items || []).map((tutor) => {
+        const name = tutor.teacherName || tutor.name || "Öğretmen";
+        const imageUrl =
+          tutor.photos?.find((p) => p.isMain)?.photoUrl ||
+          tutor.photos?.[0]?.photoUrl ||
+          tutor.photoUrl ||
+          tutor.profileImageUrl ||
+          tutor.avatarUrl;
+        const resolvedImg = imageUrl
+          ? resolveMediaUrl(imageUrl)
+          : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=16a34a&color=fff&size=512`;
+        const plainAbout = toPlainText(tutor.description || tutor.bio || "");
+        const truncatedAbout =
+          plainAbout.length > 120
+            ? plainAbout.substring(0, 120) + "..."
+            : plainAbout;
+        return {
+          id: tutor.id,
+          teacherName: name,
+          headline: toPlainText(tutor.title || "Eğitmen"),
+          rating: tutor.rating,
+          about: truncatedAbout,
+          price: tutor.price,
+          imageUrl: resolvedImg,
+        };
+      });
       setTutors(realTutors);
     } catch (err) {
       console.error("Tutors fetch failed", err);
@@ -267,127 +391,469 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300">
-      {/* ── Hero Section ── */}
-      <section className="relative bg-gradient-to-b from-[#5c75dd] to-[#8a9eed] dark:from-[#0f1d4a] dark:to-[#070b19] pt-24 pb-28 px-6 text-center text-white transition-colors duration-300">
-        <div className="container mx-auto max-w-4xl relative z-10 flex flex-col items-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full mb-10 border border-white/20">
-            <GraduationCap className="w-4 h-4 text-white" />
-            <span className="text-xs font-bold tracking-wide uppercase text-white">
-              ALANINDA UZMAN {totalTutors > 0 ? totalTutors.toLocaleString("tr-TR") : "..."} EĞİTMEN
-            </span>
+    <div
+      className="flex flex-col min-h-screen transition-colors duration-300"
+      style={{ background: "var(--page-bg)" }}
+    >
+      {/* ══════════ HERO SECTION ══════════ */}
+      <section
+        className="relative overflow-hidden px-6"
+        style={{
+          background:
+            "linear-gradient(145deg, #052e16 0%, #0d4a28 30%, #15803d 70%, #16a34a 100%)",
+          paddingTop: "100px" /* fixed navbar (68px) + extra boşluk */,
+          paddingBottom: "120px",
+        }}
+      >
+        {/* Dekoratif mesh nokta deseni */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, #fff 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        {/* Sağ üst glow */}
+        <div
+          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(74,222,128,0.18), transparent 65%)",
+            transform: "translate(200px, -200px)",
+          }}
+        />
+        {/* Sol alt glow */}
+        <div
+          className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(22,163,74,0.2), transparent 65%)",
+            transform: "translate(-180px, 180px)",
+          }}
+        />
+        {/* Alt wave geçişi */}
+        <div
+          className="absolute bottom-0 left-0 right-0 pointer-events-none"
+          style={{ lineHeight: 0, bottom: "-1px" }}
+        >
+          <svg
+            viewBox="0 0 1440 90"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            style={{ display: "block", width: "100%", height: "90px" }}
+          >
+            <path
+              d="M0,40 C360,90 1080,0 1440,55 L1440,90 L0,90 Z"
+              fill={waveColor}
+            />
+          </svg>
+        </div>
+
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+            {/* SOL KOLON */}
+            <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left">
+              {/* Rozet */}
+              <div
+                className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full mb-7 font-bold text-xs tracking-widest uppercase"
+                style={{
+                  background: "rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.35)",
+                  backdropFilter: "blur(10px)",
+                  color: "#f0fdf4",
+                }}
+              >
+                <Sparkles
+                  className="w-3.5 h-3.5"
+                  style={{ color: "#bbf7d0" }}
+                />
+                ALANINDA UZMAN{" "}
+                {totalTutors > 0 ? totalTutors.toLocaleString("tr-TR") : "..."}{" "}
+                EĞİTMEN
+              </div>
+
+              {/* Başlık */}
+              <h1
+                className="font-extrabold mb-5 leading-[1.15]"
+                style={{
+                  fontSize: "clamp(15px,2.4vw,28px)",
+                  color: "#f0fdf4",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Özel Ders{" "}
+                <span
+                  style={{
+                    background: "linear-gradient(90deg, #ffffff, #bbf7d0)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  VIP Kalitesiyle
+                </span>
+                <br className="hidden lg:block" />
+                Alanında Uzman
+                <br className="hidden lg:block" />
+                <span style={{ color: "#4ade80" }}>Eğitmenlerden</span> Ders
+                Alın
+              </h1>
+
+              {/* Açıklama */}
+              <p
+                className="mb-8 leading-relaxed max-w-lg"
+                style={{ fontSize: "15px", color: "#dcfce7" }}
+              >
+                Kişiye özel eğitim planlarıyla hedeflerinize daha hızlı ulaşın.
+                Online ya da yüz yüze, Türkiye'nin en iyi eğitmenleri burada.
+              </p>
+
+              {/* Mini istatistikler */}
+              <div className="flex items-center gap-6 mb-6">
+                {[
+                  {
+                    val: totalTutors > 0 ? `${totalTutors}+` : "...",
+                    lbl: "Eğitmen",
+                  },
+                  { val: "4.9★", lbl: "Ortalama" },
+                  { val: "%98", lbl: "Memnuniyet" },
+                ].map((s, i) => (
+                  <div key={i} className="text-center">
+                    <div
+                      className="font-black text-xl"
+                      style={{ color: "#4ade80" }}
+                    >
+                      {s.val}
+                    </div>
+                    <div
+                      className="text-xs font-medium"
+                      style={{ color: "#86efac" }}
+                    >
+                      {s.lbl}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SAĞ KOLON - Fotoğraf */}
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="relative group max-w-md w-full">
+                {/* Glow efekti */}
+                <div
+                  className="absolute -inset-2 rounded-3xl blur-xl opacity-40 group-hover:opacity-60 transition-all duration-700"
+                  style={{
+                    background: "linear-gradient(135deg, #4ade80, #16a34a)",
+                  }}
+                />
+                {/* Kart */}
+                <div
+                  className="relative rounded-3xl overflow-hidden p-[3px]"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(74,222,128,0.6), rgba(22,163,74,0.3))",
+                  }}
+                >
+                  <div
+                    className="rounded-[22px] overflow-hidden"
+                    style={{
+                      background: "rgba(5,46,22,0.5)",
+                      backdropFilter: "blur(12px)",
+                    }}
+                  >
+                    <img
+                      src="/ders.png"
+                      alt="Öğretmen ve Öğrenci Özel Ders"
+                      className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      style={{ height: "280px" }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src =
+                          "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80";
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Floating badge */}
+                <div
+                  className="absolute -bottom-3 -left-3 rounded-2xl px-4 py-3 shadow-xl"
+                  style={{ background: "white", border: "2px solid #dcfce7" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center"
+                      style={{
+                        background: "linear-gradient(135deg,#16a34a,#22c55e)",
+                      }}
+                    >
+                      <GraduationCap className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p
+                        className="text-[10px] font-bold"
+                        style={{ color: "#16a34a" }}
+                      >
+                        UZMAN EĞİTİM
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        Online & Yüz Yüze
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold mb-14 leading-[1.2]">
-            En İyi Öğretmenlerden{" "}
-            <span className="text-[#d1d8f5] font-medium">Online veya</span>{" "}
-            <br />
-            <span className="text-[#d1d8f5] font-medium">Yüz Yüze</span> Dersler
-            Alın
-          </h1>
-
-          {/* Search Bar */}
-          <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] md:rounded-full p-2 flex flex-col md:flex-row items-center w-full max-w-4xl shadow-2xl mx-auto gap-2 transition-colors duration-300">
-            {/* Ders Seçin */}
-            <div className="flex-[1.2] flex items-center gap-4 px-6 py-3 w-full border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#334155]">
-              <BookOpen className="w-5 h-5 text-gray-400 dark:text-blue-400 shrink-0" />
-              <div className="text-left flex-1">
-                <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-0.5">
-                  DERS SEÇİN
-                </p>
-                <select
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  className="w-full bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100 font-semibold focus:outline-none appearance-none cursor-pointer text-sm"
-                  style={{ colorScheme: 'dark' }}
-                >
-                  <option value="" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Seçiniz</option>
-                  {allCategories.length > 0 ? (
-                    allCategories.map(cat => (
-                      <option key={cat.category} value={cat.category} className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">
-                        {cat.category}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="Matematik" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Matematik</option>
-                      <option value="İngilizce" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">İngilizce</option>
-                      <option value="Yazılım" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Yazılım</option>
-                      <option value="Fen Bilimleri" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Fen Bilimleri</option>
-                      <option value="Yabancı Dil" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Yabancı Dil</option>
-                    </>
-                  )}
-                </select>
+          {/* ARAMA ÇUBUĞU */}
+          <div className="mt-12 relative z-20">
+            <div
+              className="rounded-[2rem] p-2 flex flex-col md:flex-row items-center w-full max-w-4xl mx-auto gap-2"
+              style={{
+                background: "var(--card-bg)",
+                boxShadow:
+                  "0 32px 80px rgba(5,46,22,0.45), 0 0 0 1px rgba(74,222,128,0.12)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {/* Ders Seçin */}
+              <div
+                className="flex-[1.2] flex items-center gap-3 px-5 py-3 w-full border-b md:border-b-0 md:border-r relative"
+                style={{ borderColor: "var(--card-border)" }}
+                ref={subjectRef}
+              >
+                <BookOpen
+                  className="w-5 h-5 shrink-0"
+                  style={{ color: subjectFocused ? "#16a34a" : "var(--text-muted)" }}
+                />
+                <div className="text-left flex-1 min-w-0">
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    DERS SEÇİN
+                  </p>
+                  <input
+                    type="text"
+                    value={subjectSearch || selectedSubject}
+                    onChange={(e) => {
+                      setSubjectSearch(e.target.value);
+                      setSelectedSubject("");
+                      setSubjectOpen(true);
+                    }}
+                    onFocus={() => {
+                      setSubjectOpen(true);
+                      setSubjectFocused(true);
+                      setSubjectSearch("");
+                    }}
+                    placeholder={selectedSubject || "Ders ara..."}
+                    className="w-full bg-transparent font-semibold focus:outline-none text-sm placeholder:opacity-50"
+                    style={{ color: "var(--text-primary)" }}
+                  />
+                </div>
+                {subjectOpen && (
+                  <div
+                    className="absolute top-full left-0 right-0 mt-3 rounded-2xl shadow-2xl border z-50 overflow-hidden max-h-72 overflow-y-auto"
+                    style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}
+                  >
+                    {filteredSubjects.length === 0 ? (
+                      <div className="px-5 py-4 text-sm text-center" style={{ color: "var(--text-muted)" }}>
+                        Sonuç bulunamadı
+                      </div>
+                    ) : (
+                      filteredSubjects.map((s) => (
+                        <button
+                          key={s}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setSelectedSubject(s);
+                            setSubjectSearch(s);
+                            setSubjectOpen(false);
+                            setSubjectFocused(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b last:border-0 hover:bg-[rgba(22,163,74,0.05)]"
+                          style={{
+                            borderColor: "var(--card-border)",
+                            color: selectedSubject === s ? "#16a34a" : "var(--text-primary)",
+                            background: selectedSubject === s ? "var(--section-alt)" : "transparent"
+                          }}
+                        >
+                          <Search className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--text-muted)" }} />
+                          {s}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* Ders Nerede Yapılsın */}
-            <div className="flex-1 flex items-center gap-4 px-6 py-3 w-full">
-              <MapPin className="w-5 h-5 text-gray-400 dark:text-blue-400 shrink-0" />
-              <div className="text-left flex-1">
-                <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-0.5">
-                  DERS NEREDE YAPILSIN
-                </p>
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100 font-semibold focus:outline-none appearance-none cursor-pointer text-sm"
-                  style={{ colorScheme: 'dark' }}
-                >
-                  <option value="" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Seçiniz</option>
-                  <option value="online" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Online</option>
-                  <option value="yuz-yuze" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Yüz Yüze</option>
-                  <option value="her-ikisi" className="bg-white dark:bg-[#1e293b] text-gray-800 dark:text-slate-100">Her İkisi</option>
-                </select>
+              {/* Ders Nerede */}
+              <div
+                className="flex-1 flex items-center gap-3 px-5 py-3 w-full relative"
+                ref={locationRef}
+              >
+                <MapPin
+                  className="w-5 h-5 shrink-0"
+                  style={{ color: locationFocused ? "#16a34a" : "var(--text-muted)" }}
+                />
+                <div className="text-left flex-1 min-w-0">
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    DERS NEREDE
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocationOpen((o) => !o);
+                      setLocationFocused(true);
+                    }}
+                    className="w-full bg-transparent text-left font-semibold focus:outline-none text-sm"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {selectedLocationLabel}
+                  </button>
+                </div>
+                {locationOpen && (
+                  <div
+                    className="absolute top-full left-0 right-0 mt-3 rounded-2xl shadow-2xl border z-50 overflow-hidden"
+                    style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}
+                  >
+                    {LOCATION_OPTIONS.filter((o) => o.value !== "").map(
+                      (opt) => (
+                        <button
+                          key={opt.value}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setSelectedLocation(opt.value);
+                            setLocationOpen(false);
+                            setLocationFocused(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b last:border-0 hover:bg-[rgba(22,163,74,0.05)]"
+                          style={{
+                            borderColor: "var(--card-border)",
+                            color: selectedLocation === opt.value ? "#16a34a" : "var(--text-primary)",
+                            background: selectedLocation === opt.value ? "var(--section-alt)" : "transparent"
+                          }}
+                        >
+                          <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--text-muted)" }} />
+                          {opt.label}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* Ara Butonu */}
-            <button onClick={handleSearch} className="bg-[#001040] text-white p-4 md:px-8 rounded-full hover:bg-blue-900 transition-colors shrink-0 w-full md:w-auto flex justify-center items-center mt-2 md:mt-0">
-              <Search className="w-6 h-6" />
-            </button>
+              {/* Ara Butonu */}
+              <button
+                onClick={handleSearch}
+                className="p-4 md:px-8 rounded-full text-white font-bold shrink-0 w-full md:w-auto flex justify-center items-center gap-2 mt-2 md:mt-0 transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-100"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #15803d, #16a34a, #22c55e)",
+                  boxShadow: "0 8px 24px rgba(22,163,74,0.4)",
+                }}
+              >
+                <Search className="w-5 h-5" />
+                <span className="hidden md:inline text-sm">Ara</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Category Grid ── */}
-      <section className="py-8 px-6">
+      {/* ══════════ KATEORİ GRID ══════════ */}
+      <section
+        className="py-10 px-6 transition-colors duration-300"
+        style={{ background: "var(--section-alt)" }}
+      >
         <div className="container mx-auto max-w-7xl">
-          <div 
+          <div className="flex items-center justify-between mb-6 px-1">
+            <div>
+              <h2
+                className="text-xl font-extrabold transition-colors duration-300"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Popüler Kategoriler
+              </h2>
+              <p className="text-sm" style={{ color: "#16a34a" }}>
+                İlgilendiğin alana göre seç
+              </p>
+            </div>
+            <Link
+              to="/tutors"
+              className="flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-80"
+              style={{ color: "#16a34a" }}
+            >
+              Tümünü Gör <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
             onMouseLeave={() => setHoveredCategory(null)}
           >
             {gridCategories.map((cat) => {
               const Icon = cat.icon;
-              const isActive = hoveredCategory ? hoveredCategory === cat.id : cat.id === "Matematik";
-              
+              const isActive = hoveredCategory
+                ? hoveredCategory === cat.id
+                : cat.id === "Matematik";
               return (
                 <div
                   key={cat.id}
                   onMouseEnter={() => setHoveredCategory(cat.id)}
-                  onClick={() => navigate(`/tutors?category=${encodeURIComponent(cat.queryValue)}`)}
-                  className={`p-4 rounded-[24px] border border-gray-100 dark:border-[#1e293b] flex flex-col items-start gap-3 transition-all hover:scale-105 hover:shadow-lg cursor-pointer group ${
+                  onClick={() =>
+                    navigate(
+                      `/tutors?category=${encodeURIComponent(cat.queryValue)}`,
+                    )
+                  }
+                  className="p-4 rounded-2xl flex flex-col items-start gap-3 cursor-pointer transition-all duration-300 hover:scale-105"
+                  style={
                     isActive
-                      ? "bg-[#1e3a8a] text-white dark:bg-[#1e3a8a] dark:text-white"
-                      : "bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100"
-                  }`}
+                      ? {
+                          background:
+                            "linear-gradient(135deg, #15803d, #16a34a)",
+                          boxShadow: "0 12px 32px rgba(22,163,74,0.4)",
+                          border: "1px solid transparent",
+                        }
+                      : {
+                          background: "var(--card-bg)",
+                          border: "1px solid var(--card-border)",
+                          boxShadow: "0 2px 8px rgba(22,163,74,0.06)",
+                        }
+                  }
                 >
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
+                    style={
                       isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-gray-50 dark:bg-[#0f172a] text-gray-600 dark:text-gray-300"
-                    }`}
+                        ? {
+                            background: "rgba(255,255,255,0.2)",
+                            color: "white",
+                          }
+                        : { background: "#f0fdf4", color: "#16a34a" }
+                    }
                   >
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className={`font-bold text-sm leading-tight ${isActive ? "text-white" : ""}`}>
+                    <h3
+                      className="font-bold text-sm leading-tight"
+                      style={{
+                        color: isActive ? "white" : "var(--text-primary)",
+                      }}
+                    >
                       {cat.label}
                     </h3>
-                    <p className={`text-[9px] mt-0.5 leading-tight ${isActive ? "text-white/80 opacity-100" : "opacity-60"}`}>
+                    <p
+                      className="text-[9px] mt-0.5 leading-tight"
+                      style={{
+                        color: isActive ? "rgba(255,255,255,0.75)" : "#6b7280",
+                      }}
+                    >
                       {cat.sub}
                     </p>
                   </div>
@@ -398,31 +864,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Featured Teachers ── */}
-      <section className="py-12 px-6 bg-[#f8fafc] dark:bg-[#0b1120]/50 rounded-t-[40px] transition-colors duration-300">
+      {/* ══════════ ÖĞRETMENLER ══════════ */}
+      <section
+        className="py-14 px-6 transition-colors duration-300"
+        style={{ background: "var(--card-bg)" }}
+      >
         <div className="container mx-auto max-w-7xl">
-          <div className="flex items-center justify-between mb-8 px-4">
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-              Öne Çıkan Öğretmenler
-            </h2>
+          <div className="flex items-center justify-between mb-8 px-1">
+            <div>
+              <h2
+                className="text-2xl font-extrabold tracking-tight transition-colors duration-300"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Öne Çıkan Eğitmenler
+              </h2>
+              <p className="text-sm mt-1" style={{ color: "#16a34a" }}>
+                En çok tercih edilen uzmanlarımız
+              </p>
+            </div>
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 mr-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={() => scroll("left")}
-                  className="p-2 rounded-full bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-[#334155] shadow-sm hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors"
+                  className="p-2.5 rounded-xl border transition-all hover:scale-105"
+                  style={{
+                    background: "#f0fdf4",
+                    borderColor: "#dcfce7",
+                    color: "#16a34a",
+                  }}
                 >
-                  <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-slate-300" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => scroll("right")}
-                  className="p-2 rounded-full bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-[#334155] shadow-sm hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors"
+                  className="p-2.5 rounded-xl border transition-all hover:scale-105"
+                  style={{
+                    background: "#f0fdf4",
+                    borderColor: "#dcfce7",
+                    color: "#16a34a",
+                  }}
                 >
-                  <ChevronRight className="w-5 h-5 text-gray-600 dark:text-slate-300" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
               <Link
                 to="/tutors"
-                className="bg-white dark:bg-[#1e293b] px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 dark:text-slate-300 border border-gray-100 dark:border-[#334155] shadow-sm hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors"
+                className="px-5 py-2 rounded-xl text-sm font-bold transition-all hover:shadow-md"
+                style={{
+                  background: "linear-gradient(135deg,#16a34a,#22c55e)",
+                  color: "white",
+                  boxShadow: "0 4px 16px rgba(22,163,74,0.25)",
+                }}
               >
                 Tümünü Gör
               </Link>
@@ -438,43 +930,167 @@ export default function Home() {
               [1, 2, 3, 4].map((n) => (
                 <div
                   key={n}
-                  className="bg-white rounded-2xl h-[380px] w-[280px] md:w-[320px] shrink-0 animate-pulse snap-center"
-                ></div>
+                  className="rounded-3xl h-[380px] w-[280px] md:w-[300px] shrink-0 animate-pulse snap-center"
+                  style={{
+                    background: "linear-gradient(135deg, #dcfce7, #f0fdf4)",
+                  }}
+                />
               ))
             ) : tutors.length > 0 ? (
               tutors.map((tutor) => (
                 <div
                   key={tutor.id}
-                  className="w-[280px] md:w-[320px] shrink-0 snap-center transition-all hover:-translate-y-1"
+                  className="w-[280px] md:w-[300px] shrink-0 snap-center"
                 >
                   <TeacherCard teacher={tutor} />
                 </div>
               ))
             ) : (
               <div className="w-full py-16 text-center">
-                <p className="text-gray-400">Henüz eğitmen bulunmuyor.</p>
+                <p style={{ color: "#16a34a" }} className="font-medium">
+                  Henüz eğitmen bulunmuyor.
+                </p>
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* ── Bottom Section ── */}
-      <section className="py-24 px-6 text-center">
-        <div className="container mx-auto max-w-4xl">
-          <h2 className="text-4xl font-black text-[#002e47] dark:text-white mb-6">
-            Öğrenmeye Hemen Başlayın
+      {/* ══════════ NEDEN BİZ? ══════════ */}
+      <section
+        className="py-16 px-6 transition-colors duration-300"
+        style={{ background: "var(--section-alt)" }}
+      >
+        <div className="container mx-auto max-w-5xl text-center">
+          <h2
+            className="text-3xl font-extrabold mb-3"
+            style={{ color: "#052e16" }}
+          >
+            Neden Özel Ders VIP?
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 text-lg mb-12 max-w-2xl mx-auto">
-            Türkiye'nin en başarılı öğretmenlerinden size özel dersler alarak
-            hedeflerinize bir adım daha yaklaşın.
+          <p className="mb-12" style={{ color: "#16a34a", fontSize: "15px" }}>
+            Alanında uzman eğitmenlerle fark yaratın
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-[#002e47] dark:bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-[#003d5c] dark:hover:bg-blue-700 transition-all">
-              Öğretmen Bul
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Award,
+                title: "Onaylı Eğitmenler",
+                desc: "Her eğitmen deneyim ve uzmanlık belgesiyle alanında doğrulanmıştır.",
+              },
+              {
+                icon: Zap,
+                title: "Anında Eşleşme",
+                desc: "Branşınıza uygun eğitmeni saniyeler içinde bulun ve ders ayarlayın.",
+              },
+              {
+                icon: CheckCircle,
+                title: "Garanti Memnuniyet",
+                desc: "İlk dersten memnun kalmadıysanız ücret iadesi alabilirsiniz.",
+              },
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={i}
+                  className="rounded-3xl p-8 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                  style={{
+                    background: "var(--card-bg)",
+                    border: "1px solid var(--card-border)",
+                    boxShadow: "0 4px 16px rgba(22,163,74,0.06)",
+                  }}
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+                    style={{
+                      background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                      boxShadow: "0 8px 24px rgba(22,163,74,0.35)",
+                    }}
+                  >
+                    <Icon className="w-7 h-7 text-white" />
+                  </div>
+                  <h3
+                    className="font-bold text-base mb-2 transition-colors duration-300"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {item.title}
+                  </h3>
+                  <p
+                    className="text-sm leading-relaxed transition-colors duration-300"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {item.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ CTA SECTION ══════════ */}
+      <section
+        className="py-20 px-6 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(145deg, #052e16, #14532d, #15803d)",
+        }}
+      >
+        {/* Dekoratif glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 60% at 50% 0%, rgba(74,222,128,0.15), transparent)",
+          }}
+        />
+
+        <div className="container mx-auto max-w-3xl text-center relative z-10">
+          <div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-xs font-bold uppercase tracking-wider"
+            style={{
+              background: "rgba(74,222,128,0.15)",
+              border: "1px solid rgba(74,222,128,0.3)",
+              color: "#4ade80",
+            }}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Hemen Başlayın
+          </div>
+          <h2
+            className="text-4xl font-extrabold mb-5 leading-tight"
+            style={{ color: "#f0fdf4" }}
+          >
+            Öğrenmeye <span style={{ color: "#4ade80" }}>Bugün</span> Başlayın
+          </h2>
+          <p
+            className="mb-10 leading-relaxed"
+            style={{ color: "#86efac", fontSize: "16px" }}
+          >
+            Türkiye'nin en başarılı öğretmenlerinden kişiselleştirilmiş dersler
+            alarak hedeflerinize bir adım daha yaklaşın.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button
+              onClick={() => navigate("/tutors")}
+              className="flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+              style={{
+                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                color: "white",
+                boxShadow: "0 8px 32px rgba(22,163,74,0.5)",
+              }}
+            >
+              <GraduationCap className="w-5 h-5" /> Öğretmen Bul
             </button>
-            <button className="bg-white dark:bg-[#1e293b] text-[#002e47] dark:text-white border-2 border-[#002e47] dark:border-[#334155] px-10 py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-[#334155] transition-all">
-              Nasıl Çalışır?
+            <button
+              onClick={() => navigate("/sss")}
+              className="flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-300 hover:scale-105"
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                color: "#f0fdf4",
+                border: "1.5px solid rgba(74,222,128,0.35)",
+              }}
+            >
+              Nasıl Çalışır? <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>

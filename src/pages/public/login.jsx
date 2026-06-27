@@ -1,23 +1,44 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import styled from "styled-components";
 import toast from "react-hot-toast";
 import { useAuth } from "@/store/AuthContext";
-import { login as authLogin } from "@/services/authService";
+import { login as authLogin, socialLogin } from "@/services/authService";
+import { signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
+import { auth, googleProvider } from "@/config/firebase";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  // Giriş sonrası nereye gidileceğini belirler
+  const getRedirectPath = (role) => {
+    // Eğer mesaj / korumalı sayfadan gelindiyse oraya geri dön
+    const fromPath = location.state?.from?.pathname;
+    if (fromPath && fromPath !== "/login") return fromPath;
+
+    // Giriş sonrası varsayılan olarak ana sayfaya yönlendir
+    return "/";
+  };
 
   const [data, setData] = useState({
     email: "",
     password: "",
+    rememberMe: false,
   });
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setData((prev) => ({ ...prev, email: savedEmail, rememberMe: true }));
+    }
+  }, []);
 
   // Email öneri sistemi
   const emailDomains = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com"];
@@ -69,25 +90,29 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const result = await authLogin(data.email, data.password);
+      const result = await authLogin(data.email, data.password, data.rememberMe);
 
-      // Global state'i güncelle
-      login(result);
+      // Global state'i güncelle (rememberMe parametresi ile)
+      login(result, data.rememberMe);
+
+      if (data.rememberMe) {
+        localStorage.setItem("rememberedEmail", data.email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
 
       toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
 
-      // Tam sayfa yenileme ile ana sayfaya yönlendir
+      // from state varsa oraya, yoksa rol bazı dashboard'a git
       setTimeout(() => {
-        window.location.href = "/";
+        navigate(getRedirectPath(result.role));
       }, 500);
     } catch (err) {
       const errorMessage = err.message || "";
       
-      // Eğer hata mesajı e-posta doğrulanmadığını belirtiyorsa (Backend'den gelen mesajla eşleşmeli)
       if (errorMessage.toLowerCase().includes("doğrula") || errorMessage.toLowerCase().includes("verify")) {
         toast.error("E-posta adresiniz henüz doğrulanmamış. Doğrulama sayfasına yönlendiriliyorsunuz...");
         
-        // Backend'den userId dönüyorsa onu kullan, yoksa email ile git (VerifyEmail sayfasında userId gerekebilir)
         setTimeout(() => {
           navigate("/verify-email", { state: { email: data.email, userId: err.userId, password: data.password } });
         }, 2000);
@@ -99,15 +124,57 @@ export default function Login() {
     }
   };
 
+  const handleSocialLogin = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      // signInWithPopup'tan ÖNCE çağır (Backend raporuna istinaden eklendi)
+      await setPersistence(auth,
+        data.rememberMe ? browserLocalPersistence : browserSessionPersistence
+      );
+      
+      const provider = googleProvider;
+      const result = await signInWithPopup(auth, provider);
+      
+      // Get the ID token from Firebase
+      const idToken = await result.user.getIdToken();
+      
+      // Send it to our backend
+      const backendResponse = await socialLogin('google', idToken);
+      
+      // Login to React app
+      login(backendResponse);
+      
+      toast.success("Giriş başarılı! Yönlendiriliyorsunuz...");
+      
+      // Giriş sonrası yönlendirme
+      navigate(getRedirectPath(backendResponse.role));
+      
+    } catch (err) {
+      console.error("Sosyal Giriş Hatası:", err);
+      // Firebase errors
+      if (err.code === 'auth/popup-closed-by-user') {
+        toast.error("Google ile giriş iptal edildi.");
+        return; // Don't show general error
+      } else {
+        setError(err.message || "Sosyal hesap ile giriş yapılamadı.");
+        toast.error("Giriş yapılamadı.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto flex min-h-[calc(100vh-140px)] w-full items-center justify-center py-6 bg-muted/20 px-4">
       <StyledWrapper>
         <form className="form" onSubmit={handleLogin}>
           <div className="flex-column text-center mb-4">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-[var(--text-primary)]">
               Hoş Geldiniz
             </h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
+            <p className="text-sm text-gray-500 dark:text-[var(--text-muted)] mt-2">
               Devam etmek için giriş yapın
             </p>
           </div>
@@ -128,12 +195,12 @@ export default function Login() {
               />
               
               {emailSuggestions.length > 0 && (
-                <ul className="suggestions-list shadow-xl border border-gray-100 dark:border-[#334155] bg-white dark:bg-[#1e293b] absolute top-full left-0 right-0 z-50 rounded-xl mt-2 overflow-hidden">
+                <ul className="suggestions-list shadow-xl border border-gray-100 dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)] absolute top-full left-0 right-0 z-50 rounded-xl mt-2 overflow-hidden">
                   {emailSuggestions.map((suggestion, index) => (
                     <li
                       key={index}
                       onClick={() => handleSuggestionClick(suggestion)}
-                      className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-[#334155] cursor-pointer text-sm text-gray-600 dark:text-slate-300 transition-colors border-b border-gray-50 dark:border-[#334155] last:border-0"
+                      className="px-4 py-2 hover:bg-green-50 dark:hover:bg-[var(--section-alt)] cursor-pointer text-sm text-gray-600 dark:text-[var(--text-primary)] transition-colors border-b border-gray-50 dark:border-[var(--card-border)] last:border-0"
                     >
                       {suggestion}
                     </li>
@@ -172,7 +239,12 @@ export default function Login() {
 
           <div className="flex-row">
             <div>
-              <input type="checkbox" id="remember" />
+              <input 
+                type="checkbox" 
+                id="remember" 
+                checked={data.rememberMe}
+                onChange={(e) => setData({ ...data, rememberMe: e.target.checked })}
+              />
               <label htmlFor="remember" className="ml-2 text-sm cursor-pointer">
                 Beni hatırla
               </label>
@@ -189,13 +261,14 @@ export default function Login() {
           <div className="social-divider">Veya şununla giriş yap</div>
           
           <div className="flex gap-4">
-            <button type="button" className="social-btn">
+            <button 
+              type="button" 
+              className="social-btn w-full" 
+              onClick={handleSocialLogin}
+              disabled={loading}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083L43.611,20.083L24,20v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
-              Google
-            </button>
-            <button type="button" className="social-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
-              Apple
+              Google ile Giriş Yap
             </button>
           </div>
 
@@ -221,7 +294,7 @@ const StyledWrapper = styled.div`
     flex-direction: column;
     gap: 20px;
     background-color: rgba(255, 255, 255, 0.9);
-    .dark & { background-color: #1e293b; border-color: #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+    .dark & { background-color: var(--card-bg); border-color: var(--card-border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
     backdrop-filter: blur(10px);
     padding: 40px;
     width: 100%;
@@ -242,7 +315,7 @@ const StyledWrapper = styled.div`
 
   .flex-column > label {
     color: #1a1a1a;
-    .dark & { color: #cbd5e1; }
+    .dark & { color: var(--text-primary); }
     font-weight: 500;
     font-size: 14px;
     margin-bottom: 6px;
@@ -258,25 +331,25 @@ const StyledWrapper = styled.div`
     padding: 0 16px;
     transition: all 0.2s ease;
     background-color: #f9fafb;
-    .dark & { border-color: #334155; background-color: #0f172a; }
+    .dark & { border-color: var(--card-border); background-color: var(--page-bg); }
   }
 
   .inputForm svg {
     color: #6b7280;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
     flex-shrink: 0;
     margin-right: 8px;
   }
 
   .inputForm:focus-within {
-    border-color: #2d79f3;
-    background-color: #ffffff;
-    .dark & { background-color: #020617; border-color: #3b82f6; }
-    box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+    border-color: #16a34a;
+    background-color: var(--card-bg);
+    .dark & { background-color: var(--card-bg); border-color: #16a34a; }
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
   }
 
   .inputForm:focus-within svg {
-    color: #2d79f3;
+    color: #16a34a;
   }
 
   .input {
@@ -287,7 +360,7 @@ const StyledWrapper = styled.div`
     box-shadow: none !important;
     font-size: 15px;
     color: #111827;
-    .dark & { color: white; }
+    .dark & { color: var(--text-primary); }
     width: 100%;
     height: 100%;
     padding: 0 4px !important;
@@ -304,12 +377,12 @@ const StyledWrapper = styled.div`
   .flex-row > div > label {
     font-size: 14px;
     color: #4b5563;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
   }
 
   .span {
     font-size: 14px;
-    color: #2d79f3;
+    color: #16a34a;
     font-weight: 600;
     cursor: pointer;
   }
@@ -320,25 +393,23 @@ const StyledWrapper = styled.div`
 
   .button-submit {
     margin-top: 12px;
-    background-color: #111827;
-    .dark & { background-color: #3b82f6; }
+    background: linear-gradient(135deg, #16a34a, #22c55e);
     border: none;
-    color: white;
+    color: var(--text-primary);
     font-size: 16px;
     font-weight: 600;
     border-radius: 14px;
     height: 52px;
     width: 100%;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.2);
   }
 
   .button-submit:hover {
-    background-color: #1f2937;
-    .dark & { background-color: #2563eb; }
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #15803d, #16a34a);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
   }
 
   .social-divider {
@@ -355,7 +426,7 @@ const StyledWrapper = styled.div`
     content: '';
     flex: 1;
     border-bottom: 1px solid #e5e7eb;
-    .dark & { border-bottom-color: #334155; }
+    .dark & { border-bottom-color: var(--card-border); }
   }
 
   .social-divider::before {
@@ -379,7 +450,7 @@ const StyledWrapper = styled.div`
     font-weight: 500;
     color: #374151;
     background: white;
-    .dark & { background: #0f172a; color: #cbd5e1; border-color: #334155; }
+    .dark & { background: var(--page-bg); color: var(--text-primary); border-color: var(--card-border); }
     cursor: pointer;
     transition: all 0.2s ease;
   }
@@ -387,13 +458,13 @@ const StyledWrapper = styled.div`
   .social-btn:hover {
     background-color: #f9fafb;
     border-color: #d1d5db;
-    .dark & { background-color: #1e293b; border-color: #475569; }
+    .dark & { background-color: var(--card-bg); border-color: var(--card-border); }
   }
 
   .p {
     text-align: center;
     color: #4b5563;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
     font-size: 14px;
     margin-top: 16px;
   }

@@ -9,10 +9,14 @@ import {
   User,
   Shield,
   Home,
+  HelpCircle,
+  Calendar,
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
 export default function StudentLayout() {
   const { user, logout } = useAuth();
@@ -21,9 +25,19 @@ export default function StudentLayout() {
 
   const navLinks = [
     {
+      to: "/",
+      label: "Ana Sayfa",
+      icon: <Home size={18} />,
+    },
+    {
       to: "/student/dashboard",
       label: "Panel",
       icon: <LayoutDashboard size={18} />,
+    },
+    {
+      to: "/student/lessons",
+      label: "Taleplerim",
+      icon: <Calendar size={18} />,
     },
     {
       to: "/student/messages",
@@ -31,20 +45,25 @@ export default function StudentLayout() {
       icon: <MessageCircle size={18} />,
     },
     { to: "/student/profile", label: "Profilim", icon: <User size={18} /> },
-    { to: "/student/security", label: "Güvenlik", icon: <Shield size={18} /> },
+    { to: "/student/security", label: "Şifreyi Değiştir", icon: <Shield size={18} /> },
+    { to: "/student/support", label: "Destek Taleplerim", icon: <HelpCircle size={18} /> },
   ];
 
   return (
-    <div className="flex min-h-screen bg-muted/20 dark:bg-[#0f172a] transition-colors duration-300">
+    <div className="flex min-h-screen bg-muted/20 dark:bg-[var(--page-bg)] transition-colors duration-300">
+      <ScrollToTop />
       {/* Desktop Sidebar */}
-      <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
+      <aside className="w-56 border-r bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] hidden md:block shadow-sm">
         <div className="flex h-16 items-center px-6 border-b">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin <span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+          <div className="flex items-center">
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="Özel Ders VIP"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
+          </div>
         </div>
         <nav className="p-4 space-y-1">
           {navLinks.map((link) => (
@@ -72,13 +91,16 @@ export default function StudentLayout() {
         onClick={() => setIsMenuOpen(false)}
       />
       <MobileSidebar $isOpen={isMenuOpen}>
-        <div className="flex h-16 items-center px-6 border-b justify-between">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin<span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+        <div className="flex h-12 items-center px-6 border-b justify-between">
+          <div className="flex items-center">
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="Özel Ders VIP"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
+          </div>
           <button
             onClick={() => setIsMenuOpen(false)}
             className="p-2 text-gray-500"
@@ -108,41 +130,32 @@ export default function StudentLayout() {
       </MobileSidebar>
 
       <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-6 justify-between shadow-sm">
+        <header className="h-14 border-b bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] flex items-center px-4 md:px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
-            <button
-              className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-xl"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <Menu size={24} />
-            </button>
             <div className="md:hidden">
-              <LogoWrapper $small>
-                <span className="logo-icon">🔑</span>
-                <span className="logo-text">
-                  Öğrenmenin<span>Çilingirleri</span>
-                </span>
-              </LogoWrapper>
+              <div className="flex items-center">
+                <Link to="/">
+                  <img
+                    src="/logo.png"
+                    alt="Özel Ders VIP"
+                    className="h-10 w-auto object-contain"
+                  />
+                </Link>
+              </div>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <ThemeSwitch />
-            <Link
-              to="/"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
-            >
-              <Home size={14} /> Ana Sayfa
-            </Link>
             <NotificationDropdown />
             <div className="hidden sm:flex flex-col items-end mr-1">
               <span className="text-xs font-bold text-gray-900 dark:text-slate-100">
                 {user?.role === "3" ? "Admin Paneli" : "Öğrenci Paneli"}
               </span>
-              <span className="text-[10px] text-gray-500 dark:text-slate-400">
+              <span className="text-[10px] text-gray-500 dark:text-[var(--text-muted)]">
                 Hoş geldin, {user?.fullName || "Kullanıcı"}
               </span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold border border-green-200 overflow-hidden shrink-0">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -155,10 +168,13 @@ export default function StudentLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-[#0f172a] transition-colors duration-300">
+        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 bg-gray-50 dark:bg-[var(--page-bg)] transition-colors duration-300 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onMenuClick={() => setIsMenuOpen(true)} />
     </div>
   );
 }
@@ -179,7 +195,7 @@ const LogoWrapper = styled.div`
     letter-spacing: -0.5px;
 
     span {
-      color: #2d79f3;
+      color: #16a34a;
     }
   }
 `;
@@ -195,26 +211,26 @@ const SideLink = styled(Link)`
   transition: all 0.2s ease;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 
   &:hover {
     background-color: #f3f4f6;
-    color: #2d79f3;
+    color: #16a34a;
 
     .dark & {
       background-color: #334155;
-      color: #3b82f6;
+      color: #16a34a;
     }
   }
 
   &.active {
-    background-color: #eff6ff;
-    color: #2d79f3;
+    background-color: #f0fdf4;
+    color: #16a34a;
 
     .dark & {
-      background-color: #1e3a8a;
-      color: #60a5fa;
+      background-color: #14532d;
+      color: #4ade80;
     }
   }
 `;
@@ -268,6 +284,11 @@ const MobileSidebar = styled.div`
   background: white;
   z-index: 1001;
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+  
+  .dark & {
+    background: var(--card-bg);
+    border-right: 1px solid #334155;
+  }
 
   /* Requested translate value */
   --tw-translate-x: -110%;

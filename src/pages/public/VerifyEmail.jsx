@@ -98,7 +98,7 @@ const VerifyEmail = () => {
         authLoginContext(result);
         toast.success("Giriş başarılı! Yönlendiriliyorsunuz...", { id: "autoLogin" });
         setTimeout(() => {
-          window.location.href = "/";
+          navigate("/");
         }, 500);
       } else {
         setTimeout(() => {
@@ -192,7 +192,7 @@ const PageWrapper = styled.div`
   padding: 20px;
 
   .dark & {
-    background: #0f172a;
+    background: var(--page-bg);
   }
 `;
 
@@ -207,8 +207,8 @@ const Container = styled.div`
   border: 1px solid #f1f5f9;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
   }
 `;
@@ -216,8 +216,8 @@ const Container = styled.div`
 const IconWrapper = styled.div`
   width: 64px;
   height: 64px;
-  background: #eff6ff;
-  color: #3b82f6;
+  background: #f0fdf4;
+  color: #16a34a;
   border-radius: 18px;
   display: flex;
   align-items: center;
@@ -226,14 +226,14 @@ const IconWrapper = styled.div`
 
   .dark & {
     background: #1e3a5f;
-    color: #60a5fa;
+    color: #4ade80;
   }
 `;
 
 const Title = styled.h1`
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 10px;
 
   .dark & {
@@ -248,12 +248,12 @@ const Description = styled.p`
   margin-bottom: 28px;
 
   strong {
-    color: #0f172a;
-    .dark & { color: #e2e8f0; }
+    color: var(--text-primary);
+    .dark & { color: var(--text-primary); }
   }
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 `;
 
@@ -273,24 +273,24 @@ const CodeInput = styled.input`
   text-align: center;
   font-size: 20px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   background: #f8fafc;
   transition: all 0.2s;
   outline: none;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
   }
 
   &:focus {
-    border-color: #3b82f6;
+    border-color: #16a34a;
     background: white;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 
     .dark & {
-      background: #1e293b;
+      background: var(--card-bg);
     }
   }
 
@@ -304,7 +304,7 @@ const CodeInput = styled.input`
 const SubmitButton = styled.button`
   width: 100%;
   height: 52px;
-  background: #3b82f6;
+  background: #16a34a;
   color: white;
   border-radius: 14px;
   font-weight: 700;
@@ -317,7 +317,7 @@ const SubmitButton = styled.button`
   margin-bottom: 24px;
 
   &:hover {
-    background: #2563eb;
+    background: #15803d;
     transform: translateY(-1px);
   }
 
@@ -336,11 +336,11 @@ const ResendSection = styled.div`
   color: #64748b;
 
   .dark & {
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 
   button {
-    color: #3b82f6;
+    color: #16a34a;
     font-weight: 700;
     display: flex;
     align-items: center;

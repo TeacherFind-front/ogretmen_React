@@ -21,15 +21,18 @@ import {
   Star as StarIcon
 } from "lucide-react";
 import { 
-  getMyBookings, 
   getMyStudents, 
-  approveBooking, 
-  rejectBooking,
   getMyProfile
 } from "@/services/tutorService";
+import { 
+  getMyBookings, 
+  approveBooking, 
+  rejectBooking 
+} from "@/services/bookingService";
 import { Badge } from "@/components/ui/Badge";
 import styled from "styled-components";
 import { Skeleton } from "@/components/ui/Skeleton";
+import toast from "react-hot-toast";
 
 export default function TutorDashboard() {
   const navigate = useNavigate();
@@ -65,24 +68,26 @@ export default function TutorDashboard() {
     setActionLoading(id);
     try {
       await approveBooking(id);
+      toast.success("Ders talebi onaylandı");
       await fetchData();
     } catch (error) {
-      alert(error.message || "Onaylama başarısız.");
+      toast.error(error.message || "Onaylama başarısız.");
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleReject = async (id) => {
-    const reason = window.prompt("Reddetme sebebi giriniz (Opsiyonel):");
+    const reason = window.prompt("Lütfen reddetme sebebini giriniz (Öğrenciye iletilecek):");
     if (reason === null) return;
     
     setActionLoading(id);
     try {
       await rejectBooking(id, reason);
+      toast.success("Ders talebi reddedildi");
       await fetchData();
     } catch (error) {
-      alert(error.message || "Reddetme başarısız.");
+      toast.error(error.message || "Reddetme başarısız.");
     } finally {
       setActionLoading(null);
     }
@@ -91,7 +96,7 @@ export default function TutorDashboard() {
   if (loading) {
     return (
       <div className="space-y-6 max-w-7xl mx-auto px-4 pb-16 mt-6">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-gray-100 dark:border-slate-700 shadow-sm">
+        <div className="bg-white dark:bg-[var(--card-bg)] p-6 rounded-[2rem] border border-gray-100 dark:border-[var(--card-border)] shadow-sm">
           <Skeleton height="32px" width="150px" className="mb-3" borderRadius="16px" />
           <Skeleton height="48px" width="50%" className="mb-2" borderRadius="12px" />
         </div>
@@ -127,26 +132,18 @@ export default function TutorDashboard() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 pb-16 animate-in fade-in duration-700">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-6 rounded-[2rem] shadow-lg shadow-blue-200/50 relative overflow-hidden border-none">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-gradient-to-br from-green-600 via-green-700 to-indigo-800 p-6 rounded-[2rem] shadow-lg shadow-green-200/50 relative overflow-hidden border-none">
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/20 rounded-full -ml-8 -mb-8 blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-400/20 rounded-full -ml-8 -mb-8 blur-2xl"></div>
         
         <div className="relative z-10">
           <h1 className="text-2xl font-black text-white tracking-tight">Eğitmen Paneli</h1>
-          <p className="text-blue-100 font-medium mt-1 text-sm">
+          <p className="text-green-100 font-medium mt-1 text-sm">
             Hocam hoş geldiniz! Bugün <span className="text-white font-black underline decoration-blue-400 underline-offset-4">{todaysBookings.length} dersiniz</span> ve 
             <span className="text-white font-black underline decoration-blue-400 underline-offset-4"> {pendingRequests.length} bekleyen talebiniz</span> var.
           </p>
         </div>
-        <div className="flex gap-2 relative z-10">
-          <Button 
-            variant="outline" 
-            className="h-10 px-4 rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white font-bold backdrop-blur-md text-xs"
-            onClick={() => navigate("/tutor/schedule")}
-          >
-            Takvimim
-          </Button>
-        </div>
+
       </header>
 
 
@@ -162,10 +159,10 @@ export default function TutorDashboard() {
 
       <div className="grid gap-8 md:grid-cols-3">
         {/* Bugünün Programı */}
-        <Card className="md:col-span-2 rounded-[2rem] border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden bg-white dark:bg-[#1e293b]">
-          <CardHeader className="p-6 border-b border-gray-50 dark:border-slate-800/50 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-3">
-              <div className="w-9 h-9 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
+        <Card className="md:col-span-2 rounded-[2rem] border-gray-100 dark:border-[var(--card-border)] shadow-sm overflow-hidden bg-white dark:bg-[var(--card-bg)]">
+          <CardHeader className="p-6 border-b border-gray-50 dark:border-[var(--card-border)]/50 flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-black text-gray-900 dark:text-[var(--text-primary)] flex items-center gap-3">
+              <div className="w-9 h-9 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center text-green-600 dark:text-green-400">
                 <Clock className="w-4 h-4" />
               </div>
               Bugünün Programı
@@ -176,24 +173,24 @@ export default function TutorDashboard() {
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             {todaysBookings.length === 0 ? (
-              <div className="text-center py-20 bg-gray-50/50 dark:bg-slate-800/20 rounded-3xl border-2 border-dashed border-gray-100 dark:border-slate-800">
+              <div className="text-center py-20 bg-gray-50/50 dark:bg-[var(--card-bg)]/20 rounded-3xl border-2 border-dashed border-gray-100 dark:border-[var(--card-border)]">
                  <Calendar className="w-12 h-12 text-gray-200 dark:text-slate-700 mx-auto mb-4" />
                  <p className="text-gray-400 dark:text-slate-500 font-bold">Bugün için onaylanmış bir dersiniz bulunmuyor.</p>
               </div>
             ) : (
               todaysBookings.map(b => (
-                <div key={b.id} className="flex flex-col sm:flex-row items-center justify-between p-6 border border-gray-100 dark:border-slate-800 rounded-3xl hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:shadow-xl dark:hover:shadow-none hover:border-white dark:hover:border-slate-700 transition-all group">
-                  <div className="flex items-center gap-5 w-full sm:w-auto">
+                <div key={b.id} className="flex flex-col sm:flex-row items-center justify-between p-6 border border-gray-100 dark:border-[var(--card-border)] rounded-3xl hover:bg-gray-50/50 dark:hover:bg-slate-800/30 hover:shadow-xl dark:hover:shadow-none hover:border-white dark:hover:border-slate-700 transition-all group">
+                  <div className="flex items-center gap-5 w-full sm:w-auto min-w-0">
                     <img 
                       src={b.studentAvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.studentName)}&background=f1f5f9&color=64748b`} 
-                      className="w-14 h-14 rounded-2xl object-cover border-2 border-white dark:border-slate-700 shadow-md"
+                      className="w-14 h-14 rounded-2xl object-cover border-2 border-white dark:border-[var(--card-border)] shadow-md shrink-0"
                       alt="Student"
                     />
-                    <div>
-                      <h4 className="font-black text-gray-900 dark:text-white text-lg">{b.studentName}</h4>
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mt-1 flex items-center gap-2">
-                         <Badge className="p-0 h-4 w-4 rounded-full bg-blue-600 dark:bg-blue-500 border-none"></Badge>
-                         {new Date(b.startTime).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-black text-gray-900 dark:text-[var(--text-primary)] text-lg truncate">{b.studentName}</h4>
+                      <p className="text-xs text-green-600 dark:text-green-400 font-black uppercase tracking-widest mt-1 flex items-center gap-2 truncate">
+                         <Badge className="p-0 h-4 w-4 rounded-full bg-green-600 dark:bg-green-500 border-none shrink-0"></Badge>
+                         {new Date(b.startTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
@@ -211,9 +208,9 @@ export default function TutorDashboard() {
 
         {/* Aksiyon Bekleyenler */}
         <div className="space-y-6">
-          <Card className="rounded-[2rem] border-gray-100 dark:border-slate-800 shadow-sm bg-white dark:bg-[#1e293b] overflow-hidden">
-            <CardHeader className="p-6 border-b border-gray-50 dark:border-slate-800/50">
-              <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-3">
+          <Card className="rounded-[2rem] border-gray-100 dark:border-[var(--card-border)] shadow-sm bg-white dark:bg-[var(--card-bg)] overflow-hidden">
+            <CardHeader className="p-6 border-b border-gray-50 dark:border-[var(--card-border)]/50">
+              <CardTitle className="text-lg font-black text-gray-900 dark:text-[var(--text-primary)] flex items-center gap-3">
                  <div className="w-9 h-9 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400">
                     <AlertCircle className="w-4 h-4" />
                  </div>
@@ -225,7 +222,7 @@ export default function TutorDashboard() {
                 <div className="text-center py-10 text-gray-400 font-medium text-sm italic">Bekleyen yeni bir talep yok.</div>
               ) : (
                 pendingRequests.map(req => (
-                  <div key={req.id} className="p-6 border border-gray-100 dark:border-slate-700 rounded-3xl bg-orange-50/20 dark:bg-orange-900/10 border-l-4 border-l-orange-400 relative group animate-in slide-in-from-right-4 duration-300">
+                  <div key={req.id} className="p-6 border border-gray-100 dark:border-[var(--card-border)] rounded-3xl bg-orange-50/20 dark:bg-orange-900/10 border-l-4 border-l-orange-400 relative group animate-in slide-in-from-right-4 duration-300">
                     <div className="flex justify-between items-start mb-4">
                        <div className="flex items-center gap-3">
                           <img 
@@ -234,20 +231,33 @@ export default function TutorDashboard() {
                             alt="Student"
                           />
                           <div>
-                             <p className="font-black text-gray-900 dark:text-white text-sm">{req.studentName}</p>
+                             <p className="font-black text-gray-900 dark:text-[var(--text-primary)] text-sm">{req.studentName}</p>
                              <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest">{req.lessonTitle}</p>
                           </div>
                        </div>
                     </div>
+
+                    <div className="flex flex-col gap-1 mb-4 text-xs font-bold text-gray-500 dark:text-slate-400">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} className="text-orange-500" />
+                        <span>{new Date(req.startTime).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul", day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-orange-500" />
+                        <span>
+                          {new Date(req.startTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })} - {new Date(req.endTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
                     
-                    <div className="bg-white/50 dark:bg-slate-800/50 p-3 rounded-xl mb-4 text-[13px] font-medium text-gray-600 dark:text-slate-400 italic">
+                    <div className="bg-white/50 dark:bg-[var(--card-bg)]/50 p-3 rounded-xl mb-4 text-[13px] font-medium text-gray-600 dark:text-[var(--text-muted)] italic">
                        "{req.studentNote || "Ders talebi oluşturuldu."}"
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button 
                         size="sm" 
-                        className="h-10 rounded-xl bg-orange-500 hover:bg-orange-600 flex-1 font-bold text-xs"
+                        className="h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white flex-1 font-bold text-xs"
                         onClick={() => handleApprove(req.id)}
                         disabled={actionLoading === req.id}
                       >
@@ -255,12 +265,20 @@ export default function TutorDashboard() {
                       </Button>
                       <Button 
                         size="sm" 
-                        variant="outline" 
-                        className="h-10 rounded-xl bg-white flex-1 font-bold text-xs border-gray-200"
+                        variant="destructive"
+                        className="h-10 rounded-xl bg-red-600 hover:bg-red-700 text-white flex-1 font-bold text-xs"
                         onClick={() => handleReject(req.id)}
                         disabled={actionLoading === req.id}
                       >
                         Reddet
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-10 rounded-xl bg-white text-gray-700 dark:bg-[var(--card-bg)] dark:text-white border border-gray-200 dark:border-slate-700 flex-1 font-bold text-xs flex items-center justify-center gap-1 hover:bg-gray-50"
+                        onClick={() => navigate(`/tutor/messages?userId=${req.studentUserId}`)}
+                      >
+                        <MessageSquare size={12} /> Mesaj At
                       </Button>
                     </div>
                   </div>
@@ -270,9 +288,9 @@ export default function TutorDashboard() {
           </Card>
 
           {/* Gelen Yorumlar */}
-          <Card className="rounded-[2rem] border-gray-100 dark:border-slate-800 shadow-sm bg-white dark:bg-[#1e293b] overflow-hidden mt-6">
-            <CardHeader className="p-6 border-b border-gray-50 dark:border-slate-800/50">
-              <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-3">
+          <Card className="rounded-[2rem] border-gray-100 dark:border-[var(--card-border)] shadow-sm bg-white dark:bg-[var(--card-bg)] overflow-hidden mt-6">
+            <CardHeader className="p-6 border-b border-gray-50 dark:border-[var(--card-border)]/50">
+              <CardTitle className="text-lg font-black text-gray-900 dark:text-[var(--text-primary)] flex items-center gap-3">
                  <div className="w-9 h-9 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400">
                     <MessageSquare className="w-4 h-4" />
                  </div>
@@ -284,16 +302,16 @@ export default function TutorDashboard() {
                 <div className="text-center py-10 text-gray-400 font-medium text-sm italic">Henüz yorum yapılmamış.</div>
               ) : (
                 profile.reviews.map((rev, idx) => (
-                  <div key={idx} className="p-5 border border-gray-50 dark:border-slate-800 rounded-2xl bg-gray-50/30 dark:bg-slate-800/20">
+                  <div key={idx} className="p-5 border border-gray-50 dark:border-[var(--card-border)] rounded-2xl bg-gray-50/30 dark:bg-[var(--card-bg)]/20">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-gray-900 dark:text-white text-sm">{rev.reviewerName || "Öğrenci"}</span>
+                      <span className="font-bold text-gray-900 dark:text-[var(--text-primary)] text-sm">{rev.reviewerName || "Öğrenci"}</span>
                       <div className="flex gap-0.5">
                         {Array.from({ length: 5 }).map((_, si) => (
                           <StarIcon key={si} size={10} className={si < rev.rating ? "fill-amber-400 text-amber-400" : "text-gray-200 dark:text-slate-700"} />
                         ))}
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed italic">"{rev.comment}"</p>
+                    <p className="text-xs text-gray-500 dark:text-[var(--text-muted)] leading-relaxed italic">"{rev.comment}"</p>
                   </div>
                 ))
               )}
@@ -307,9 +325,9 @@ export default function TutorDashboard() {
 
 function StatCard({ title, value, sub, icon, trend }) {
   return (
-    <Card className="rounded-2xl border-gray-100 dark:border-slate-800 hover:shadow-lg dark:hover:shadow-none transition-all group bg-white dark:bg-[#1e293b] p-4">
+    <Card className="rounded-2xl border-gray-100 dark:border-[var(--card-border)] hover:shadow-lg dark:hover:shadow-none transition-all group bg-white dark:bg-[var(--card-bg)] p-4">
       <div className="flex justify-between items-start mb-3">
-        <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-xl group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <div className="p-2.5 bg-gray-50 dark:bg-[var(--card-bg)] rounded-xl group-hover:bg-green-50 dark:group-hover:bg-green-900/30 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
            {icon}
         </div>
         {trend && (
@@ -320,7 +338,7 @@ function StatCard({ title, value, sub, icon, trend }) {
       </div>
       <div className="space-y-1">
         <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">{title}</p>
-        <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">{value}</h3>
+        <h3 className="text-2xl font-black text-gray-900 dark:text-[var(--text-primary)] tracking-tighter">{value}</h3>
         <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold">{sub}</p>
       </div>
     </Card>

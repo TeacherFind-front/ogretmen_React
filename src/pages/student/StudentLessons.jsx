@@ -17,10 +17,12 @@ import {
   PlayCircle,
   FileText,
   HelpCircle,
-  Star
+  Star,
+  MessageCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/Skeleton";
+import toast from "react-hot-toast";
 
 export default function StudentLessons() {
   const navigate = useNavigate();
@@ -35,15 +37,11 @@ export default function StudentLessons() {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      if (activeTab === "upcoming") {
-        const data = await getMyBookings();
-        setBookings(data);
-      } else {
-        const data = await getStudentLessons();
-        setBookings(data);
-      }
+      const data = await getMyBookings();
+      setBookings(data.$values || data || []);
     } catch (err) {
       console.error(err);
+      toast.error("Rezervasyonlar yüklenemedi.");
     } finally {
       setLoading(false);
     }
@@ -57,19 +55,18 @@ export default function StudentLessons() {
     if (!window.confirm("Bu dersi iptal etmek istediğinize emin misiniz?")) return;
     try {
       await cancelBooking(id, "Öğrenci tarafından iptal edildi.");
+      toast.success("Ders talebi iptal edildi.");
       fetchBookings();
     } catch (err) {
-      alert(err.message || "İptal işlemi başarısız.");
+      toast.error(err.message || "İptal işlemi başarısız.");
     }
   };
 
   const filteredBookings = bookings.filter(b => {
     if (activeTab === "upcoming") {
-      // Sadece gelecekteki onaylanmış veya bekleyen dersler
-      return b.status !== "Completed" && b.status !== "Rejected" && b.status !== "Cancelled";
+      return b.status === "Pending" || b.status === "Approved";
     }
-    // Geçmiş dersler zaten /api/students/lessons'dan filtrelenmiş geliyor
-    return true;
+    return b.status === "Completed" || b.status === "Rejected" || b.status === "Cancelled";
   });
 
   if (loading) {
@@ -113,9 +110,9 @@ export default function StudentLessons() {
                 <Calendar className="w-10 h-10 text-gray-200" />
              </div>
              <p className="text-gray-400 font-bold text-lg">
-               {activeTab === "past" ? "Tamamlanmış ders bulunamadı." : "Yaklaşan dersiniz bulunmuyor."}
+                {activeTab === "past" ? "Tamamlanmış ders bulunamadı." : "Yaklaşan dersiniz bulunmuyor."}
              </p>
-             <Button variant="link" className="text-blue-600 font-black mt-2" onClick={() => navigate("/tutors")}>Hemen bir hoca bul →</Button>
+             <Button variant="link" className="text-green-600 font-black mt-2" onClick={() => navigate("/tutors")}>Hemen bir hoca bul →</Button>
           </div>
         ) : (
           filteredBookings.map((booking, i) => (
@@ -135,55 +132,88 @@ export default function StudentLessons() {
                 <div className="flex-1 text-center md:text-left space-y-2">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                     <h3 className="font-black text-xl text-gray-900">{booking.tutorName}</h3>
-                    <Badge variant="outline" className="w-fit mx-auto md:mx-0 px-3 py-1 rounded-lg border-blue-100 text-blue-600 font-bold text-[10px] uppercase tracking-widest bg-blue-50/30">
+                    <Badge variant="outline" className="w-fit mx-auto md:mx-0 px-3 py-1 rounded-lg border-green-100 text-green-600 font-bold text-[10px] uppercase tracking-widest bg-green-50/30">
                       {booking.lessonTitle || "Özel Ders"}
                     </Badge>
                   </div>
                   <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-sm font-bold text-gray-400">
                     <span className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl">
-                      <Calendar className="w-4 h-4 text-blue-500" /> 
-                      {new Date(booking.startTime).toLocaleDateString("tr-TR", { day: 'numeric', month: 'long', year: 'numeric' })}
+                      <Calendar className="w-4 h-4 text-green-500" /> 
+                      {new Date(booking.startTime).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul", day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                     <span className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl">
-                      <Clock className="w-4 h-4 text-blue-500" /> 
-                      {new Date(booking.startTime).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })} - {new Date(booking.endTime).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
+                      <Clock className="w-4 h-4 text-green-500" /> 
+                      {new Date(booking.startTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })} - {new Date(booking.endTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })}
                     </span>
+                    {booking.price && (
+                      <span className="flex items-center gap-1 bg-green-50 px-3 py-1.5 rounded-xl text-green-600 font-extrabold">
+                        ₺{booking.price}
+                      </span>
+                    )}
                   </div>
+
+                  {booking.status === "Rejected" && booking.tutorNote && (
+                    <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100 mt-2">
+                      Red Sebebi: "{booking.tutorNote}"
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
                   <div className="flex-1 sm:flex-initial">
                     <StatusBadge $status={booking.status}>
-                      {booking.status === "Approved" ? "Onaylandı" : 
-                       booking.status === "Pending" ? "Onay Bekliyor" : 
-                       booking.status === "Completed" ? "Tamamlandı" : "İptal Edildi"}
+                      {booking.status === "Pending" ? "Onay Bekliyor" : 
+                       booking.status === "Approved" ? "Onaylandı" : 
+                       booking.status === "Rejected" ? "Reddedildi" : 
+                       booking.status === "Cancelled" ? "İptal Edildi" : 
+                       booking.status === "Completed" ? "Tamamlandı" : booking.status}
                     </StatusBadge>
                   </div>
                   
                   <div className="flex gap-2 w-full sm:w-auto">
-                    {/* Sanal Sınıf Butonu Kaldırıldı */}
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      className="h-12 px-4 rounded-xl border border-gray-200 font-bold text-xs flex items-center justify-center gap-1 hover:bg-gray-50 bg-white"
+                      onClick={() => {
+                        const targetId = booking.tutorUserId || booking.teacherUserId;
+                        if (targetId) {
+                          navigate(`/student/messages?userId=${targetId}`);
+                        } else {
+                          toast.error("Öğretmen kullanıcı bilgisi bulunamadı.");
+                        }
+                      }}
+                    >
+                      <MessageCircle size={14} /> Hocaya Mesaj At
+                    </Button>
+
+                    {(booking.status === "Pending" || booking.status === "Approved") && (
+                      <Button 
+                        variant="destructive"
+                        size="sm"
+                        className="h-12 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs"
+                        onClick={() => handleCancel(booking.bookingId || booking.id)}
+                      >
+                        İptal Et
+                      </Button>
+                    )}
+
                     {booking.status === "Completed" && (
                       <div className="flex gap-2">
                         {booking.hasReview === false ? (
                           <Button 
-                            className="flex-1 h-12 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-100 font-bold flex items-center gap-2"
+                            className="flex-1 h-12 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-100 font-bold flex items-center gap-2 text-xs text-white"
                             onClick={() => navigate(`/student/review/${booking.bookingId || booking.id}`)}
                           >
                             <Star size={18} /> Yorum Yap
                           </Button>
                         ) : (
-                          <Button variant="outline" className="flex-1 h-12 px-6 rounded-xl border-gray-100 font-bold flex items-center gap-2 bg-gray-50 text-gray-400 cursor-default" disabled>
+                          <Button variant="outline" className="flex-1 h-12 px-6 rounded-xl border-gray-100 font-bold flex items-center gap-2 bg-gray-50 text-gray-400 cursor-default text-xs" disabled>
                             <CheckCircle2 size={18} /> Yorum Yapıldı
                           </Button>
                         )}
-                        <Button variant="outline" className="flex-1 h-12 px-6 rounded-xl border-gray-200 font-bold flex items-center gap-2">
-                          <FileText size={18} /> Rapor
-                        </Button>
                       </div>
                     )}
-                    <ActionMenu>
-                       <MoreHorizontal size={20} />
-                    </ActionMenu>
                   </div>
                 </div>
               </div>
@@ -194,7 +224,7 @@ export default function StudentLessons() {
 
       <footer className="mt-20 pt-10 border-t border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="flex items-center gap-4 p-6 bg-white rounded-3xl border border-gray-50 shadow-sm">
-           <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600"><Video size={20} /></div>
+           <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600"><Video size={20} /></div>
            <div>
               <p className="font-black text-gray-900 text-sm">Online Dersler</p>
               <p className="text-xs text-gray-400 font-medium">Jitsi altyapısı ile kesintisiz görüşme.</p>
@@ -227,11 +257,11 @@ const TabButton = styled.button`
   transition: all 0.2s;
   ${props => props.$active ? `
     background: white;
-    color: #2d79f3;
+    color: #16a34a;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   ` : `
     color: #64748b;
-    &:hover { color: #2d79f3; }
+    &:hover { color: #16a34a; }
   `}
 `;
 
@@ -294,7 +324,7 @@ const ActionMenu = styled.button`
   transition: all 0.2s;
   &:hover {
     background: #f1f5f9;
-    color: #1e293b;
+    color: var(--text-primary);
     transform: scale(1.05);
   }
 `;

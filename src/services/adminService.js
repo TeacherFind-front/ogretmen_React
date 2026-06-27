@@ -27,19 +27,19 @@ export async function getAdminUsers(query = {}) {
 
   const res = await apiFetch(`/api/admin/users?${params.toString()}`);
   if (!res || !res.ok) throw new Error("Kullanıcılar yüklenemedi.");
-  
+
   const data = await res.json();
   return {
-    items: (data.items || data.Items || []).map(item => ({
+    items: (data.items || data.Items || []).map((item) => ({
       ...item,
       id: item.id || item.Id,
       fullName: item.fullName || item.FullName,
       email: item.email || item.Email,
       role: item.role || item.Role,
       isActive: item.isActive !== undefined ? item.isActive : item.IsActive,
-      createdAt: item.createdAt || item.CreatedAt
+      createdAt: item.createdAt || item.CreatedAt,
     })),
-    totalCount: data.totalCount || data.TotalCount || 0
+    totalCount: data.totalCount || data.TotalCount || 0,
   };
 }
 
@@ -48,7 +48,7 @@ export async function getAdminUsers(query = {}) {
  */
 export async function updateUserStatus(userId, isActive) {
   const res = await apiFetch(`/api/admin/users/${userId}/status`, {
-    method: "PUT",
+    method: "POST",
     body: JSON.stringify({ isActive }),
   });
   if (!res || !res.ok) throw new Error("Durum güncellenemedi.");
@@ -63,41 +63,51 @@ export async function getAdminListings(query = {}) {
     const params = new URLSearchParams();
     params.set("page", query.page || 1);
     params.set("pageSize", query.pageSize || 20);
+    
+    if (query.status && query.status !== "All" && query.status !== "PendingApproval") {
+      params.set("status", query.status);
+    }
 
     // Backend specifically has a "pending" endpoint
-    const url = query.status === "PendingApproval" 
-      ? `/api/admin/listings/pending?${params.toString()}` 
-      : `/api/admin/listings?${params.toString()}`;
+    const url =
+      query.status === "PendingApproval"
+        ? `/api/admin/listings/pending?${params.toString()}`
+        : `/api/admin/listings?${params.toString()}`;
 
     const res = await apiFetch(url);
-    
+
     if (!res || !res.ok) {
       const errorData = res ? await res.json().catch(() => ({})) : {};
       console.error(`Admin API Hatası (${res?.status}):`, errorData);
-      throw new Error(errorData.message || "İlanlar yüklenirken bir hata oluştu.");
+      throw new Error(
+        errorData.message || "İlanlar yüklenirken bir hata oluştu.",
+      );
     }
 
     const data = await res.json();
     console.log(`Admin Listesi Yanıtı (${url}):`, data);
-    
+
     // Backend'den gelen veri yapısını (Items/$values/items) kontrol et
     const rawItems = data.items || data.Items || [];
-    const itemsArray = Array.isArray(rawItems) ? rawItems : (rawItems.$values || []);
+    const itemsArray = Array.isArray(rawItems)
+      ? rawItems
+      : rawItems.$values || [];
 
     return {
-      items: itemsArray.map(item => ({
+      items: itemsArray.map((item) => ({
         ...item,
         id: item.id || item.Id,
         title: item.title || item.Title,
         description: item.description || item.Description,
         category: item.category || item.Category,
         price: item.price || item.Price,
+        status: item.status || item.Status,
         createdAt: item.createdAt || item.CreatedAt,
         // Backend'den gelen TeacherName -> tutorName eşlemesi
         tutorName: item.tutorName || item.TeacherName || "Eğitmen",
-        tutorEmail: item.tutorEmail || item.TeacherEmail
+        tutorEmail: item.tutorEmail || item.TeacherEmail,
       })),
-      totalCount: data.totalCount || data.TotalCount || 0
+      totalCount: data.totalCount || data.TotalCount || 0,
     };
   } catch (e) {
     console.error("getAdminListings hatası:", e);
@@ -106,21 +116,47 @@ export async function getAdminListings(query = {}) {
 }
 
 /**
+ * Tekil ilan detayını admin yetkisiyle getir
+ */
+export async function getAdminListingDetail(listingId) {
+  const res = await apiFetch(`/api/admin/listings/${listingId}`);
+  if (!res || !res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "İlan detayı yüklenemedi.");
+  }
+  return res.json();
+}
+
+/**
  * İlanı onayla veya reddet
  */
-export async function approveListing(listingId, isApproved, reason = "Uygun görülmedi.") {
+export async function approveListing(
+  listingId,
+  isApproved,
+  reason = "Uygun görülmedi.",
+) {
   const endpoint = isApproved ? "approve" : "reject";
   const options = {
-    method: "PUT",
+    method: "POST",
   };
 
   if (!isApproved) {
     options.body = JSON.stringify({ reason });
   }
 
-  const res = await apiFetch(`/api/admin/listings/${listingId}/${endpoint}`, options);
-  if (!res || !res.ok) throw new Error("İşlem başarısız.");
-  return res.json();
+  const res = await apiFetch(
+    `/api/admin/listings/${listingId}/${endpoint}`,
+    options,
+  );
+
+  if (!res || !res.ok) {
+    const err = res ? await res.json().catch(() => ({})) : {};
+    throw new Error(err.message || "İşlem sırasında bir hata oluştu.");
+  }
+
+  // Bazı durumlarda backend boş gövde (200 OK) dönebilir.
+  const text = await res.text();
+  return text ? JSON.parse(text) : { success: true };
 }
 
 /**
@@ -128,7 +164,7 @@ export async function approveListing(listingId, isApproved, reason = "Uygun gör
  */
 export async function makeAdmin(userId) {
   const res = await apiFetch(`/api/admin/users/${userId}/make-admin`, {
-    method: "PUT"
+    method: "POST",
   });
   if (!res || !res.ok) throw new Error("Yönetici yetkisi verilemedi.");
   return res.json();
@@ -167,12 +203,12 @@ export async function getRecentActivities() {
 export async function exportDashboardReport() {
   const res = await apiFetch("/api/admin/settings/export?format=csv");
   if (!res || !res.ok) throw new Error("Rapor indirilemedi.");
-  
+
   const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = `teacherfind-report-${new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `teacherfind-report-${new Date().toISOString().split("T")[0]}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -188,4 +224,21 @@ export async function updateAdminSettings(settings) {
   });
   if (!res || !res.ok) throw new Error("Ayarlar güncellenemedi.");
   return res.json();
+}
+
+/**
+ * Admin olarak ilanı tamamen sil
+ * @param {string} id - İlan ID'si (Guid)
+ */
+export async function deleteAdminListing(id) {
+  const res = await apiFetch(`/api/admin/listings/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err.message || "İlan silinemedi.");
+  }
+
+  return true;
 }

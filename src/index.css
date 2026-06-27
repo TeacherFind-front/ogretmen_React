@@ -6,91 +6,124 @@
   html {
     font-size: 75%;
   }
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
 
+  :root {
+    /* ── Light mode ── */
+    --background: 0 0% 100%;
+    --foreground: 153 80% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
- 
+    --card-foreground: 153 80% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
- 
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
- 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
- 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
- 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
- 
+    --popover-foreground: 153 80% 8%;
+    --primary: 142 72% 29%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 138 76% 97%;
+    --secondary-foreground: 142 72% 15%;
+    --muted: 138 60% 95%;
+    --muted-foreground: 142 30% 40%;
+    --accent: 142 76% 90%;
+    --accent-foreground: 142 72% 15%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
- 
+    --border: 138 40% 88%;
+    --input: 138 40% 88%;
+    --ring: 142 72% 29%;
     --radius: 0.5rem;
+
+    /* Özel token'lar - light */
+    --page-bg:      #ffffff;
+    --section-alt:  #f0fdf4;
+    --card-bg:      #ffffff;
+    --card-border:  #dcfce7;
+    --text-primary: #052e16;
+    --text-muted:   #4b7c5f;
+    --nav-bg:       rgba(5, 46, 22, 0.72);
   }
- 
+
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
- 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
- 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
- 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
- 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
+    /* ── Dark mode — zümrüt yeşil (çok siyah değil!) ── */
+    --background: 153 45% 16%;
+    --foreground: 138 70% 94%;
+    --card: 153 40% 19%;
+    --card-foreground: 138 70% 94%;
+    --popover: 153 40% 19%;
+    --popover-foreground: 138 70% 94%;
+    --primary: 142 65% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 153 38% 23%;
+    --secondary-foreground: 138 60% 85%;
+    --muted: 153 38% 23%;
+    --muted-foreground: 138 40% 65%;
+    --accent: 153 38% 24%;
+    --accent-foreground: 138 60% 85%;
+    --destructive: 0 62.8% 45%;
     --destructive-foreground: 210 40% 98%;
- 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 153 38% 27%;
+    --input: 153 38% 27%;
+    --ring: 142 65% 55%;
+
+    /* Özel token'lar - dark (zümrüt yeşil — siyah değil!) */
+    --page-bg:      #1b3d27;   /* zengin zümrüt yeşil */
+    --section-alt:  #213d2b;   /* hafif farklı alternating */
+    --card-bg:      #27503a;   /* kartlar arka plandan ayrışıyor */
+    --card-border:  #3d7554;   /* canlı yeşil border */
+    --text-primary: #ecfdf5;   /* parlak beyaz-yeşil */
+    --text-muted:   #6ee7b7;   /* mint yeşil */
+    --nav-bg:       rgba(15, 40, 24, 0.90);
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-/* Dark mode'da select dropdown option'larının beyaz gelmesini önle */
+/* Dark mode select */
 .dark select {
   color-scheme: dark;
-  background-color: #1e293b;
-  color: #f1f5f9;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
 }
 
 .dark select option {
-  background-color: #1e293b;
-  color: #f1f5f9;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
 }
 
 select option {
   background-color: #ffffff;
-  color: #1e293b;
+  color: #052e16;
+}
+
+/* Dark modda kart hover'ları yeşil glow ile */
+.dark .hover\:shadow-2xl:hover {
+  box-shadow: 0 20px 40px rgba(22, 163, 74, 0.25) !important;
+}
+
+/* Quill Editor */
+.ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke,
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow .ql-toolbar button:hover .ql-stroke {
+  stroke: #16a34a !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active .ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-fill,
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-fill {
+  fill: #16a34a !important;
+}
+
+.ql-snow.ql-toolbar button.ql-active,
+.ql-snow .ql-toolbar button.ql-active,
+.ql-snow.ql-toolbar button:hover,
+.ql-snow .ql-toolbar button:hover {
+  color: #16a34a !important;
 }

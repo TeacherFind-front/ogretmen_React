@@ -38,9 +38,54 @@ export default function TutorAvailability() {
         const data = await getMyProfile();
         if (data) {
           // Backend dictionary format: { "Day-Slot": "type" }
-          // If availability comes as an array, we might need to convert it,
-          // but based on current code it's expected as an object.
-          setAvailability(data.availability || {});
+          // Backend dictionary format: { "Day-Slot": "type" }
+          // Backend returns data.availabilities as an array of { day, start, end, type }
+          let availabilityObj = {};
+
+          const availabilitiesArray =
+            data.availabilities || data.Availabilities;
+          console.log("Bulletproof Parser - Input:", availabilitiesArray);
+
+          if (availabilitiesArray && Array.isArray(availabilitiesArray)) {
+            availabilitiesArray.forEach((item) => {
+              const startRaw = String(item.start || item.Start || "").trim();
+              const dayRaw = String(item.day || item.Day || "").trim();
+              let type = String(item.type || item.Type || "")
+                .trim()
+                .toLowerCase();
+
+              // Fallback to empty if it says null or undefined string
+              if (type === "null" || type === "undefined") type = "";
+
+              const start = startRaw.substring(0, 5);
+
+              let slot = "Sabah";
+              if (start === "12:00") slot = "Öğle";
+              else if (start === "15:00") slot = "Öğleden Sonra";
+              else if (start === "18:00") slot = "Akşam";
+
+              // Ensure day matches exactly with DAYS array (e.g., "pazartesi" -> "Pazartesi", "çarşamba" -> "Çarşamba")
+              let day = "";
+              if (dayRaw) {
+                // Lowercase the whole string taking Turkish characters into account
+                let lowerDay = dayRaw.toLocaleLowerCase("tr-TR");
+                // Capitalize first letter taking Turkish into account
+                day =
+                  lowerDay.charAt(0).toLocaleUpperCase("tr-TR") +
+                  lowerDay.slice(1);
+              }
+
+              if (day && type) {
+                availabilityObj[`${day}-${slot}`] = type;
+              }
+            });
+
+            console.log("Bulletproof Parser - Output:", availabilityObj);
+
+            setAvailability(availabilityObj);
+          } else {
+            setAvailability(data.availability || {});
+          }
         }
       } catch (err) {
         console.error("Load error", err);
@@ -100,7 +145,7 @@ export default function TutorAvailability() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] gap-6">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+        <Loader2 className="w-12 h-12 animate-spin text-green-600" />
         <p className="text-gray-400 font-black uppercase tracking-widest text-xs">
           Takvim Yükleniyor
         </p>
@@ -161,14 +206,14 @@ export default function TutorAvailability() {
           <div className="legend-item">
             <div className="box empty"></div> <span>Müsait Değil</span>
           </div>
-          <p className="hint text-blue-600 dark:text-blue-400 font-black flex items-center gap-2">
+          <p className="hint text-green-600 dark:text-green-400 font-black flex items-center gap-2">
             <Clock size={14} /> Kutucuklara tıklayarak durumu
             değiştirebilirsiniz.
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
+        <div className="overflow-x-auto w-full rounded-2xl border border-gray-100 dark:border-[var(--card-border)]">
+          <table className="w-full min-w-[800px] border-separate border-spacing-2">
             <thead>
               <tr>
                 <th></th>
@@ -217,7 +262,7 @@ export default function TutorAvailability() {
                 </tr>
               ))}
             </tbody>
-          </Table>
+          </table>
         </div>
       </GridCard>
     </Container>
@@ -242,8 +287,8 @@ const HeaderCard = styled.div`
   margin-bottom: 24px;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: none;
   }
 
@@ -260,30 +305,37 @@ const HeaderCard = styled.div`
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #2d79f3;
+      color: #16a34a;
 
-      svg { width: 24px; height: 24px; }
+      svg {
+        width: 24px;
+        height: 24px;
+      }
 
       .dark & {
-        background: #1e3a8a30;
-        color: #60a5fa;
+        background: #14532d30;
+        color: #4ade80;
       }
     }
 
     h1 {
       font-size: 24px;
       font-weight: 950;
-      color: #0f172a;
+      color: var(--text-primary);
       margin: 0;
       letter-spacing: -0.5px;
-      .dark & { color: #f1f5f9; }
+      .dark & {
+        color: #f1f5f9;
+      }
     }
     p {
       color: #64748b;
       font-weight: 600;
       margin-top: 4px;
       font-size: 14px;
-      .dark & { color: #94a3b8; }
+      .dark & {
+        color: var(--text-muted);
+      }
     }
   }
 
@@ -303,8 +355,8 @@ const GridCard = styled.div`
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: none;
   }
 
@@ -318,7 +370,9 @@ const GridCard = styled.div`
     background: #f8fafc;
     border-radius: 16px;
 
-    .dark & { background: #0f172a50; }
+    .dark & {
+      background: var(--page-bg) 50;
+    }
 
     .legend-item {
       display: flex;
@@ -326,28 +380,33 @@ const GridCard = styled.div`
       gap: 12px;
       font-size: 14px;
       font-weight: 900;
-      color: #334155;
+      color: #475569;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      .dark & { color: #f1f5f9; }
+      .dark & {
+        color: #f1f5f9;
+      }
 
       .box {
         width: 24px;
         height: 24px;
         border-radius: 8px;
         &.online {
-          background: #3b82f6;
+          background: #2563eb;
         }
         &.inperson {
-          background: #10b981;
+          background: #ea580c;
         }
         &.both {
-          background: #8b5cf6;
+          background: #16a34a;
         }
         &.empty {
           background: white;
           border: 2px solid #e2e8f0;
-          .dark & { background: #0f172a; border-color: #334155; }
+          .dark & {
+            background: var(--page-bg);
+            border-color: var(--card-border);
+          }
         }
       }
     }
@@ -362,6 +421,7 @@ const GridCard = styled.div`
 
 const Table = styled.table`
   width: 100%;
+  min-width: 800px;
   border-collapse: separate;
   border-spacing: 8px;
 
@@ -370,7 +430,7 @@ const Table = styled.table`
     text-align: center;
     font-size: 11px;
     font-weight: 950;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     padding-bottom: 16px;
@@ -388,7 +448,10 @@ const Table = styled.table`
       border-radius: 12px;
       white-space: nowrap;
       text-align: center;
-      .dark & { background: #334155; color: #f1f5f9; }
+      .dark & {
+        background: var(--card-border);
+        color: #f1f5f9;
+      }
     }
   }
 `;
@@ -407,43 +470,49 @@ const Cell = styled.div`
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   color: white;
 
-  .dark & { border-color: #334155; }
+  .dark & {
+    border-color: var(--card-border);
+  }
 
   &:hover {
     transform: scale(1.08);
-    border-color: #cbd5e1;
+    border-color: var(--text-primary);
     box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
     z-index: 10;
   }
 
   &.empty {
     background: white;
-    .dark & { background: #0f172a; }
+    .dark & {
+      background: var(--page-bg);
+    }
     &:hover {
       background: #f8fafc;
-      .dark & { background: #1e293b; }
+      .dark & {
+        background: var(--card-bg);
+      }
     }
   }
 
   &.online {
-    background: #3b82f6;
-    border-color: #2563eb;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+    background: #2563eb;
+    border-color: #1d4ed8;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
   }
   &.inperson {
-    background: #10b981;
-    border-color: #059669;
-    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+    background: #ea580c;
+    border-color: #c2410c;
+    box-shadow: 0 10px 20px rgba(234, 88, 12, 0.2);
   }
   &.both {
-    background: #8b5cf6;
-    border-color: #7c3aed;
-    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+    background: #16a34a;
+    border-color: #15803d;
+    box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
   }
 `;
 
 const SaveButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 12px 24px;
   border-radius: 14px;
@@ -452,12 +521,12 @@ const SaveButton = styled.button`
   align-items: center;
   gap: 10px;
   transition: all 0.3s;
-  box-shadow: 0 10px 20px rgba(45, 121, 243, 0.2);
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
   font-size: 14px;
   &:hover {
     background: #1e40af;
     transform: translateY(-3px);
-    box-shadow: 0 20px 40px rgba(45, 121, 243, 0.3);
+    box-shadow: 0 20px 40px rgba(22, 163, 74, 0.3);
   }
   &:disabled {
     opacity: 0.5;
@@ -487,7 +556,9 @@ const ClearButton = styled.button`
   &:hover {
     background: #fef2f2;
     border-color: #ef4444;
-    .dark & { background: #450a0a40; }
+    .dark & {
+      background: #450a0a40;
+    }
   }
 `;
 

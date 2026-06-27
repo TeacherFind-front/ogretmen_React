@@ -13,10 +13,10 @@ import { apiFetch } from "./api";
  * @param {string} password
  * @returns {{ token, userId, fullName, email, role }}
  */
-export async function login(email, password) {
+export async function login(email, password, rememberMe = false) {
   const res = await apiFetch("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, rememberMe }),
   });
 
   if (!res.ok) {
@@ -140,15 +140,70 @@ export async function forgotPassword(email) {
   return res.json();
 }
 
+/**
+ * E-posta değişikliği için kod talep et
+ */
+export async function requestEmailChange(newEmail) {
+  const res = await apiFetch("/api/auth/request-email-change", {
+    method: "POST",
+    body: JSON.stringify({ newEmail }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "E-posta doğrulama kodu gönderilemedi.");
+  }
+  return res.json();
+}
+
+/**
+ * Gelen kod ile e-postayı kalıcı olarak değiştir
+ */
+export async function verifyEmailChange(newEmail, code) {
+  const res = await apiFetch("/api/auth/verify-email-change", {
+    method: "POST",
+    body: JSON.stringify({ newEmail, code }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Doğrulama başarısız. Kod hatalı veya süresi dolmuş.");
+  }
+  return res.json();
+}
+
+/**
+ * Şifre sıfırlama işlemi (yeni şifre belirleme)
+ */
 export async function resetPassword(email, code, newPassword) {
   const res = await apiFetch("/api/auth/reset-password", {
     method: "POST",
     body: JSON.stringify({ email, code, newPassword }),
   });
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || "Şifre sıfırlama başarısız.");
   }
+
+  return res.json();
+}
+
+/**
+ * Firebase ID Token ile sosyal giriş yap
+ * @param {string} provider - 'google' veya 'apple'
+ * @param {string} idToken - Firebase'den dönen ID Token
+ * @param {string} role - Kayıt oluyorsa zorunlu ('student' veya 'tutor')
+ */
+export async function socialLogin(provider, idToken) {
+  const res = await apiFetch("/api/auth/social-login", {
+    method: "POST",
+    body: JSON.stringify({ provider, idToken }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Sosyal giriş başarısız.");
+  }
+
   return res.json();
 }
 
@@ -161,4 +216,15 @@ export function logout() {
   localStorage.removeItem("user");
   // Backend'e session bitirme isteği gönderilebilir (opsiyonel)
   window.location.href = "/login";
+}
+
+/**
+ * Kullanıcı online durumunu güncel tutmak için heartbeat
+ */
+export async function sendHeartbeat() {
+  try {
+    await apiFetch("/api/users/heartbeat", { method: "POST" });
+  } catch (err) {
+    // Sessizce geç
+  }
 }

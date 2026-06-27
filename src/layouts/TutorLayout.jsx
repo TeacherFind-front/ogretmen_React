@@ -16,47 +16,69 @@ import {
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
+
+/**
+ * TutorLayout - Eğitmen (Tutor) paneli sayfaları için kullanılan ana şablon/layout bileşeni.
+ * Sol tarafta geniş ekranlar için masaüstü sidebar, mobil ekranlar için ise açılır kapanır hamburger menü
+ * ve alt gezinme çubuğu (BottomNav) sunar. Üst kısımda ise bildirimler, tema seçici ve kullanıcı avatarı yer alır.
+ * Sayfa içerikleri react-router-dom'un <Outlet /> bileşeni aracılığıyla bu şablonun içine yerleştirilir.
+ */
 export default function TutorLayout() {
+  // Giriş yapmış kullanıcının bilgileri ve çıkış yapma fonksiyonu auth context'ten alınır
   const { user, logout } = useAuth();
+  // Geçerli URL yolunu (pathname) öğrenmek için useLocation kullanılır (aktif linki boyamak için)
   const location = useLocation();
+  // Mobil yan menünün (sidebar) açık/kapalı olma durumunu yöneten state
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Menüdeki yönlendirme linkleri ve bunlara ait ikon/etiket tanımları
   const navLinks = [
+    { to: "/", label: "Ana Sayfa", icon: <Home size={16} /> },
     { to: "/tutor/dashboard", label: "Panel", icon: "📊" },
+    { to: "/tutor/bookings", label: "Ders Talepleri", icon: "📅" },
     { to: "/tutor/create-listing", label: "İlan Ver", icon: "➕" },
     { to: "/tutor/availability", label: "Müsaitlik Ayarları", icon: "⏰" },
     { to: "/tutor/lessons", label: "Derslerim", icon: "📚" },
     { to: "/tutor/profile", label: "Profilim", icon: "👤" },
     { to: "/tutor/social-media", label: "Sosyal Medya", icon: "🔗" },
     { to: "/tutor/messages", label: "Mesajlar", icon: "💬" },
-    { to: "/tutor/change-password", label: "Güvenlik", icon: "🛡️" },
+    { to: "/tutor/change-password", label: "Şifreyi Değiştir", icon: "🛡️" },
+    { to: "/tutor/support", label: "Destek Taleplerim", icon: "🙋‍♂️" },
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300">
-      {/* Desktop Sidebar */}
-      <aside className="w-56 border-r bg-white dark:bg-[#1e293b] dark:border-[#334155] hidden md:block shadow-sm">
+    <div className="flex min-h-screen bg-[#f9fafb] dark:bg-[var(--page-bg)] transition-colors duration-300">
+      {/* Sayfa geçişlerinde ekranın otomatik olarak en üste kaymasını sağlar */}
+      <ScrollToTop />
+
+      {/* Desktop Sidebar (Sadece orta ve büyük ekranlarda gösterilir) */}
+      <aside className="w-56 border-r bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] hidden md:block shadow-sm">
+        {/* Logo Alanı */}
         <div className="flex h-14 items-center px-6">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin <span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+          <div className="flex items-center">
+            <Link to="/">
+              <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+            </Link>
+          </div>
         </div>
+        {/* Menü Linkleri Listesi */}
         <nav className="px-3 py-4 space-y-1">
           {navLinks.map((link) => (
             <SideLink
               key={link.to}
               to={link.to}
+              // Linkin aktif olup olmadığını URL eşleşmesine göre belirliyoruz
               $active={location.pathname === link.to}
             >
               <span className="icon">{link.icon}</span> {link.label}
             </SideLink>
           ))}
-          <div className="pt-4 mt-4 border-t border-gray-100 dark:border-slate-800">
+          {/* Çıkış Yap butonu */}
+          <div className="pt-4 mt-4 border-t border-gray-100 dark:border-[var(--card-border)]">
             <LogoutButton onClick={logout}>
               <span className="icon">🚪</span> Çıkış Yap
             </LogoutButton>
@@ -64,19 +86,21 @@ export default function TutorLayout() {
         </nav>
       </aside>
 
-      {/* Mobile Sidebar & Overlay */}
+      {/* Mobile Sidebar Karartma Katmanı (Overlay) */}
       <MobileOverlay
         $isOpen={isMenuOpen}
         onClick={() => setIsMenuOpen(false)}
       />
+
+      {/* Mobile Sidebar (Hamburger menü açıldığında soldan kayarak gelen menü) */}
       <MobileSidebar $isOpen={isMenuOpen}>
         <div className="flex h-14 items-center px-6 border-b justify-between">
-          <LogoWrapper $small>
-            <span className="logo-icon">🔑</span>
-            <span className="logo-text">
-              Öğrenmenin <span>Çilingirleri</span>
-            </span>
-          </LogoWrapper>
+          <div className="flex items-center">
+            <Link to="/">
+              <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+            </Link>
+          </div>
+          {/* Kapatma Butonu */}
           <button
             onClick={() => setIsMenuOpen(false)}
             className="p-2 text-gray-500"
@@ -84,13 +108,14 @@ export default function TutorLayout() {
             <X size={20} />
           </button>
         </div>
+        {/* Mobil Menü Linkleri */}
         <nav className="px-3 py-4 space-y-1">
           {navLinks.map((link) => (
             <SideLink
               key={link.to}
               to={link.to}
               $active={location.pathname === link.to}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => setIsMenuOpen(false)} // Linke tıklandığında menüyü otomatik kapat
             >
               <span className="icon">{link.icon}</span> {link.label}
             </SideLink>
@@ -103,42 +128,40 @@ export default function TutorLayout() {
         </nav>
       </MobileSidebar>
 
+      {/* Sağ Taraf - Header ve Sayfa İçeriği Bölümü */}
       <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b bg-white dark:bg-[#1e293b] dark:border-[#334155] flex items-center px-6 justify-between shadow-sm">
+        {/* Üst Header (Nav Bar) */}
+        <header className="h-14 border-b bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] flex items-center px-4 md:px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
-            <button
-              className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-xl"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
+            {/* Mobil ekranlarda sol üstte görünecek logo */}
             <div className="md:hidden">
-              <LogoWrapper $small>
-                <span className="logo-icon">🔑</span>
-                <span className="logo-text">
-                  Öğrenmenin<span>Çilingirleri</span>
-                </span>
-              </LogoWrapper>
+              <div className="flex items-center">
+                <Link to="/">
+                  <img src="/logo.png" alt="Özel Ders VIP" className="h-10 w-auto object-contain" />
+                </Link>
+              </div>
             </div>
           </div>
+
+          {/* Header Sağ Bölüm: Tema seçici, bildirimler ve kullanıcı bilgileri */}
           <div className="ml-auto flex items-center gap-3">
+            {/* Karanlık/Aydınlık Tema Butonu */}
             <ThemeSwitch />
-            <Link
-              to="/"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
-            >
-              <Home size={12} /> Ana Sayfa
-            </Link>
+            {/* Bildirimler Açılır Kutusu */}
             <NotificationDropdown />
+            
+            {/* Eğitmen karşılama metni (Küçük ekranlarda gizlenir) */}
             <div className="hidden sm:flex flex-col items-end mr-1">
               <span className="text-[11px] font-bold text-gray-900 dark:text-slate-100">
                 Eğitmen Paneli
               </span>
-              <span className="text-[9px] text-gray-500 dark:text-slate-400">
+              <span className="text-[9px] text-gray-500 dark:text-[var(--text-muted)]">
                 Hoş geldin, {user?.fullName?.split(" ")[0] || "Hocam"}
               </span>
             </div>
-            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 overflow-hidden">
+
+            {/* Kullanıcı Profil Resmi / Avatar */}
+            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 overflow-hidden shrink-0">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -151,10 +174,15 @@ export default function TutorLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 bg-[#f9fafb] dark:bg-[#0f172a] transition-colors duration-300">
+
+        {/* Dinamik Sayfa İçeriğinin (<Outlet />) Render Edildiği Alan */}
+        <main className="flex-1 p-4 pb-24 md:pb-4 bg-[#f9fafb] dark:bg-[var(--page-bg)] transition-colors duration-300 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobil Alt Menü Çubuğu (Bottom Navigation) */}
+      <BottomNav onMenuClick={() => setIsMenuOpen(true)} />
     </div>
   );
 }
@@ -179,7 +207,7 @@ const LogoWrapper = styled.div`
     }
 
     span {
-      color: #2d79f3;
+      color: #16a34a;
     }
   }
 `;
@@ -191,16 +219,16 @@ const SideLink = styled(Link)`
   padding: 12px 12px;
   font-size: 14px;
   font-weight: 600;
-  color: ${(props) => (props.$active ? "#2d79f3" : "#4b5563")};
+  color: ${(props) => (props.$active ? "#16a34a" : "#4b5563")};
   text-decoration: none;
   border-radius: 10px;
   transition: all 0.2s ease;
   background-color: ${(props) => (props.$active ? "#f3f7ff" : "transparent")};
 
   .dark & {
-    color: ${(props) => (props.$active ? "#3b82f6" : "#94a3b8")};
+    color: ${(props) => (props.$active ? "#16a34a" : "#94a3b8")};
     background-color: ${(props) =>
-      props.$active ? "#1e3a8a40" : "transparent"};
+      props.$active ? "#14532d40" : "transparent"};
   }
 
   .icon {
@@ -210,11 +238,11 @@ const SideLink = styled(Link)`
 
   &:hover {
     background-color: ${(props) => (props.$active ? "#f3f7ff" : "#f9fafb")};
-    color: #2d79f3;
+    color: #16a34a;
 
     .dark & {
-      background-color: ${(props) => (props.$active ? "#1e3a8a60" : "#334155")};
-      color: #3b82f6;
+      background-color: ${(props) => (props.$active ? "#14532d60" : "#334155")};
+      color: #16a34a;
     }
 
     .icon {
@@ -273,6 +301,11 @@ const MobileSidebar = styled.div`
   background: white;
   z-index: 1001;
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+  
+  .dark & {
+    background: var(--card-bg);
+    border-right: 1px solid #334155;
+  }
 
   /* Requested translate value */
   --tw-translate-x: -110%;

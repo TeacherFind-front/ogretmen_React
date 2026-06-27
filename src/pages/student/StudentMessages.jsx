@@ -1,33 +1,63 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useSearchParams } from "react-router-dom";
-import { getConversations, getMessages, sendMessage } from "@/services/messageService";
-import { startChatConnection, stopChatConnection, sendMessageLive } from "@/services/chatService";
-import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Paperclip } from "lucide-react";
+import { getConversations, getMessages, sendMessage, deleteMessages, deleteConversation } from "@/services/messageService";
+import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
+import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, ArrowLeft, Trash2, CornerUpLeft, X, Circle, CheckCircle2, Reply } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
+import { resolveMediaUrl } from "@/utils/helpers";
 
+
+/**
+ * StudentMessages - Öğrencinin eğitmenlerle (hocalarla) canlı olarak sohbet etmesini sağlayan sayfa bileşeni.
+ * Bu bileşen SignalR (WebSocket) kullanarak gerçek zamanlı mesajlaşmayı, çevrimiçi/çevrimdışı durum takibini,
+ * geçmiş mesajları yüklemeyi, mesaj yanıtlamayı (reply), çoklu mesaj silmeyi ve konuşma geçmişini silmeyi yönetir.
+ */
 export default function StudentMessages() {
+  // Giriş yapmış kullanıcının bilgilerini auth context'ten alırız.
   const { user } = useAuth();
+  // URL arama parametrelerini okumak için kullanılır (örn: ?tutorId=123&tutorName=Ahmet)
   const [searchParams] = useSearchParams();
+  // Sol menüdeki konuşma listelerini tutan state.
   const [conversations, setConversations] = useState([]);
+  // Şu anda seçili olan konuşmayı tutan state.
   const [selectedConv, setSelectedConv] = useState(null);
+  // Seçili konuşmadaki mesajların listesini tutan state.
   const [messages, setMessages] = useState([]);
+  // Genel sayfa yükleniyor durumunu kontrol eder.
   const [loading, setLoading] = useState(true);
+  // Mesajların yüklenme durumunu kontrol eder.
   const [msgLoading, setMsgLoading] = useState(false);
+  // Giriş alanına yazılan yeni mesajın metnini tutan state.
   const [newMsg, setNewMsg] = useState("");
+  // Hangi mesaja yanıt verildiğini (reply) tutan state.
+  const [replyTo, setReplyTo] = useState(null);
+  // Çoklu mesaj silmek için seçim modunu kontrol eden state.
+  const [selectionMode, setSelectionMode] = useState(false);
+  // Çoklu seçim modunda seçilen mesaj ID'lerini tutan state array.
+  const [selectedMessages, setSelectedMessages] = useState([]);
+  // Sohbet alanının otomatik olarak en alta kaydırılması için kullanılan DOM referansı.
   const messagesEndRef = useRef(null);
 
+  // URL'deki parametreler veya sayfa ilk açıldığında konuşmaları yükle
   useEffect(() => {
     fetchConversations();
+  }, [searchParams]);
 
+  // SignalR Canlı Bağlantısı ve Event Dinleyicileri (Gerçek Zamanlı Mesaj & Çevrimiçi Durumu)
+  useEffect(() => {
+    // 1. Sunucudan yeni bir mesaj geldiğinde çalışacak handler
     const handleNewMessage = (message) => {
+      // Eğer yeni mesaj şu an aktif olarak açık olan konuşmadan gelmişse listeye ekle
       if (selectedConv && (message.senderId === selectedConv.otherUserId || message.receiverId === selectedConv.otherUserId)) {
         setMessages(prev => {
+          // Çift mesaj eklenmesini önlemek için ID kontrolü
           if (prev.some(m => m.id === message.id)) return prev;
           return [...prev, message];
         });
       }
 
+      // Sol taraftaki konuşma listesini güncelle ve yeni gelen mesajı en üste taşı
       setConversations(prev => {
         const index = prev.findIndex(c => c.otherUserId === message.senderId || c.otherUserId === message.receiverId);
         if (index === -1) return prev;
@@ -38,56 +68,101 @@ export default function StudentMessages() {
           ...conv, 
           lastMessage: message.content, 
           lastMessageAt: message.sentAt,
+          // Eğer mesajı alan kişi biz isek ve konuşma şu an açık değilse okunmamış mesaj sayısını artır
           unreadCount: (selectedConv?.otherUserId !== conv.otherUserId && message.receiverId === user?.userId) 
             ? (conv.unreadCount || 0) + 1 
             : conv.unreadCount
         };
         
+        // Konuşmayı mevcut konumundan çıkarıp en üste ekle
         const item = updated.splice(index, 1)[0];
         return [item, ...updated];
       });
     };
 
-    startChatConnection(handleNewMessage);
+    // 2. Bir kullanıcının çevrimiçi/çevrimdışı durumu değiştiğinde çalışacak handler
+    const handleUserStatusChanged = ({ userId, isOnline, lastSeenAt }) => {
+      // Konuşma listesindeki kullanıcının durumunu güncelle
+      setConversations(prev => prev.map(c => {
+        if (c.otherUserId === userId) {
+          return { ...c, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
+        }
+        return c;
+      }));
 
+      // Eğer şu an açık olan konuşma bu kullanıcıya aitse onun durumunu da güncelle
+      setSelectedConv(prev => {
+        if (prev && prev.otherUserId === userId) {
+          return { ...prev, otherUserIsOnline: isOnline, otherUserLastSeenAt: lastSeenAt };
+        }
+        return prev;
+      });
+    };
+
+    // SignalR bağlantısını başlatan ve olayları bağlayan fonksiyon
+    const setupSignalR = async () => {
+      const connection = await startChatConnection();
+      if (connection) {
+        // Çift event bağlanmasını önlemek için önce dinlemeyi durdurup sonra başlatıyoruz
+        connection.off("ReceiveMessage", handleNewMessage);
+        connection.on("ReceiveMessage", handleNewMessage);
+        
+        connection.off("UserStatusChanged", handleUserStatusChanged);
+        connection.on("UserStatusChanged", handleUserStatusChanged);
+      }
+    };
+    setupSignalR();
+
+    // Bileşen kapatıldığında (unmount) SignalR dinleyicilerini temizle
     return () => {
-      stopChatConnection();
+      const connection = getChatConnection();
+      if (connection) {
+        connection.off("ReceiveMessage", handleNewMessage);
+        connection.off("UserStatusChanged", handleUserStatusChanged);
+      }
     };
   }, [selectedConv, user?.userId]);
 
+  // Seçili konuşma değiştiğinde geçmiş mesajları API'den çeker
   useEffect(() => {
     if (selectedConv) {
       fetchMessages(selectedConv.otherUserId);
     }
   }, [selectedConv]);
 
+  // Mesaj listesi güncellendiğinde ekranı otomatik en alta kaydırır
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  /**
+   * fetchConversations - Kullanıcının geçmiş tüm sohbetlerini listeler.
+   * Eğer URL'de bir tutorId (eğitmen) belirtilmişse, o eğitmenle olan konuşmayı otomatik seçer.
+   * Eğer o eğitmenle daha önce konuşulmamışsa, geçici (mock) yeni bir konuşma kartı oluşturur.
+   */
   const fetchConversations = async () => {
     setLoading(true);
     try {
       const data = await getConversations();
       
-      const targetTutorId = searchParams.get("tutorId");
-      const targetTutorName = searchParams.get("tutorName");
+      const targetTutorId = searchParams.get("userId") || searchParams.get("tutorId");
+      const targetTutorName = searchParams.get("userName") || searchParams.get("tutorName");
       
       let updatedData = [...data];
       let selection = null;
       
       if (targetTutorId) {
-        // Zaten bu kişiyle konuşma var mı?
+        // Mevcut konuşmalar arasında bu eğitmen var mı kontrol et
         const existingIndex = updatedData.findIndex(c => c.otherUserId === targetTutorId);
         
         if (existingIndex !== -1) {
           selection = updatedData[existingIndex];
-        } else if (targetTutorName) {
-          // Yeni konuşma başlatılacak (mock nesne)
+        } else {
+          // İlk defa mesaj atılacaksa geçici konuşma kartı ekle
           const newConv = {
             conversationId: "new",
             otherUserId: targetTutorId,
-            otherUserName: decodeURIComponent(targetTutorName),
+            otherUserName: targetTutorName ? decodeURIComponent(targetTutorName) : "Eğitmen",
             lastMessage: "Yeni konuşma başlat",
             lastMessageAt: new Date().toISOString(),
             unreadCount: 0
@@ -101,8 +176,6 @@ export default function StudentMessages() {
       
       if (selection) {
         setSelectedConv(selection);
-      } else if (updatedData.length > 0 && !selectedConv) {
-        setSelectedConv(updatedData[0]);
       }
     } catch (err) {
       console.error("Conversations load failed", err);
@@ -111,6 +184,9 @@ export default function StudentMessages() {
     }
   };
 
+  /**
+   * fetchMessages - Belirli bir kullanıcı ile olan mesaj geçmişini API'den çeker.
+   */
   const fetchMessages = async (otherUserId) => {
     setMsgLoading(true);
     try {
@@ -123,145 +199,351 @@ export default function StudentMessages() {
     }
   };
 
+  /**
+   * handleSend - Yeni mesaj gönderim formunu işler.
+   * Mesajı öncelikle SignalR aracılığıyla canlı göndermeyi dener,
+   * eğer bağlantı yoksa yedek olarak HTTP POST API'sini kullanır.
+   */
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newMsg.trim() || !selectedConv) return;
 
     const msgContent = newMsg.trim();
-    setNewMsg("");
+    setNewMsg(""); // Giriş kutusunu temizle
+    const replyId = replyTo?.id; // Yanıtlanan mesajın ID'si
+    setReplyTo(null); // Yanıt durumunu sıfırla
 
     try {
-      const success = await sendMessageLive(selectedConv.otherUserId, msgContent);
+      // 1. SignalR ile gerçek zamanlı göndermeyi dene
+      const success = await sendMessageLive(selectedConv.otherUserId, msgContent, replyId);
+      
       if (!success) {
-        const sent = await sendMessage({
-          receiverId: selectedConv.otherUserId,
-          content: msgContent
+        // 2. SignalR çevrimdışıysa standart API isteğiyle mesaj gönder
+        const sent = await sendMessage({ 
+          receiverId: selectedConv.otherUserId, 
+          content: msgContent,
+          replyToMessageId: replyId 
         });
         
-        // Eğer bu yeni bir konuşmaysa, conversationId'yi güncelle
         if (selectedConv.conversationId === "new") {
           fetchConversations();
         }
         
         setMessages(prev => [...prev, sent]);
+      } else {
+        if (selectedConv.conversationId === "new") {
+          // Geçici konuşma ise listeyi yenileyerek kalıcı konuşma haline getir
+          fetchConversations();
+        }
       }
     } catch (err) {
       alert(err.message);
     }
   };
 
+  // Yüklenme ekranı
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <Loader2 className="w-10 h-10 animate-spin text-green-600" />
         <p className="text-gray-500 font-medium">Mesaj kutunuz yükleniyor...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] border border-gray-100 dark:border-slate-800 flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl">
+    <div className="bg-white dark:bg-[var(--page-bg)] rounded-[2.5rem] border border-gray-100 dark:border-[var(--card-border)] flex h-[calc(100vh-160px)] max-w-7xl mx-auto overflow-hidden shadow-2xl relative">
       
-      {/* Sidebar */}
-      <div className="w-96 border-r dark:border-slate-800 flex flex-col bg-gray-50/50 dark:bg-[#0f172a]/40 shrink-0">
-        <div className="p-6 border-b dark:border-slate-800 bg-white dark:bg-[#1e293b]">
+      {/* Sol Menü - Konuşma Listesi (Sidebar) */}
+      <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r dark:border-[var(--card-border)] flex-col bg-gray-50/50 dark:bg-[var(--page-bg)]/40 shrink-0`}>
+        {/* Arama çubuğu */}
+        <div className="p-6 border-b dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)]">
           <div className="relative group">
-             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-500 transition-colors" size={18} />
              <input 
               type="text" 
               placeholder="Mesajlarda ara..." 
-              className="w-full h-12 bg-gray-100 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 text-sm font-bold text-gray-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" 
+              className="w-full h-12 bg-gray-100 dark:bg-[var(--card-bg)] border-none rounded-2xl pl-12 pr-4 text-sm font-bold text-gray-700 dark:text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-green-500/20 transition-all" 
              />
           </div>
         </div>
         
+        {/* Sohbetlerin listelendiği alan */}
         <div className="flex-1 overflow-y-auto py-4 space-y-1">
           {conversations.map(conv => (
             <ConversationCard 
               key={conv.conversationId} 
+              className="group"
               $active={selectedConv?.otherUserId === conv.otherUserId}
               onClick={() => setSelectedConv(conv)}
             >
+              {/* Profil resmi veya ilk harfi */}
               <div className="relative">
-                 <Avatar>
-                   {conv.otherUserName?.charAt(0)}
+                 <Avatar $hasImage={!!conv.otherUserAvatarUrl}>
+                   {conv.otherUserAvatarUrl ? (
+                     <img 
+                       src={resolveMediaUrl(conv.otherUserAvatarUrl)} 
+                       alt={conv.otherUserName} 
+                       onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/placeholder-avatar.png";
+                       }}
+                       className="w-full h-full object-cover" 
+                     />
+                   ) : (
+                     conv.otherUserName?.charAt(0)
+                   )}
                  </Avatar>
-                 <OnlineStatus />
+                 {/* Çevrimiçi ise yeşil nokta */}
+                 {conv.otherUserIsOnline && <OnlineStatus />}
               </div>
+              
+              {/* Son mesaj metni ve kullanıcı adı */}
               <div className="flex-1 min-w-0">
                  <div className="flex justify-between items-center mb-1">
-                    <h4 className="font-bold text-gray-900 dark:text-slate-100 text-sm truncate">{conv.otherUserName}</h4>
+                    <h4 className="font-bold text-gray-900 dark:text-slate-100 text-sm truncate">{conv.otherUserName || "Kullanıcı"}</h4>
                     <span className="text-[10px] font-bold text-gray-400 uppercase">
                        {new Date(conv.lastMessageAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
                     </span>
                  </div>
                  <p className="text-xs text-gray-500 font-medium truncate leading-none">{conv.lastMessage}</p>
               </div>
+              
+              {/* Okunmamış mesaj sayısı rozeti */}
               {conv.unreadCount > 0 && (
                 <UnreadBadge>{conv.unreadCount}</UnreadBadge>
               )}
+              
+              {/* Sohbeti silme butonu (Hover durumunda görünür) */}
+              <button 
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (window.confirm(`${conv.otherUserName || "Kullanıcı"} adlı kişiyle olan tüm konuşmayı silmek istediğinize emin misiniz?`)) {
+                    try {
+                      await deleteConversation(conv.otherUserId);
+                      setConversations(prev => prev.filter(c => c.otherUserId !== conv.otherUserId));
+                      if (selectedConv?.otherUserId === conv.otherUserId) {
+                        setSelectedConv(null);
+                      }
+                    } catch (err) {
+                      alert(err.message);
+                    }
+                  }
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg ml-2"
+                title="Konuşmayı Sil"
+              >
+                <Trash2 size={16} />
+              </button>
             </ConversationCard>
           ))}
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-[#1e293b]">
+      {/* Sağ Taraf - Mesajlaşma Alanı (Chat Area) */}
+      <div className={`${!selectedConv ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-white dark:bg-[var(--card-bg)] w-full md:w-auto absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`}>
         {selectedConv ? (
           <>
-            {/* Chat Header */}
-            <div className="h-20 border-b dark:border-slate-800 px-8 flex items-center justify-between bg-white dark:bg-[#1e293b] shrink-0">
-               <div className="flex items-center gap-4">
-                  <Avatar $small>
-                    {selectedConv.otherUserName?.charAt(0)}
+            {/* Sohbet Başlığı (Header) */}
+            <div className="h-20 border-b dark:border-[var(--card-border)] px-4 md:px-8 flex items-center justify-between bg-white dark:bg-[var(--card-bg)] shrink-0">
+               <div className="flex items-center gap-3 md:gap-4">
+                  {/* Mobil görünüm için geri butonu */}
+                  <button 
+                    className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                    onClick={() => setSelectedConv(null)}
+                  >
+                    <ArrowLeft size={24} />
+                  </button>
+                  <Avatar $small $hasImage={!!selectedConv.otherUserAvatarUrl}>
+                    {selectedConv.otherUserAvatarUrl ? (
+                      <img 
+                        src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} 
+                        alt={selectedConv.otherUserName} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/placeholder-avatar.png";
+                        }}
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      selectedConv.otherUserName?.charAt(0)
+                    )}
                   </Avatar>
                   <div>
-                     <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName}</h3>
+                     <h3 className="font-black text-gray-900 dark:text-slate-100 leading-none mb-1">{selectedConv.otherUserName || "Kullanıcı"}</h3>
+                     {/* Kullanıcının son görülme veya çevrimiçi durumu */}
                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                        <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Çevrimiçi</span>
+                        {selectedConv.otherUserIsOnline ? (
+                          <>
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Çevrimiçi</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                              {selectedConv.otherUserLastSeenAt ? `Son görülme: ${new Date(selectedConv.otherUserLastSeenAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}` : "Çevrimdışı"}
+                            </span>
+                          </>
+                        )}
                      </div>
                   </div>
                </div>
-               <button className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-slate-100 flex items-center justify-center transition-all"><MoreVertical size={20} /></button>
+               
+               {/* Çoklu Mesaj Seçimi ve Seçenekler Menüsü */}
+               <div className="flex items-center gap-2">
+                 {selectionMode ? (
+                   <>
+                     <button 
+                       onClick={() => { setSelectionMode(false); setSelectedMessages([]); }}
+                       className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl"
+                     >
+                       İptal
+                     </button>
+                     {selectedMessages.length > 0 && (
+                       <button 
+                         onClick={async () => {
+                           if(window.confirm(`${selectedMessages.length} mesajı silmek istediğinize emin misiniz?`)) {
+                             try {
+                               await deleteMessages(selectedMessages);
+                               setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
+                               setSelectionMode(false);
+                               setSelectedMessages([]);
+                             } catch(err) {
+                               alert(err.message);
+                             }
+                           }
+                         }}
+                         className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                       >
+                         <Trash2 size={16} /> <span className="hidden sm:inline">Sil ({selectedMessages.length})</span>
+                       </button>
+                     )}
+                   </>
+                 ) : (
+                   <div className="relative group/menu">
+                     <button className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-[var(--card-bg)] text-gray-400 hover:text-gray-900 dark:hover:text-slate-100 flex items-center justify-center transition-all">
+                       <MoreVertical size={20} />
+                     </button>
+                     <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[var(--card-bg)] rounded-xl shadow-xl border border-gray-100 dark:border-[var(--card-border)] opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
+                       <button 
+                         onClick={() => setSelectionMode(true)}
+                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-[var(--text-primary)] hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
+                       >
+                         <CheckCircle2 size={16} /> Mesaj Seç
+                       </button>
+                     </div>
+                   </div>
+                 )}
+               </div>
             </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-gray-50/30 dark:bg-[#0f172a]/50">
-              {messages.map((m, i) => (
-                <MessageWrapper key={m.id || i} $isMine={m.senderId === user?.userId}>
-                   <div className="flex flex-col gap-1 max-w-[70%]">
-                      <MessageBubble $isMine={m.senderId === user?.userId}>
-                        {m.content}
-                      </MessageBubble>
-                      <div className={`flex items-center gap-2 px-2 ${m.senderId === user?.userId ? 'justify-end' : 'justify-start'}`}>
-                         <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase">
-                           {new Date(m.sentAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                         </span>
-                         {m.senderId === user?.userId && (
-                           <span className="text-blue-500"><CheckCheck size={12} /></span>
-                         )}
-                      </div>
-                   </div>
-                </MessageWrapper>
-              ))}
+            {/* Mesaj Gövdesi (Mesaj Baloncukları) */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-gray-50/30 dark:bg-[var(--page-bg)]/50">
+              {messages.map((m, i) => {
+                const isMine = m.senderId === user?.userId;
+                const isSelected = selectedMessages.includes(m.id || i);
+                
+                return (
+                  <div key={m.id || i} className="flex items-center gap-4 group/msg">
+                    {/* Seçim modu aktifse onay kutusu gösterilir */}
+                    {selectionMode && (
+                      <button 
+                        onClick={() => setSelectedMessages(prev => 
+                           prev.includes(m.id || i) ? prev.filter(id => id !== (m.id || i)) : [...prev, m.id || i]
+                        )}
+                        className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
+                      >
+                        {isSelected && <Check size={14} strokeWidth={3} />}
+                      </button>
+                    )}
+                    
+                    {/* Mesaj baloncuğu */}
+                    <MessageWrapper $isMine={isMine} className="flex-1">
+                       {/* Karşı tarafın mesajında yanıtla butonu (hover ile açılır) */}
+                       {!selectionMode && !isMine && (
+                         <button 
+                           onClick={() => setReplyTo(m)}
+                           className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all shrink-0 mr-2"
+                         >
+                           <Reply size={16} />
+                         </button>
+                       )}
+                       
+                       <div className="flex flex-col gap-1 max-w-[85%] md:max-w-[70%]">
+                          <MessageBubble $isMine={isMine}>
+                            {/* Eğer mesaj başka bir mesaja yanıt olarak yazılmışsa üstte yanıt bilgisini göster */}
+                            {m.replyToMessageContent && (
+                              <div className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg text-sm border-l-4 border-black/10 dark:border-white/10 opacity-80">
+                                <span className="font-bold block mb-0.5 text-xs">Yanıt:</span>
+                                <p className="truncate">{m.replyToMessageContent}</p>
+                              </div>
+                            )}
+                            {m.content}
+                          </MessageBubble>
+                          {/* Mesaj gönderim saati ve okundu durumu */}
+                          <div className={`flex items-center gap-2 px-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                             <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase">
+                               {new Date(m.sentAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                             </span>
+                             {isMine && (
+                               <span className="text-green-500"><CheckCheck size={12} /></span>
+                             )}
+                          </div>
+                       </div>
+                       
+                       {/* Kendi mesajımızda yanıtla butonu (hover ile açılır) */}
+                       {!selectionMode && isMine && (
+                         <button 
+                           onClick={() => setReplyTo(m)}
+                           className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all shrink-0 ml-2"
+                         >
+                           <Reply size={16} />
+                         </button>
+                       )}
+                    </MessageWrapper>
+                  </div>
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="p-6 border-t dark:border-slate-800 bg-white dark:bg-[#1e293b] shrink-0">
-              <form onSubmit={handleSend} className="flex items-center gap-4 bg-gray-50 dark:bg-slate-800 p-2 pl-6 rounded-[2rem] border border-gray-100 dark:border-slate-700 focus-within:border-blue-200 dark:focus-within:border-blue-500/50 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:shadow-xl transition-all">
-                <button type="button" className="text-gray-400 hover:text-blue-600 transition-colors"><Paperclip size={20} /></button>
+            {/* Mesaj Giriş Alanı */}
+            <div className="p-4 md:p-6 border-t dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)] shrink-0">
+              
+              {/* Yanıt verilen mesaj önizlemesi */}
+              {replyTo && (
+                <div className="mb-4 flex items-start justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-xl border-l-4 border-green-500">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1 flex items-center gap-1.5">
+                      <CornerUpLeft size={12} />
+                      {replyTo.senderId === user?.userId ? 'Kendi mesajınıza yanıt veriyorsunuz' : 'Yanıt veriyorsunuz'}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-[var(--text-primary)] truncate">
+                      {replyTo.content}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setReplyTo(null)}
+                    className="p-1.5 text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors shrink-0"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Mesaj gönderme formu */}
+              <form onSubmit={handleSend} className="flex items-center gap-3 md:gap-4 bg-gray-50 dark:bg-[var(--card-bg)] p-2 pl-6 rounded-[2rem] border border-gray-100 dark:border-[var(--card-border)] focus-within:border-green-200 dark:focus-within:border-green-500/50 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:shadow-xl transition-all">
                 <input 
                   placeholder="Mesajınızı buraya yazın..." 
-                  className="flex-1 h-12 bg-transparent border-none focus:ring-0 font-bold text-gray-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500" 
+                  className="flex-1 h-12 bg-transparent border-none focus:ring-0 font-bold text-gray-700 dark:text-[var(--text-primary)] placeholder:text-gray-400 dark:placeholder:text-slate-500" 
                   value={newMsg}
                   onChange={(e) => setNewMsg(e.target.value)}
                 />
                 <button 
                   type="submit" 
                   disabled={!newMsg.trim()}
-                  className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700 disabled:opacity-30 disabled:shadow-none transition-all"
+                  className="w-12 h-12 rounded-2xl bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 disabled:opacity-30 disabled:shadow-none transition-all shrink-0"
                 >
                   <Send size={18} />
                 </button>
@@ -269,8 +551,9 @@ export default function StudentMessages() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/30 dark:bg-[#0f172a]/20">
-             <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2.5rem] flex items-center justify-center text-blue-200 dark:text-blue-500/40 mb-6 animate-bounce duration-[3000ms]">
+          /* Sohbet seçilmemişse gösterilecek hoş geldiniz ekranı */
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/30 dark:bg-[var(--page-bg)]/20">
+             <div className="w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-[2.5rem] flex items-center justify-center text-green-200 dark:text-green-500/40 mb-6 animate-bounce duration-[3000ms]">
                 <Send size={40} />
              </div>
              <h2 className="text-2xl font-black text-gray-900 dark:text-slate-100 mb-2">Canlı Sohbet</h2>
@@ -298,8 +581,8 @@ const ConversationCard = styled.div`
     border: 1px solid #f1f5f9;
 
     .dark & {
-      background: #1e293b;
-      border-color: #334155;
+      background: var(--card-bg);
+      border-color: var(--card-border);
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
   ` : `
@@ -311,7 +594,7 @@ const ConversationCard = styled.div`
 
   .dark & {
     h4 { color: #f1f5f9 !important; }
-    p { color: #94a3b8 !important; }
+    p { color: var(--text-muted) !important; }
   }
 `;
 
@@ -319,7 +602,7 @@ const Avatar = styled.div`
   width: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
   height: ${props => props.$large ? '56px' : props.$small ? '32px' : '48px'};
   border-radius: ${props => props.$large ? '20px' : '14px'};
-  background: linear-gradient(135deg, #2d79f3 0%, #1e40af 100%);
+  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #16a34a 0%, #1e40af 100%)'};
   color: white;
   display: flex;
   align-items: center;
@@ -327,7 +610,8 @@ const Avatar = styled.div`
   font-weight: 900;
   font-size: ${props => props.$large ? '20px' : props.$small ? '12px' : '16px'};
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(45, 121, 243, 0.15);
+  box-shadow: ${props => props.$hasImage ? 'none' : '0 4px 12px rgba(45, 121, 243, 0.15)'};
+  overflow: hidden;
 `;
 
 const OnlineStatus = styled.div`
@@ -341,7 +625,7 @@ const OnlineStatus = styled.div`
   border-radius: 50%;
 
   .dark & {
-    border-color: #0f172a;
+    border-color: var(--text-primary);
   }
 `;
 
@@ -369,27 +653,27 @@ const MessageBubble = styled.div`
   font-weight: 600;
   line-height: 1.5;
   ${props => props.$isMine ? `
-    background: #2d79f3;
+    background: #16a34a;
     color: white;
     border-bottom-right-radius: 4px;
     box-shadow: 0 8px 16px rgba(45, 121, 243, 0.15);
   ` : `
     background: white;
-    color: #1e293b;
+    color: var(--text-primary);
     border-bottom-left-radius: 4px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.02);
     border: 1px solid #f1f5f9;
 
     .dark & {
-      background: #1e293b;
+      background: var(--card-bg);
       color: #f1f5f9;
-      border-color: #334155;
+      border-color: var(--card-border);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
   `}
 
   .dark & {
-    background-color: #0f172a;
-    border-color: #334155;
+    background-color: var(--page-bg);
+    border-color: var(--card-border);
   }
 `;

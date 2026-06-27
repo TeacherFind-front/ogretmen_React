@@ -31,14 +31,45 @@ import {
 } from "@/services/tutorService";
 import BASE_URL, { getImageUrl } from "@/services/api";
 import { getUniversities, getDepartments } from "@/services/educationService";
+import { requestEmailChange, verifyEmailChange } from "@/services/authService";
+import { useAuth } from "@/store/AuthContext";
 
+/**
+ * TutorProfile - Eğitmenin (Tutor) kendi profil bilgilerini yönettiği sayfa bileşeni.
+ * Bu sayfa üzerinden eğitmen; kişisel bilgilerini (ad, telefon, headline), eğitim durumunu (üniversite, bölüm),
+ * biyografisini, eğitim metotlarını, deneyimlerini, profil resmini (avatar) güncelleyebilir.
+ * Ayrıca güvenlik amacıyla kayıtlı e-posta adresini doğrulama kodu aracılığıyla değiştirebilir.
+ */
 export default function TutorProfile() {
+  // Profil verilerinin API'den ilk yüklenme aşamasını kontrol eden yükleniyor state'i.
   const [loading, setLoading] = useState(true);
+  // Profil bilgilerini kaydederken (kaydet butonu) yüklenme animasyonunu kontrol eden state.
   const [saveLoading, setSaveLoading] = useState(false);
+  // Profil resmi (avatar) sunucuya yüklenirken çalıştırılan yüklenme state'i.
   const [uploadLoading, setUploadLoading] = useState(false);
+  // Kullanıcıya işlem durumunu bildiren uyarı mesajı state'i ({ type: "success"|"error", message: "..." }).
   const [status, setStatus] = useState({ type: null, message: "" });
+  // Resim seçimi için gizli input elemanını tetikleyen DOM referansı.
   const fileInputRef = React.useRef(null);
+  // E-posta değişikliği sonrası hesaptan çıkış yapıp tekrar giriş yaptırmak için auth context'ten logout fonksiyonu alınır.
+  const { logout } = useAuth();
 
+  // E-posta değiştirme modalının (pop-up) gösterilip gösterilmeyeceğini kontrol eden state.
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  // E-posta değiştirme sürecinin adımlarını (1: Şifre ve Yeni Mail girişi, 2: Doğrulama Kodu girişi) tutan state.
+  const [emailStep, setEmailStep] = useState(1);
+  // Yeni e-posta adresi state'i.
+  const [newEmail, setNewEmail] = useState("");
+  // Kullanıcının mevcut şifresi (güvenlik doğrulaması için).
+  const [currentPassword, setCurrentPassword] = useState("");
+  // Yeni e-posta adresine gönderilen 6 haneli doğrulama kodu.
+  const [emailCode, setEmailCode] = useState("");
+  // E-posta değiştirme işlemi sırasındaki yüklenme state'i.
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  // E-posta değiştirme işlemi sırasında oluşan hata mesajını tutan state.
+  const [emailChangeError, setEmailChangeError] = useState("");
+
+  // Form üzerindeki tüm eğitmen profil alanlarını tutan birleşik state objesi.
   const [profile, setProfile] = useState({
     fullName: "",
     email: "",
@@ -52,19 +83,23 @@ export default function TutorProfile() {
     teachingStyle: "",
     experience: "",
     avatarUrl: null,
-    certificates: [], // { name, organization, year, fileUrl, link }
+    certificates: [], // Sertifikaların listesi: { name, organization, year, fileUrl, link }
     socialLinks: { whatsapp: "", instagram: "", facebook: "", linkedin: "" },
     isPremium: false,
   });
 
+  // Seçilebilir üniversitelerin listesini tutan state.
   const [universities, setUniversities] = useState([]);
+  // Seçilen üniversiteye bağlı olarak listelenecek bölümlerin state'i.
   const [departments, setDepartments] = useState([]);
 
+  // Sayfa yüklendiğinde eğitmen profil verilerini ve üniversite listesini sunucudan çeker
   useEffect(() => {
     const load = async () => {
       try {
         const data = await getMyProfile();
         if (data) {
+          // Gelen verileri form state'ine aktar
           setProfile({
             fullName: data.fullName || "",
             email: data.email || "",
@@ -77,13 +112,14 @@ export default function TutorProfile() {
             headline: data.headline || "",
             teachingStyle: data.teachingStyle || "",
             experience: data.experience || "",
+            // Profil resminin CDN/API yolunu tam URL olarak çözümler
             avatarUrl: getImageUrl(data.profileImageUrl),
             certificates: data.certificates || [],
             socialLinks: data.socialLinks || { whatsapp: "", instagram: "", facebook: "", linkedin: "" },
             isPremium: data.isPremium || false,
           });
 
-          // If profile has university, load departments
+          // Eğer eğitmenin zaten kayıtlı bir üniversitesi varsa, o üniversiteye ait bölümleri API'den çek
           if (data.universityId) {
             getDepartments(data.universityId)
               .then(setDepartments)
@@ -91,29 +127,33 @@ export default function TutorProfile() {
           }
         }
 
-        // Load universities list
+        // Tüm üniversiteler listesini API'den yükle (dropdown seçimi için)
         getUniversities().then(setUniversities).catch(console.error);
       } catch (err) {
         console.error("Profile load error", err);
       } finally {
-        setLoading(false);
+        setLoading(false); // Yüklenme ekranını kapat
       }
     };
     load();
   }, []);
 
+  /**
+   * handleAvatarChange - Kullanıcı yeni bir profil resmi seçtiğinde çalışır.
+   * Resmi öncelikle önizleme için yerel olarak okur (FileReader), ardından API'ye yükler.
+   */
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Local preview
+    // 1. Tarayıcıda anlık önizleme oluşturma (yükleme tamamlanmadan resmi göstermek için)
     const reader = new FileReader();
     reader.onloadend = () => {
       setProfile((prev) => ({ ...prev, avatarUrl: reader.result }));
     };
     reader.readAsDataURL(file);
 
-    // Upload to server
+    // 2. Resmi backend API'ye gönderip sunucu tarafında güncelleme
     setUploadLoading(true);
     try {
       const result = await uploadAvatar(file);
@@ -131,12 +171,16 @@ export default function TutorProfile() {
     }
   };
 
+  /**
+   * handleSave - Profil güncelleme formunu sunucuya gönderir.
+   */
   const handleSave = async (e) => {
     e.preventDefault();
     setSaveLoading(true);
-    setStatus({ type: null, message: "" });
+    setStatus({ type: null, message: "" }); // Önceki durum mesajlarını temizle
 
     try {
+      // API'ye gönderilecek verileri düzenle
       const updateData = {
         fullName: profile.fullName,
         phoneNumber: profile.phone,
@@ -151,8 +195,10 @@ export default function TutorProfile() {
         socialLinks: profile.socialLinks,
       };
 
+      // 1. Profil genel metin bilgilerini güncelle
       await updateMyProfile(updateData);
 
+      // 2. Yeni eklenmiş (henüz id'si olmayan ve dosyası bulunan) sertifikaları yükle
       const newCerts = profile.certificates.filter((c) => c.file && !c.id);
       for (const cert of newCerts) {
         await uploadCertificate(cert.name, cert.file);
@@ -162,6 +208,7 @@ export default function TutorProfile() {
         type: "success",
         message: "Profiliniz başarıyla güncellendi!",
       });
+      // Başarı mesajını 3 saniye sonra otomatik kaldır
       setTimeout(() => setStatus({ type: null, message: "" }), 3000);
     } catch (err) {
       setStatus({
@@ -173,22 +220,65 @@ export default function TutorProfile() {
     }
   };
 
+  /**
+   * handleRequestEmailChange - E-posta değişikliği talebini başlatır.
+   * Mevcut şifreyi ve yeni girilen e-posta adresini doğrulayarak doğrulama kodu gönderir.
+   */
+  const handleRequestEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailChangeError("");
+    setEmailChangeLoading(true);
+    try {
+      await requestEmailChange(currentPassword, newEmail);
+      setEmailStep(2); // Doğrulama kodu adımına geç
+    } catch (err) {
+      setEmailChangeError(err.message || "Kod gönderilemedi. Lütfen şifrenizi kontrol edin.");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
+  /**
+   * handleVerifyEmailChange - Gelen 6 haneli kodu doğrulayarak e-posta adresini kesin olarak değiştirir.
+   * Güvenlik nedeniyle işlem başarılı olunca kullanıcı oturumunu kapatır ve çıkış yaptırır.
+   */
+  const handleVerifyEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailChangeError("");
+    setEmailChangeLoading(true);
+    try {
+      await verifyEmailChange(newEmail, emailCode);
+      setStatus({ type: "success", message: "E-postanız başarıyla değiştirildi! Güvenliğiniz için çıkış yapılıyor..." });
+      setShowEmailModal(false);
+      // 3 saniye gecikmeyle kullanıcıyı çıkış yapmaya yönlendir
+      setTimeout(() => {
+        logout();
+      }, 3000);
+    } catch (err) {
+      setEmailChangeError(err.message || "Kod doğrulanamadı.");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
+  // İlk yüklenme ekranı
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
       </div>
     );
   }
+
 
   return (
     <Container>
       <header className="mb-6 flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-[var(--text-primary)] tracking-tight">
             Profil Yönetimi
           </h1>
-          <p className="text-gray-500 dark:text-slate-400 font-medium mt-1 text-sm">
+          <p className="text-gray-500 dark:text-[var(--text-muted)] font-medium mt-1 text-sm">
             Kişisel bilgilerinizi ve uzmanlık detaylarınızı buradan güncelleyebilirsiniz.
           </p>
         </div>
@@ -209,11 +299,11 @@ export default function TutorProfile() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <div className="flex flex-col items-center p-6 text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+              <div className="absolute top-0 left-0 w-full h-2 bg-green-600"></div>
               <div className="relative mb-6">
                 <AvatarWrapper $loading={uploadLoading}>
                   {uploadLoading ? (
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    <Loader2 className="w-8 h-8 animate-spin text-green-600" />
                   ) : profile.avatarUrl ? (
                     <img
                       src={profile.avatarUrl}
@@ -221,7 +311,7 @@ export default function TutorProfile() {
                       className="w-full h-full object-cover rounded-[2rem]"
                     />
                   ) : (
-                    <span className="text-3xl font-black text-blue-600">
+                    <span className="text-3xl font-black text-green-600">
                       {profile.fullName.charAt(0)}
                     </span>
                   )}
@@ -237,14 +327,14 @@ export default function TutorProfile() {
 
                 <button
                   onClick={() => fileInputRef.current.click()}
-                  className="absolute -bottom-1 -right-1 p-2 bg-blue-600 rounded-xl text-white shadow-lg border-2 border-white hover:bg-blue-700 transition-all hover:scale-110"
+                  className="absolute -bottom-1 -right-1 p-2 bg-green-600 rounded-xl text-white shadow-lg border-2 border-white hover:bg-green-700 transition-all hover:scale-110"
                   disabled={uploadLoading}
                 >
                   <Camera size={14} />
                 </button>
               </div>
-              <h2 className="text-xl font-black text-gray-900 dark:text-white">{profile.fullName}</h2>
-              <p className="text-blue-600 dark:text-blue-400 font-bold text-sm mt-1 uppercase tracking-widest">
+              <h2 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)]">{profile.fullName}</h2>
+              <p className="text-green-600 dark:text-green-400 font-bold text-sm mt-1 uppercase tracking-widest">
                 Doğrulanmış Eğitmen
               </p>
             </div>
@@ -255,8 +345,8 @@ export default function TutorProfile() {
           <Card>
             <form onSubmit={handleSave} className="p-6">
               <section className="mb-10">
-                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                  <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-[var(--text-primary)] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-green-600 rounded-full"></div>
                   Genel Bilgiler
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -269,16 +359,45 @@ export default function TutorProfile() {
                       required
                     />
                   </FormGroup>
-                  <FormGroup className="opacity-70">
-                    <label>E-posta Adresi (Salt Okunur)</label>
-                    <input type="email" value={profile.email} readOnly disabled />
+                  <FormGroup className="opacity-90">
+                    <label>E-posta Adresi</label>
+                    <div className="flex gap-3">
+                      <input type="email" value={profile.email} readOnly disabled className="bg-gray-100 w-full" />
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setShowEmailModal(true);
+                          setEmailStep(1);
+                          setNewEmail("");
+                          setCurrentPassword("");
+                          setEmailCode("");
+                          setEmailChangeError("");
+                        }}
+                        className="px-5 py-2 bg-green-50 text-green-600 rounded-xl font-bold hover:bg-green-100 transition-colors whitespace-nowrap dark:bg-[var(--card-bg)] dark:text-green-400 dark:hover:bg-slate-700"
+                      >
+                        Değiştir
+                      </button>
+                    </div>
                   </FormGroup>
                   <FormGroup>
                     <label>Telefon Numarası</label>
                     <input
                       type="text"
                       value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                      placeholder="(5XX) XXX XX XX"
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, "");
+                        if (val.length > 10) val = val.slice(0, 10);
+                        let formatted = val;
+                        if (val.length > 6) {
+                          formatted = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6, 8)} ${val.slice(8)}`;
+                        } else if (val.length > 3) {
+                          formatted = `(${val.slice(0, 3)}) ${val.slice(3)}`;
+                        } else if (val.length > 0) {
+                          formatted = `(${val}`;
+                        }
+                        setProfile({ ...profile, phone: formatted });
+                      }}
                     />
                   </FormGroup>
                   <FormGroup>
@@ -363,8 +482,8 @@ export default function TutorProfile() {
               </section>
 
               <section className="mb-12">
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                  <div className="w-1.5 h-7 bg-blue-600 rounded-full"></div>
+                <h3 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)] mb-8 flex items-center gap-3">
+                  <div className="w-1.5 h-7 bg-green-600 rounded-full"></div>
                   Hakkımda & Uzmanlık
                 </h3>
                 <div className="space-y-8">
@@ -444,6 +563,95 @@ export default function TutorProfile() {
           </Card>
         </div>
       </div>
+
+      {showEmailModal && (
+        <ModalOverlay onClick={() => setShowEmailModal(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)]">
+                E-posta Adresini Değiştir
+              </h3>
+              <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <span className="text-3xl font-light">&times;</span>
+              </button>
+            </div>
+
+            {emailChangeError && (
+              <AlertBox $type="error">
+                <AlertCircle className="w-5 h-5" />
+                <span>{emailChangeError}</span>
+              </AlertBox>
+            )}
+
+            {emailStep === 1 ? (
+              <form onSubmit={handleRequestEmailChange}>
+                <FormGroup className="mb-4">
+                  <label>Mevcut Şifreniz</label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Güvenlik için mevcut şifreniz"
+                  />
+                </FormGroup>
+                <FormGroup className="mb-6">
+                  <label>Yeni E-posta Adresi</label>
+                  <input
+                    type="email"
+                    required
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Yeni e-posta adresinizi girin"
+                  />
+                </FormGroup>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(false)}
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
+                  >
+                    İptal
+                  </button>
+                  <SaveButton type="submit" disabled={emailChangeLoading || !newEmail || !currentPassword}>
+                    {emailChangeLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Kod Gönder"}
+                  </SaveButton>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyEmailChange}>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-medium">
+                  <strong>{newEmail}</strong> adresine gönderilen 6 haneli doğrulama kodunu girin.
+                </p>
+                <FormGroup className="mb-6">
+                  <label>Doğrulama Kodu</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Örn: 123456"
+                    className="text-center text-2xl tracking-[0.5em] font-black py-4"
+                  />
+                </FormGroup>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setEmailStep(1)}
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
+                  >
+                    Geri Dön
+                  </button>
+                  <SaveButton type="submit" disabled={emailChangeLoading || emailCode.length < 6}>
+                    {emailChangeLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Onayla"}
+                  </SaveButton>
+                </div>
+              </form>
+            )}
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Container>
   );
 }
@@ -462,8 +670,8 @@ const Card = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: none;
   }
 `;
@@ -481,8 +689,8 @@ const AvatarWrapper = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
   }
   
   ${(props) =>
@@ -504,8 +712,8 @@ const StatusBadge = styled.span`
   letter-spacing: 0.05em;
 
   .dark & {
-    background: ${(props) => (props.$active ? "#064e3b40" : "#334155")};
-    color: ${(props) => (props.$active ? "#34d399" : "#94a3b8")};
+    background: ${(props) => (props.$active ? "#064e3b40" : "var(--card-border)")};
+    color: ${(props) => (props.$active ? "#34d399" : "var(--text-muted)")};
   }
 `;
 
@@ -523,7 +731,7 @@ const FormGroup = styled.div`
     margin-left: 4px;
 
     .dark & {
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 
@@ -536,35 +744,35 @@ const FormGroup = styled.div`
     background: #f8fafc;
     font-size: 15px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     width: 100%;
     transition: all 0.2s;
 
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
       color: #f1f5f9;
     }
 
     &:focus {
       outline: none;
-      border-color: #2d79f3;
+      border-color: #16a34a;
       background: white;
-      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.05);
 
       .dark & {
-        background: #0f172a;
-        border-color: #2d79f3;
-        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+        background: var(--page-bg);
+        border-color: #16a34a;
+        box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
       }
     }
     &:disabled {
       background: #f1f5f9;
-      color: #94a3b8;
+      color: var(--text-muted);
       cursor: not-allowed;
 
       .dark & {
-        background: #1e293b;
+        background: var(--card-bg);
         color: #475569;
       }
     }
@@ -579,18 +787,18 @@ const FormGroup = styled.div`
       transition: all 0.2s;
 
       .dark & {
-        background: #0f172a;
-        border-color: #334155;
+        background: var(--page-bg);
+        border-color: var(--card-border);
       }
 
       &:focus-within {
-        border-color: #2d79f3;
+        border-color: #16a34a;
         background: white;
-        box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
+        box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.05);
 
         .dark & {
-          background: #0f172a;
-          box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.1);
+          background: var(--page-bg);
+          box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
         }
       }
     }
@@ -605,21 +813,21 @@ const FormGroup = styled.div`
       border-top-right-radius: 16px;
 
       .dark & {
-        background: #1e293b;
-        border-color: #334155;
+        background: var(--card-bg);
+        border-color: var(--card-border);
       }
 
       .ql-picker-label {
-        color: #1e293b;
+        color: var(--text-primary);
         .dark & { color: #f1f5f9; }
       }
       .ql-stroke {
         stroke: #475569;
-        .dark & { stroke: #cbd5e1; }
+        .dark & { stroke: var(--text-primary); }
       }
       .ql-fill {
         fill: #475569;
-        .dark & { fill: #cbd5e1; }
+        .dark & { fill: var(--text-primary); }
       }
     }
 
@@ -628,7 +836,7 @@ const FormGroup = styled.div`
       font-family: inherit;
       font-size: 15px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--text-primary);
 
       .dark & {
         color: #f1f5f9;
@@ -642,7 +850,7 @@ const FormGroup = styled.div`
 
       &.ql-blank::before {
         font-style: normal;
-        color: #94a3b8;
+        color: var(--text-muted);
         font-weight: 500;
       }
     }
@@ -650,7 +858,7 @@ const FormGroup = styled.div`
 `;
 
 const SaveButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 16px 40px;
   border-radius: 20px;
@@ -659,7 +867,7 @@ const SaveButton = styled.button`
   display: flex;
   align-items: center;
   transition: all 0.2s;
-  box-shadow: 0 10px 20px rgba(45, 121, 243, 0.2);
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
   &:hover {
     background: #1e40af;
     transform: translateY(-2px);
@@ -693,16 +901,42 @@ const PasswordChangeLink = styled(Link)`
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 18px;
-  color: #1e293b;
+  color: var(--text-primary);
   font-size: 15px;
   font-weight: 800;
   text-decoration: none;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #2d79f3;
-    color: #2d79f3;
+    border-color: #16a34a;
+    color: #16a34a;
     background: #f3f7ff;
     transform: translateX(4px);
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 32px;
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  .dark & {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
   }
 `;

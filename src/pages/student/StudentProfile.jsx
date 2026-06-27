@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import { Loader2, Camera, CheckCircle2, AlertCircle, Save, Bell, User, Heart, Settings } from "lucide-react";
+import { Loader2, Camera, CheckCircle2, AlertCircle, Save, Bell, User, Heart, Settings, Mail, Lock } from "lucide-react";
 import { getStudentProfile, updateStudentProfile, uploadStudentAvatar } from "@/services/studentService";
 import { getCities } from "@/services/locationService";
+import { requestEmailChange, verifyEmailChange } from "@/services/authService";
+import { useAuth } from "@/store/AuthContext";
 import toast from "react-hot-toast";
 import { Skeleton } from "@/components/ui/Skeleton";
 import BASE_URL, { getImageUrl } from "@/services/api";
@@ -15,7 +17,16 @@ export default function StudentProfile() {
   const [status, setStatus] = useState({ type: null, message: "" });
   const [cities, setCities] = useState([]);
   const fileInputRef = React.useRef(null);
-  
+  const { logout } = useAuth();
+
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailStep, setEmailStep] = useState(1);
+  const [newEmail, setNewEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  const [emailChangeError, setEmailChangeError] = useState("");
+
   const [profile, setProfile] = useState({
     fullName: "",
     email: "",
@@ -120,6 +131,38 @@ export default function StudentProfile() {
     }
   };
 
+  const handleRequestEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailChangeError("");
+    setEmailChangeLoading(true);
+    try {
+      await requestEmailChange(newEmail);
+      setEmailStep(2);
+    } catch (err) {
+      setEmailChangeError(err.message || "Kod gönderilemedi. Lütfen e-posta adresinizi kontrol edin.");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
+  const handleVerifyEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailChangeError("");
+    setEmailChangeLoading(true);
+    try {
+      await verifyEmailChange(newEmail, emailCode);
+      toast.success("E-posta adresiniz başarıyla değiştirildi.");
+      setStatus({ type: "success", message: "E-posta adresiniz başarıyla değiştirildi." });
+      setProfile(prev => ({ ...prev, email: newEmail }));
+      setShowEmailModal(false);
+      loadProfileData();
+    } catch (err) {
+      setEmailChangeError(err.message || "Kod doğrulanamadı. Kod hatalı veya süresi dolmuş olabilir.");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-10 max-w-7xl mx-auto px-4 pb-20 mt-8">
@@ -144,7 +187,7 @@ export default function StudentProfile() {
     <Container>
       <header className="mb-12">
         <h1 className="text-4xl font-black text-gray-900 dark:text-slate-100 tracking-tight">Profil Ayarları</h1>
-        <p className="text-gray-500 dark:text-slate-400 font-medium mt-2">Kişisel bilgilerinizi ve öğrenme tercihlerinizi yönetin.</p>
+        <p className="text-gray-500 dark:text-[var(--text-muted)] font-medium mt-2">Kişisel bilgilerinizi ve öğrenme tercihlerinizi yönetin.</p>
       </header>
 
       {status.message && (
@@ -158,27 +201,27 @@ export default function StudentProfile() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <div className="flex flex-col items-center p-10 text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+              <div className="absolute top-0 left-0 w-full h-2 bg-green-600"></div>
               <div className="relative mb-6">
                 <AvatarWrapper $loading={uploadLoading}>
                   {uploadLoading ? (
-                    <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+                    <Loader2 className="w-10 h-10 animate-spin text-green-600" />
                   ) : profile.avatarUrl ? (
                     <img src={profile.avatarUrl} alt={profile.fullName} className="w-full h-full object-cover" />
                   ) : (
-                    <User size={60} className="text-blue-100" />
+                    <User size={60} className="text-green-100" />
                   )}
                 </AvatarWrapper>
                 <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
                 <button 
                   onClick={() => fileInputRef.current.click()}
-                  className="absolute -bottom-2 -right-2 p-3 bg-blue-600 rounded-2xl text-white shadow-xl border-4 border-white hover:bg-blue-700 transition-all"
+                  className="absolute -bottom-2 -right-2 p-3 bg-green-600 rounded-2xl text-white shadow-xl border-4 border-white hover:bg-green-700 transition-all"
                 >
                   <Camera size={18} />
                 </button>
               </div>
               <h2 className="text-2xl font-black text-gray-900 dark:text-slate-100">{profile.fullName}</h2>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-1 rounded-full mt-3">Öğrenci Hesabı</span>
+              <span className="text-sm font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-4 py-1 rounded-full mt-3">Öğrenci Hesabı</span>
             </div>
           </Card>
 
@@ -192,10 +235,7 @@ export default function StudentProfile() {
                   <div className="icon">💬</div>
                   <span>Mesajlarım</span>
                 </MenuLink>
-                <MenuLink to="/student/lessons">
-                  <div className="icon">📅</div>
-                  <span>Randevularım</span>
-                </MenuLink>
+
                 <MenuLink to="/student/favorites">
                   <div className="icon">❤️</div>
                   <span>Favori Hocalarım</span>
@@ -208,26 +248,59 @@ export default function StudentProfile() {
         <div className="lg:col-span-2">
           <Card>
             <form onSubmit={handleSave} className="p-10 space-y-12">
-              <section>
-                <SectionTitle>
-                  <div className="line bg-blue-600" />
+              <section className="mb-10">
+                <h3 className="text-lg font-black text-gray-900 dark:text-[var(--text-primary)] mb-6 flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-green-600 rounded-full"></div>
                   Kişisel Bilgiler
-                </SectionTitle>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormGroup>
-                    <label>Ad Soyad</label>
+                    <label>Tam Adınız</label>
                     <input type="text" value={profile.fullName} onChange={(e) => setProfile({...profile, fullName: e.target.value})} required />
                   </FormGroup>
-                  <FormGroup className="opacity-70">
-                    <label>E-posta (Değiştirilemez)</label>
-                    <input type="email" value={profile.email} disabled />
+                  <FormGroup className="opacity-90">
+                    <label>E-posta Adresi</label>
+                    <div className="flex gap-3">
+                      <input type="email" value={profile.email} disabled className="bg-gray-100 w-full" />
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setShowEmailModal(true);
+                          setEmailStep(1);
+                          setNewEmail("");
+                          setCurrentPassword("");
+                          setEmailCode("");
+                          setEmailChangeError("");
+                        }}
+                        className="px-5 py-2 bg-green-50 text-green-600 rounded-xl font-bold hover:bg-green-100 transition-colors whitespace-nowrap dark:bg-[var(--card-bg)] dark:text-green-400 dark:hover:bg-slate-700"
+                      >
+                        Değiştir
+                      </button>
+                    </div>
                   </FormGroup>
                   <FormGroup>
-                    <label>Telefon</label>
-                    <input type="text" value={profile.phoneNumber} onChange={(e) => setProfile({...profile, phoneNumber: e.target.value})} />
+                    <label>Telefon Numarası</label>
+                    <input 
+                      type="text" 
+                      value={profile.phoneNumber} 
+                      placeholder="(5XX) XXX XX XX"
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, "");
+                        if (val.length > 10) val = val.slice(0, 10);
+                        let formatted = val;
+                        if (val.length > 6) {
+                          formatted = `(${val.slice(0, 3)}) ${val.slice(3, 6)} ${val.slice(6, 8)} ${val.slice(8)}`;
+                        } else if (val.length > 3) {
+                          formatted = `(${val.slice(0, 3)}) ${val.slice(3)}`;
+                        } else if (val.length > 0) {
+                          formatted = `(${val}`;
+                        }
+                        setProfile({ ...profile, phoneNumber: formatted });
+                      }}
+                    />
                   </FormGroup>
                   <FormGroup>
-                    <label>Şehir</label>
+                    <label>Şehir Seçimi</label>
                     <select value={profile.cityId} onChange={(e) => setProfile({...profile, cityId: e.target.value})}>
                       <option value="">Şehir Seçin</option>
                       {cities.map(city => (
@@ -238,25 +311,9 @@ export default function StudentProfile() {
                 </div>
               </section>
 
-              <section>
-                <SectionTitle>
-                  <div className="line bg-purple-500" />
-                  Öğrenme Tercihleri
-                </SectionTitle>
-                <div className="space-y-8">
-                  <FormGroup>
-                    <label>Kısa Biyografi</label>
-                    <textarea 
-                      rows="5" 
-                      placeholder="Kendinizden kısaca bahsedin..." 
-                      value={profile.bio} 
-                      onChange={(e) => setProfile({...profile, bio: e.target.value})} 
-                    />
-                  </FormGroup>
-                </div>
-              </section>
 
-              <div className="flex justify-end pt-8 border-t border-gray-50 dark:border-slate-800">
+
+              <div className="flex justify-end pt-8 border-t border-gray-50 dark:border-[var(--card-border)]">
                 <SaveButton type="submit" disabled={saveLoading}>
                   {saveLoading ? <Loader2 className="animate-spin mr-2" size={20} /> : <Save size={20} className="mr-2" />}
                   Değişiklikleri Kaydet
@@ -266,6 +323,85 @@ export default function StudentProfile() {
           </Card>
         </div>
       </div>
+
+      {showEmailModal && (
+        <ModalOverlay onClick={() => setShowEmailModal(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-gray-900 dark:text-[var(--text-primary)]">
+                E-posta Adresini Değiştir
+              </h3>
+              <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <span className="text-3xl font-light">&times;</span>
+              </button>
+            </div>
+
+            {emailChangeError && (
+              <AlertBox $type="error">
+                <AlertCircle className="w-5 h-5" />
+                <span>{emailChangeError}</span>
+              </AlertBox>
+            )}
+
+            {emailStep === 1 ? (
+              <form onSubmit={handleRequestEmailChange}>
+                <FormGroup className="mb-6">
+                  <label>Yeni E-posta Adresi</label>
+                  <input
+                    type="email"
+                    required
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Yeni e-posta adresinizi girin"
+                  />
+                </FormGroup>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(false)}
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
+                  >
+                    İptal
+                  </button>
+                  <SaveButton type="submit" disabled={emailChangeLoading || !newEmail}>
+                    {emailChangeLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Kod Gönder"}
+                  </SaveButton>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyEmailChange}>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-medium">
+                  <strong>{newEmail}</strong> adresine gönderilen 6 haneli doğrulama kodunu girin.
+                </p>
+                <FormGroup className="mb-6">
+                  <label>Doğrulama Kodu</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Örn: 123456"
+                    className="text-center text-2xl tracking-[0.5em] font-black py-4"
+                  />
+                </FormGroup>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setEmailStep(1)}
+                    className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-[var(--card-bg)] dark:text-gray-300 dark:hover:bg-slate-700"
+                  >
+                    Geri Dön
+                  </button>
+                  <SaveButton type="submit" disabled={emailChangeLoading || emailCode.length < 6}>
+                    {emailChangeLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Onayla"}
+                  </SaveButton>
+                </div>
+              </form>
+            )}
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Container>
   );
 }
@@ -283,8 +419,8 @@ const Card = styled.div`
   overflow: hidden;
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   }
 `;
@@ -335,7 +471,7 @@ const FormGroup = styled.div`
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-left: 4px;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
   }
 
   input, textarea, select {
@@ -345,28 +481,28 @@ const FormGroup = styled.div`
     background: #f8fafc;
     font-size: 15px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     width: 100%;
     transition: all 0.2s;
     
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
       color: #f1f5f9;
     }
 
     &:focus { 
       outline: none; 
-      border-color: #2d79f3; 
+      border-color: #16a34a; 
       background: white; 
       box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
-      .dark & { background: #0f172a; border-color: #3b82f6; }
+      .dark & { background: var(--page-bg); border-color: #16a34a; }
     }
     &:disabled { 
       background: #f1f5f9; 
-      color: #94a3b8; 
+      color: var(--text-muted); 
       cursor: not-allowed;
-      .dark & { background: #1e293b; color: #475569; }
+      .dark & { background: var(--card-bg); color: #475569; }
     }
   }
 `;
@@ -379,31 +515,31 @@ const MenuLink = styled(Link)`
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 20px;
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 800;
   font-size: 15px;
   text-decoration: none;
   transition: all 0.2s;
 
   .dark & {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--page-bg);
+    border-color: var(--card-border);
     color: #f1f5f9;
   }
 
   .icon { font-size: 20px; }
 
   &:hover {
-    border-color: #2d79f3;
-    color: #2d79f3;
+    border-color: #16a34a;
+    color: #16a34a;
     background: #f3f7ff;
     transform: translateX(4px);
-    .dark & { background: #1e3a8a30; border-color: #3b82f6; color: #3b82f6; }
+    .dark & { background: #14532d30; border-color: #16a34a; color: #16a34a; }
   }
 `;
 
 const SaveButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 18px 36px;
   border-radius: 24px;
@@ -435,4 +571,31 @@ const AlertBox = styled.div`
     color: #991b1b;
     border: 1px solid #ef444420;
   `}
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 480px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+
+  .dark & {
+    background: var(--card-bg);
+    border: 1px solid #334155;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
 `;

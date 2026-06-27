@@ -121,13 +121,39 @@ export async function getCategories() {
           const normalizedData = data.map(cat => ({
             id: cat.id || cat.Id,
             category: cat.category || cat.Category,
-            subjects: extractData(cat.subjects || cat.Subjects || []).map(sub => ({
-              id: sub.id || sub.Id,
-              name: sub.name || sub.Name
-            }))
+            subjects: extractData(cat.subjects || cat.Subjects || []).map(sub => {
+              const baseName = sub.name || sub.Name;
+              const level = sub.level || sub.Level;
+              return {
+                id: sub.id || sub.Id,
+                name: level ? `${baseName} (${level})` : baseName
+              };
+            })
           }));
 
           console.log(`Kategoriler ${path} üzerinden alındı:`, normalizedData.length, "adet");
+          
+          // İstenen özel sıralama
+          const preferredOrder = ["türkçe", "matematik", "ingilizce", "fizik", "almanca"];
+          
+          const normalizeStr = (str) => (str || "").replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
+          
+          normalizedData.sort((a, b) => {
+            const catA = normalizeStr(a.category);
+            const catB = normalizeStr(b.category);
+            
+            const indexA = preferredOrder.findIndex(p => catA.includes(p));
+            const indexB = preferredOrder.findIndex(p => catB.includes(p));
+            
+            if (indexA !== -1 && indexB !== -1) {
+              if (indexA === indexB) return catA.localeCompare(catB, 'tr-TR');
+              return indexA - indexB;
+            }
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return catA.localeCompare(catB, 'tr-TR');
+          });
+
           return normalizedData;
         }
       }
@@ -139,3 +165,15 @@ export async function getCategories() {
   console.warn("Backend'den kategori verisi alınamadı veya boş döndü. Fallback listesi kullanılıyor.");
   return FALLBACK_CATEGORIES;
 }
+
+/**
+ * Ders hiyerarşisini getir (Category -> Subject -> Level/Option)
+ * @returns {Promise<Array>}
+ */
+export async function getSubjectsHierarchy() {
+  const res = await apiFetch("/api/subjects/hierarchy");
+  if (!res || !res.ok) return [];
+  const json = await res.json();
+  return extractData(json) || [];
+}
+

@@ -45,12 +45,12 @@ export default function TutorChangePassword() {
       <header className="mb-8">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm font-bold text-blue-600 dark:text-blue-400 mb-4 flex items-center gap-1 hover:underline"
+          className="text-sm font-bold text-green-600 dark:text-green-400 mb-4 flex items-center gap-1 hover:underline"
         >
           ← Profilime Dön
         </button>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Güvenlik Ayarları</h1>
-        <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--text-primary)]">Güvenlik Ayarları</h1>
+        <p className="text-gray-500 dark:text-[var(--text-muted)] text-sm mt-1">
           Hesap güvenliğinizi korumak için periyodik olarak şifrenizi
           yenilemenizi öneririz.
         </p>
@@ -61,7 +61,7 @@ export default function TutorChangePassword() {
           <Card>
             <form onSubmit={handleSubmit} className="p-8">
               <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-6 flex items-center gap-2">
-                <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+                <span className="w-1.5 h-6 bg-green-600 rounded-full"></span>
                 Şifre Güncelleme
               </h3>
 
@@ -122,7 +122,7 @@ export default function TutorChangePassword() {
                   </FormGroup>
                 </div>
 
-                <div className="pt-6 border-t border-gray-100 dark:border-slate-800 flex justify-end">
+                <div className="pt-6 border-t border-gray-100 dark:border-[var(--card-border)] flex justify-end">
                   <SubmitButton type="submit" disabled={loading}>
                     {loading ? "Güncelleniyor..." : "Şifreyi Güncelle"}
                   </SubmitButton>
@@ -149,8 +149,8 @@ export default function TutorChangePassword() {
                 biz dahil kimseden şifre talep etmeyiz.
               </li>
             </ul>
-            <div className="mt-6 pt-6 border-t border-blue-100">
-              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+            <div className="mt-6 pt-6 border-t border-green-100">
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium">
                 Son şifre değişikliği: Henüz yapılmadı
               </p>
             </div>
@@ -173,8 +173,8 @@ const Card = styled.div`
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 
   .dark & {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--card-bg);
+    border-color: var(--card-border);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
   }
 `;
@@ -186,8 +186,8 @@ const InfoCard = styled.div`
   border: 1px solid #dbeafe;
 
   .dark & {
-    background: #1e3a8a20;
-    border-color: #1e3a8a40;
+    background: #14532d20;
+    border-color: #14532d40;
   }
 
   h4 {
@@ -195,7 +195,7 @@ const InfoCard = styled.div`
     color: #1e40af;
     margin-bottom: 16px;
     font-size: 15px;
-    .dark & { color: #60a5fa; }
+    .dark & { color: #4ade80; }
   }
 
   ul {
@@ -207,17 +207,17 @@ const InfoCard = styled.div`
 
     li {
       font-size: 13px;
-      color: #1e3a8a;
+      color: #14532d;
       line-height: 1.6;
       position: relative;
       padding-left: 14px;
-      .dark & { color: #94a3b8; }
+      .dark & { color: var(--text-muted); }
 
       &::before {
         content: "•";
         position: absolute;
         left: 0;
-        color: #2d79f3;
+        color: #16a34a;
         font-weight: bold;
       }
     }
@@ -234,7 +234,7 @@ const FormGroup = styled.div`
     font-weight: 700;
     color: #4b5563;
     margin-left: 4px;
-    .dark & { color: #94a3b8; }
+    .dark & { color: var(--text-muted); }
   }
 
   input {
@@ -247,29 +247,29 @@ const FormGroup = styled.div`
     transition: all 0.2s;
 
     .dark & {
-      background: #0f172a;
-      border-color: #334155;
+      background: var(--page-bg);
+      border-color: var(--card-border);
       color: #f1f5f9;
     }
 
     &:focus {
       outline: none;
-      border-color: #2d79f3;
+      border-color: #16a34a;
       background: white;
-      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
-      .dark & { background: #0f172a; border-color: #3b82f6; }
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.05);
+      .dark & { background: var(--page-bg); border-color: #16a34a; }
     }
   }
 `;
 
 const SubmitButton = styled.button`
-  background: #2d79f3;
+  background: #16a34a;
   color: white;
   padding: 14px 32px;
   border-radius: 14px;
   font-weight: 700;
   font-size: 15px;
-  box-shadow: 0 4px 12px rgba(45, 121, 243, 0.2);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
   transition: all 0.2s;
   &:hover {
     background: #1e40af;

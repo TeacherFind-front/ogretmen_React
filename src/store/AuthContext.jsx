@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { getMe } from "@/services/authService";
+import { getMe, sendHeartbeat } from "@/services/authService";
+import { stopChatConnection, registerDeviceToken } from "@/services/chatService";
+import { messaging } from "@/config/firebase";
+import { getToken } from "firebase/messaging";
 
 /**
  * Auth Context
@@ -15,7 +18,7 @@ export function AuthProvider({ children }) {
 
   // Sayfa yenilendiğinde token'dan kullanıcıyı geri yükle
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
     if (!token) {
       setIsLoading(false);
@@ -29,10 +32,12 @@ export function AuthProvider({ children }) {
           setUser(userData);
         } else {
           localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
         }
       })
       .catch(() => {
         localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
       })
       .finally(() => {
         setIsLoading(false);
@@ -42,9 +47,16 @@ export function AuthProvider({ children }) {
   /**
    * Giriş yap - login response alındıktan sonra çağrılır
    * @param {{ token, userId, fullName, email, role, avatarUrl }} loginData
+   * @param {boolean} rememberMe
    */
-  const handleLogin = useCallback((loginData) => {
-    localStorage.setItem("token", loginData.token);
+  const handleLogin = useCallback((loginData, rememberMe = true) => {
+    if (rememberMe) {
+      localStorage.setItem("token", loginData.token);
+      sessionStorage.removeItem("token");
+    } else {
+      sessionStorage.setItem("token", loginData.token);
+      localStorage.removeItem("token");
+    }
     setUser({
       userId: loginData.userId,
       fullName: loginData.fullName,
@@ -59,7 +71,9 @@ export function AuthProvider({ children }) {
    */
   const handleLogout = useCallback(() => {
     localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     setUser(null);
+    stopChatConnection();
   }, []);
 
   const value = useMemo(() => ({
@@ -69,6 +83,49 @@ export function AuthProvider({ children }) {
     login: handleLogin,
     logout: handleLogout,
   }), [user, isLoading]);
+
+  // Heartbeat Effect
+  useEffect(() => {
+    if (!user) return;
+
+    // Hemen bir tane gönder
+    sendHeartbeat();
+
+    const interval = setInterval(() => {
+      // Sadece sayfa görünür durumdaysa heartbeat at
+      if (document.visibilityState === 'visible') {
+        sendHeartbeat();
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // FCM Push Notification Request
+  useEffect(() => {
+    if (!user || !messaging) return;
+
+    const requestPermissionAndGetToken = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+          const currentToken = await getToken(messaging, { vapidKey });
+          
+          if (currentToken) {
+            console.log("FCM Token alındı, sunucuya kaydediliyor...");
+            await registerDeviceToken(currentToken);
+          } else {
+            console.log("FCM Token alınamadı, izin verilmiş olabilir ama token dönmedi.");
+          }
+        }
+      } catch (err) {
+        console.error("FCM Token alınırken hata oluştu:", err);
+      }
+    };
+
+    requestPermissionAndGetToken();
+  }, [user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

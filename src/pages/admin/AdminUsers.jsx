@@ -36,7 +36,10 @@ export default function AdminUsers() {
     }
   }
 
-  async function toggleStatus(userId, currentStatus) {
+  async function toggleStatus(userId, currentStatus, name) {
+    const actionText = currentStatus ? "pasife almak" : "aktif etmek";
+    if (!window.confirm(`${name} isimli kullanıcıyı ${actionText} istediğinize emin misiniz?`)) return;
+
     try {
       await updateUserStatus(userId, !currentStatus);
       setUsers(users.map(u => u.id === userId ? { ...u, isActive: !currentStatus } : u));
@@ -66,38 +69,38 @@ export default function AdminUsers() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Kullanıcı Yönetimi</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Platformdaki tüm öğrenci, eğitmen ve yönetici hesaplarını denetleyin.</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-[var(--text-primary)] tracking-tight">Kullanıcı Yönetimi</h1>
+          <p className="text-slate-500 dark:text-[var(--text-muted)] font-medium mt-1">Platformdaki tüm öğrenci, eğitmen ve yönetici hesaplarını denetleyin.</p>
         </div>
-        <div className="flex bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm w-full md:w-auto transition-colors">
+        <div className="flex bg-white dark:bg-[var(--card-bg)] p-1.5 rounded-2xl border border-slate-100 dark:border-[var(--card-border)] shadow-sm w-full md:w-auto transition-colors">
            <div className="relative flex-1 md:w-80">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input 
                 type="text" 
                 placeholder="İsim veya e-posta ile ara..." 
-                className="w-full h-11 bg-transparent border-none pl-11 pr-4 text-sm font-medium outline-none dark:text-slate-200"
+                className="w-full h-11 bg-transparent border-none pl-11 pr-4 text-sm font-medium outline-none dark:text-[var(--text-primary)]"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
            </div>
-           <Button variant="ghost" className="h-11 rounded-xl text-slate-500 dark:text-slate-400 font-bold hover:dark:bg-slate-700">
+           <Button variant="ghost" className="h-11 rounded-xl text-slate-500 dark:text-[var(--text-muted)] font-bold hover:dark:bg-[var(--card-bg)]">
               <Filter className="w-4 h-4 mr-2" /> Filtrele
            </Button>
         </div>
       </div>
 
-      <Card className="border-none shadow-sm bg-white dark:bg-[#1e293b] rounded-[2.5rem] overflow-hidden transition-colors">
+      <Card className="border-none shadow-sm bg-white dark:bg-[var(--card-bg)] rounded-[2.5rem] overflow-hidden transition-colors">
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <Loader2 className="animate-spin h-10 w-10 text-blue-600" />
+              <Loader2 className="animate-spin h-10 w-10 text-green-600" />
               <p className="text-slate-400 font-bold animate-pulse">Kullanıcılar listeleniyor...</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 text-left">
+                  <tr className="bg-slate-50/50 dark:bg-[var(--card-bg)]/50 border-b border-slate-100 dark:border-[var(--card-border)] text-left">
                     <th className="px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Kullanıcı Bilgisi</th>
                     <th className="px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Rol</th>
                     <th className="px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Kayıt Tarihi</th>
@@ -110,11 +113,11 @@ export default function AdminUsers() {
                     <tr key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                       <td className="px-8 py-5">
                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 font-black text-xs group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[var(--card-bg)] flex items-center justify-center text-slate-400 dark:text-slate-500 font-black text-xs group-hover:bg-green-600 group-hover:text-white transition-colors">
                                {user.fullName.charAt(0)}
                             </div>
                             <div>
-                               <p className="text-sm font-bold text-slate-900 dark:text-white leading-none mb-1">{user.fullName}</p>
+                               <p className="text-sm font-bold text-slate-900 dark:text-[var(--text-primary)] leading-none mb-1">{user.fullName}</p>
                                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
                                   <Mail size={12} /> {user.email}
                                </p>
@@ -125,20 +128,20 @@ export default function AdminUsers() {
                         <Badge className={`border-none px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                           user.role === 'Admin' || user.role === 'SuperAdmin' 
                             ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' 
-                            : user.role === 'Tutor' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                            : user.role === 'Tutor' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-slate-50 dark:bg-[var(--card-bg)] text-slate-500 dark:text-[var(--text-muted)]'
                         }`}>
                           {user.role}
                         </Badge>
                       </td>
                       <td className="px-8 py-5">
-                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                         <span className="text-xs font-bold text-slate-500 dark:text-[var(--text-muted)] flex items-center gap-2">
                             <Calendar size={14} className="text-slate-300 dark:text-slate-600" />
                             {new Date(user.createdAt).toLocaleDateString('tr-TR')}
                          </span>
                       </td>
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-2">
-                           <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                           <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-[var(--card-bg)]'}`}></div>
                            <span className={`text-xs font-black uppercase tracking-tighter ${user.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-600'}`}>
                              {user.isActive ? 'Aktif' : 'Pasif'}
                            </span>
@@ -150,7 +153,7 @@ export default function AdminUsers() {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="h-9 rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-200 dark:hover:border-purple-800 transition-all"
+                                className="h-9 rounded-xl border-slate-200 dark:border-[var(--card-border)] text-slate-600 dark:text-[var(--text-muted)] font-bold hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-200 dark:hover:border-purple-800 transition-all"
                                 onClick={() => handleMakeAdmin(user.id, user.fullName)}
                               >
                                  <ShieldAlert className="w-4 h-4 mr-2" /> Yönetici Yap
@@ -159,7 +162,7 @@ export default function AdminUsers() {
                            <Button 
                              variant="ghost" 
                              size="sm"
-                             onClick={() => toggleStatus(user.id, user.isActive)}
+                             onClick={() => toggleStatus(user.id, user.isActive, user.fullName)}
                              className={`h-9 rounded-xl font-bold ${user.isActive ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'}`}
                            >
                              {user.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}

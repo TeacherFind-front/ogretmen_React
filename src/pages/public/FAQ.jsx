@@ -7,8 +7,8 @@ const FAQ_DATA = [
     icon: HelpCircle,
     items: [
       {
-        q: "Öğrenmenin Çilingirleri nedir ve nasıl çalışır?",
-        a: "Öğrenmenin Çilingirleri, yeni bir dil öğrenmek, okul derslerine takviye almak veya yeni bir beceri edinmek isteyen öğrencileri, alanında uzman ve doğrulanmış öğretmenlerle buluşturan bir eğitim platformudur. Platform üzerinden öğretmenleri inceleyebilir, yorumlarını okuyabilir ve size en uygun olanından ders alabilirsiniz."
+        q: "Özel Ders VIP nedir ve nasıl çalışır?",
+        a: "Özel Ders VIP, yeni bir dil öğrenmek, okul derslerine takviye almak veya yeni bir beceri edinmek isteyen öğrencileri, alanında uzman ve doğrulanmış öğretmenlerle buluşturan bir eğitim platformudur. Platform üzerinden öğretmenleri inceleyebilir, yorumlarını okuyabilir ve size en uygun olanından ders alabilirsiniz."
       },
       {
         q: "Dersler nerede ve nasıl yapılıyor?",
@@ -48,7 +48,7 @@ const FAQ_DATA = [
       },
       {
         q: "Platform komisyon oranları nedir?",
-        a: "Öğrenmenin Çilingirleri, platform altyapısı ve pazarlama giderleri için ders başı ücret üzerinden komisyon almaktadır. Komisyon oranlarımız %15'ten başlar ve platformda verdiğiniz ders sayısı arttıkça %8'e kadar düşer."
+        a: "Özel Ders VIP, platform altyapısı ve pazarlama giderleri için ders başı ücret üzerinden komisyon almaktadır. Komisyon oranlarımız %15'ten başlar ve platformda verdiğiniz ders sayısı arttıkça %8'e kadar düşer."
       },
       {
         q: "Ödememi ne zaman alabilirim?",
@@ -63,7 +63,7 @@ function FaqAccordionItem({ question, answer, isOpen, onClick }) {
     <div className={`group border rounded-2xl transition-all duration-300 overflow-hidden ${
       isOpen 
         ? 'border-primary/30 bg-primary/5 shadow-lg shadow-primary/5 dark:bg-primary/10' 
-        : 'border-gray-100 bg-white hover:border-primary/20 hover:bg-gray-50/50 dark:bg-slate-900/50 dark:border-slate-800 dark:hover:border-primary/30'
+        : 'border-gray-100 bg-white hover:border-primary/20 hover:bg-gray-50/50 dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] dark:hover:border-primary/30'
     }`}>
       <button
         className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
@@ -75,7 +75,7 @@ function FaqAccordionItem({ question, answer, isOpen, onClick }) {
           {question}
         </span>
         <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-500 ${
-          isOpen ? 'bg-primary text-white rotate-180' : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 group-hover:bg-primary/10 group-hover:text-primary'
+          isOpen ? 'bg-primary text-white rotate-180' : 'bg-gray-100 dark:bg-[var(--card-bg)] text-gray-500 dark:text-[var(--text-muted)] group-hover:bg-primary/10 group-hover:text-primary'
         }`}>
           <ChevronDown className="w-5 h-5" />
         </div>
@@ -86,8 +86,8 @@ function FaqAccordionItem({ question, answer, isOpen, onClick }) {
           isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="p-6 pt-0 text-gray-600 dark:text-slate-400 leading-relaxed text-base md:text-lg">
-          <div className="h-px w-full bg-gray-100 dark:bg-slate-800 mb-6"></div>
+        <div className="p-6 pt-0 text-gray-600 dark:text-[var(--text-muted)] leading-relaxed text-base md:text-lg">
+          <div className="h-px w-full bg-gray-100 dark:bg-[var(--card-bg)] mb-6"></div>
           {answer}
         </div>
       </div>
@@ -108,12 +108,12 @@ export default function FAQ() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfdff] dark:bg-[#0f172a] py-24 px-6 relative overflow-hidden transition-colors duration-500">
+    <div className="min-h-screen bg-[#fcfdff] dark:bg-[var(--page-bg)] py-24 px-6 relative overflow-hidden transition-colors duration-500">
       
       {/* Background Decorations */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] dark:bg-primary/10"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-400/5 rounded-full blur-[120px] dark:bg-blue-400/10"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-400/5 rounded-full blur-[120px] dark:bg-green-400/10"></div>
       </div>
 
       <div className="container mx-auto max-w-5xl relative z-10">
@@ -123,10 +123,10 @@ export default function FAQ() {
             <HelpCircle size={14} />
             Destek Merkezi
           </div>
-          <h1 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-8 tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-[var(--text-primary)] mb-8 tracking-tight">
             Size Nasıl <span className="text-primary">Yardımcı</span> Olabiliriz?
           </h1>
-          <p className="text-xl text-gray-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-500 dark:text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed">
             Aklınıza takılan tüm soruların cevaplarını kategorize edilmiş şekilde aşağıda bulabilirsiniz.
           </p>
         </div>
@@ -143,10 +143,10 @@ export default function FAQ() {
                 className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-base transition-all duration-300 ${
                   isActive 
                     ? 'bg-primary text-white shadow-2xl shadow-primary/30 scale-105' 
-                    : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:border-primary/50 hover:text-primary dark:hover:text-white'
+                    : 'bg-white dark:bg-[var(--page-bg)] text-gray-600 dark:text-[var(--text-muted)] shadow-sm border border-gray-100 dark:border-[var(--card-border)] hover:border-primary/50 hover:text-primary dark:hover:text-white'
                 }`}
               >
-                <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-400 dark:text-slate-500 group-hover:text-primary'}`} />
+                <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-400 dark:text-[var(--text-muted)] group-hover:text-primary'}`} />
                 {category.category}
               </button>
             )
@@ -170,11 +170,11 @@ export default function FAQ() {
         <div className="mt-24 text-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-primary/5 dark:bg-primary/10 rounded-[40px] border border-primary/10 dark:border-primary/20 transition-transform duration-500 group-hover:scale-[1.02]"></div>
             <div className="relative p-12 md:p-16">
-                <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/10 text-primary border border-primary/10">
+                <div className="w-20 h-20 bg-white dark:bg-[var(--page-bg)] rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/10 text-primary border border-primary/10">
                     <MessageCircle className="w-10 h-10" />
                 </div>
-                <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-4">Hala sorularınız mı var?</h2>
-                <p className="text-lg text-gray-600 dark:text-slate-400 mb-10 max-w-xl mx-auto">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-[var(--text-primary)] mb-4">Hala sorularınız mı var?</h2>
+                <p className="text-lg text-gray-600 dark:text-[var(--text-muted)] mb-10 max-w-xl mx-auto">
                     Destek ekibimiz size yardımcı olmak için burada. Haftanın her günü 09:00 - 22:00 saatleri arasında bize ulaşabilirsiniz.
                 </p>
                 <button className="inline-flex items-center gap-3 bg-primary hover:bg-primary/90 text-white font-black py-4 px-10 rounded-2xl shadow-xl shadow-primary/25 transition-all hover:-translate-y-1 active:scale-95 group/btn">
