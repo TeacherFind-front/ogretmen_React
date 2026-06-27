@@ -1,24 +1,19 @@
 name: Deploy React Frontend to IIS
-
 on:
   push:
     branches:
       - main
       - Develop
   workflow_dispatch:
-
 jobs:
   deploy-frontend:
     runs-on: self-hosted
-
-    # Dynamically set path: main -> production, Develop -> staging
+    # main -> production folder, Develop -> staging folder (test.ozeldersvip.com)
     env:
       SITE_PATH: ${{ github.ref == 'refs/heads/main' && 'C:\Sites\OzelDersVip\frontend' || 'C:\Sites\OzelDersVip\staging' }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Install dependencies
         shell: powershell
         run: |
@@ -26,15 +21,28 @@ jobs:
             Remove-Item -Path "node_modules" -Recurse -Force -ErrorAction SilentlyContinue
           }
           npm install --force
-
-      - name: Create production env
+      - name: Create env file (branch-aware)
         shell: powershell
         run: |
+          # CHANGED: API base URL now depends on the branch.
+          #   main    -> production backend (https://api.ozeldersvip.com)
+          #   Develop -> staging backend    (http://testapi.ozeldersvip.com)
+          # Staging is http because testapi has no SSL cert yet. When you add a
+          # cert to testapi, change the two staging lines below back to https.
+          if ($env:GITHUB_REF -eq "refs/heads/main") {
+            $apiBase   = "https://api.ozeldersvip.com"
+            $signalr   = "https://api.ozeldersvip.com/chat"
+          }
+          else {
+            $apiBase   = "http://testapi.ozeldersvip.com"
+            $signalr   = "http://testapi.ozeldersvip.com/chat"
+          }
+
           @"
-          VITE_API_BASE_URL=https://api.ozeldersvip.com
-          VITE_API_URL=https://api.ozeldersvip.com
-          VITE_BASE_API_URL=https://api.ozeldersvip.com
-          VITE_SIGNALR_URL=https://api.ozeldersvip.com/chat
+          VITE_API_BASE_URL=$apiBase
+          VITE_API_URL=$apiBase
+          VITE_BASE_API_URL=$apiBase
+          VITE_SIGNALR_URL=$signalr
           VITE_FIREBASE_API_KEY=AIzaSyCB62Hh5H-UtI58-KoRg4MgCFJ5R1ZaxtA
           VITE_FIREBASE_AUTH_DOMAIN=ozeldersvip-51804.firebaseapp.com
           VITE_FIREBASE_PROJECT_ID=ozeldersvip-51804
@@ -44,27 +52,26 @@ jobs:
           VITE_FIREBASE_VAPID_KEY=
           "@ | Set-Content -Path ".env.production" -Encoding UTF8
 
+          Write-Host "Built env for $($env:GITHUB_REF) with API base $apiBase"
       - name: Build frontend
         shell: powershell
         run: npm.cmd run build
-
       - name: Deploy to IIS folder
         shell: powershell
         run: |
           $sitePath = $env:SITE_PATH
           $distPath = Join-Path $PWD "dist"
-
           if (!(Test-Path $sitePath)) {
             New-Item -ItemType Directory -Path $sitePath -Force | Out-Null
           }
-
-          # Clean folder but keep web.config
+          # Clean folder but keep web.config (SPA routing rules live there)
           Get-ChildItem -Path $sitePath -Exclude "web.config" -Force | Remove-Item -Recurse -Force
           Copy-Item -Path "$distPath\*" -Destination $sitePath -Recurse -Force
-
       - name: Test frontend domain
         shell: powershell
         continue-on-error: true
         run: |
-          $url = ${{ github.ref == 'refs/heads/main' && 'https://ozeldersvip.com' || 'https://test.ozeldersvip.com' }}
+          # CHANGED: staging frontend is http for now (matches the http backend).
+          $url = if ($env:GITHUB_REF -eq "refs/heads/main") { "https://ozeldersvip.com" } else { "http://test.ozeldersvip.com" }
+          Write-Host "Testing $url"
           Invoke-WebRequest -UseBasicParsing $url -TimeoutSec 30 | Select-Object StatusCode
