@@ -1,35 +1,95 @@
-name: Deploy React to Plesk via FTP
+name: Deploy React Frontend to IIS
 
 on:
   push:
     branches:
-      - Develop
       - main
+      - Develop
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  deploy-frontend:
+    runs-on: self-hosted
+
+    # main -> production folder, Develop -> staging folder (test.ozeldersvip.com)
+    env:
+      SITE_PATH: ${{ github.ref == 'refs/heads/main' && 'C:\Sites\OzelDersVip\frontend' || 'C:\Sites\OzelDersVip\staging-frontend' }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          if (Test-Path "node_modules") {
+            Remove-Item -Path "node_modules" -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          npm install --force
 
-    - name: Install Dependencies
-      run: npm install
+      - name: Create env file (branch-aware)
+        shell: powershell
+        run: |
+          # API base URL depends on the branch.
+          #   main    -> production backend (https://api.ozeldersvip.com)
+          #   Develop -> staging backend    (http://testapi.ozeldersvip.com)
+          # Staging is http because testapi has no SSL cert yet. When you add a
+          # cert to testapi, change the two staging lines below back to https.
+          if ($env:GITHUB_REF -eq "refs/heads/main") {
+            $apiBase = "https://api.ozeldersvip.com"
+            $signalr = "https://api.ozeldersvip.com/chat"
+          }
+          else {
+            $apiBase = "http://testapi.ozeldersvip.com"
+            $signalr = "http://testapi.ozeldersvip.com/chat"
+          }
 
-    - name: Build Project
-      run: npm run build
+          @"
+          VITE_API_BASE_URL=$apiBase
+          VITE_API_URL=$apiBase
+          VITE_BASE_API_URL=$apiBase
+          VITE_SIGNALR_URL=$signalr
+          VITE_FIREBASE_API_KEY=AIzaSyCB62Hh5H-UtI58-KoRg4MgCFJ5R1ZaxtA
+          VITE_FIREBASE_AUTH_DOMAIN=ozeldersvip-51804.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID=ozeldersvip-51804
+          VITE_FIREBASE_STORAGE_BUCKET=ozeldersvip-51804.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID=116388426739
+          VITE_FIREBASE_APP_ID=1:116388426739:web:0c145282f0aa0ac6751886
+          VITE_FIREBASE_VAPID_KEY=
+          "@ | Set-Content -Path ".env.production" -Encoding UTF8
 
-    - name: Deploy via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./dist/
-        server-dir: /httpdocs/
+          Write-Host "Built env for $($env:GITHUB_REF) with API base $apiBase"
+
+      - name: Build frontend
+        shell: powershell
+        run: npm.cmd run build
+
+      - name: Deploy to IIS folder
+        shell: powershell
+        run: |
+          $sitePath = $env:SITE_PATH
+          $distPath = Join-Path $PWD "dist"
+
+          Write-Host "Deploying frontend to $sitePath"
+
+          if (!(Test-Path $sitePath)) {
+            New-Item -ItemType Directory -Path $sitePath -Force | Out-Null
+          }
+
+          # Clean folder but keep web.config (SPA routing rules live there)
+          Get-ChildItem -Path $sitePath -Exclude "web.config" -Force |
+            Remove-Item -Recurse -Force
+
+          Copy-Item -Path "$distPath\*" -Destination $sitePath -Recurse -Force
+
+          Write-Host "Files now in $sitePath :"
+          Get-ChildItem -Path $sitePath | Select-Object Name
+
+      - name: Test frontend domain
+        shell: powershell
+        continue-on-error: true
+        run: |
+          # Staging frontend is http for now (matches the http backend).
+          $url = if ($env:GITHUB_REF -eq "refs/heads/main") { "https://ozeldersvip.com" } else { "http://test.ozeldersvip.com" }
+          Write-Host "Testing $url"
+          Invoke-WebRequest -UseBasicParsing $url -TimeoutSec 30 | Select-Object StatusCode
