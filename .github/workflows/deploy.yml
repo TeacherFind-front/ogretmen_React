@@ -10,7 +10,7 @@ jobs:
     runs-on: self-hosted
     # main -> production folder, Develop -> staging folder (test.ozeldersvip.com)
     env:
-      SITE_PATH: ${{ github.ref == 'refs/heads/main' && 'C:\Sites\OzelDersVip\frontend' || 'C:\sites\ozelders-staging' }}
+      SITE_PATH: ${{ github.ref == 'refs/heads/main' && 'C:\Sites\OzelDersVip\frontend' || 'C:\Sites\OzelDersVip\staging-frontend' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
