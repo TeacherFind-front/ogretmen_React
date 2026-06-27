@@ -10,6 +10,7 @@ import {
   Shield,
   Home,
   HelpCircle,
+  Calendar,
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
@@ -32,6 +33,11 @@ export default function StudentLayout() {
       to: "/student/dashboard",
       label: "Panel",
       icon: <LayoutDashboard size={18} />,
+    },
+    {
+      to: "/student/lessons",
+      label: "Taleplerim",
+      icon: <Calendar size={18} />,
     },
     {
       to: "/student/messages",

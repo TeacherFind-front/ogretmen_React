@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
+import { useSearchParams } from "react-router-dom";
 import { getConversations, getMessages, sendMessage, deleteMessages, deleteConversation } from "@/services/messageService";
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
 import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Trash2, CheckCircle2, Reply, CornerUpLeft, X } from "lucide-react";
@@ -8,6 +9,7 @@ import { resolveMediaUrl } from "@/utils/helpers";
 
 export default function TutorMessages() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState([]);
   const [selectedConv, setSelectedConv] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -22,7 +24,7 @@ export default function TutorMessages() {
   // SignalR bağlantısı ve mesaj dinleme
   useEffect(() => {
     fetchConversations();
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const handleNewMessage = (message) => {
@@ -112,7 +114,39 @@ export default function TutorMessages() {
     setLoading(true);
     try {
       const data = await getConversations();
-      setConversations(data);
+      
+      const targetUserId = searchParams.get("userId");
+      const targetUserName = searchParams.get("userName");
+      
+      let updatedData = [...data];
+      let selection = null;
+      
+      if (targetUserId) {
+        // Mevcut konuşmalar arasında bu kullanıcı var mı kontrol et
+        const existingIndex = updatedData.findIndex(c => c.otherUserId === targetUserId);
+        
+        if (existingIndex !== -1) {
+          selection = updatedData[existingIndex];
+        } else {
+          // İlk defa mesaj atılacaksa geçici konuşma kartı ekle
+          const newConv = {
+            conversationId: "new",
+            otherUserId: targetUserId,
+            otherUserName: targetUserName ? decodeURIComponent(targetUserName) : "Öğrenci",
+            lastMessage: "Yeni konuşma başlat",
+            lastMessageAt: new Date().toISOString(),
+            unreadCount: 0
+          };
+          updatedData = [newConv, ...updatedData];
+          selection = newConv;
+        }
+      }
+      
+      setConversations(updatedData);
+      
+      if (selection) {
+        setSelectedConv(selection);
+      }
     } catch (err) {
       console.error("Conversations load failed", err);
     } finally {
@@ -150,7 +184,16 @@ export default function TutorMessages() {
           content: msgContent,
           replyToMessageId: replyId
         });
+        
+        if (selectedConv.conversationId === "new") {
+          fetchConversations();
+        }
+        
         setMessages(prev => [...prev, sent]);
+      } else {
+        if (selectedConv.conversationId === "new") {
+          fetchConversations();
+        }
       }
     } catch (err) {
       alert(err.message);

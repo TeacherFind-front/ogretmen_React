@@ -24,6 +24,11 @@ export const startChatConnection = async () => {
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
+  // Handle UserStatusChanged to prevent console warning
+  connection.on("UserStatusChanged", (payload) => {
+    console.log("User status changed:", payload);
+  });
+
   try {
     await connection.start();
     console.log("SignalR Connected.");

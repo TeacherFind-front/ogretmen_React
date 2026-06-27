@@ -10,7 +10,7 @@ import {
 } from "@/services/adminContactService";
 import { 
   Search, Mail, User, BookOpen, Clock, CheckCircle2, AlertCircle, 
-  Trash2, X, RefreshCw, Reply, Lock, Check, Loader2, ArrowRight
+  Trash2, X, RefreshCw, Reply, Lock, Check, Loader2, ArrowRight, MessageSquare
 } from "lucide-react";
 import toast from "react-hot-toast";
 

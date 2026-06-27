@@ -252,49 +252,6 @@ export async function unpublishListing(id) {
 }
 
 /**
- * Öğretmenin rezervasyonlarını getir
- */
-export async function getMyBookings() {
-  const res = await apiFetch("/api/tutors/my-bookings");
-  if (!res || !res.ok) throw new Error("Rezervasyonlar yüklenemedi.");
-  return res.json();
-}
-
-/**
- * Rezervasyon onayla
- */
-export async function approveBooking(id) {
-  const res = await apiFetch(`/api/tutors/my-bookings/${id}/approve`, {
-    method: "PUT",
-  });
-  if (!res || !res.ok) throw new Error("İşlem başarısız.");
-  return res.json();
-}
-
-/**
- * Rezervasyon reddet
- */
-export async function rejectBooking(id, reason) {
-  const res = await apiFetch(`/api/tutors/my-bookings/${id}/reject`, {
-    method: "PUT",
-    body: JSON.stringify({ reason }),
-  });
-  if (!res || !res.ok) throw new Error("İşlem başarısız.");
-  return res.json();
-}
-
-/**
- * Rezervasyon tamamla
- */
-export async function completeBooking(id) {
-  const res = await apiFetch(`/api/tutors/my-bookings/${id}/complete`, {
-    method: "PUT",
-  });
-  if (!res || !res.ok) throw new Error("İşlem başarısız.");
-  return res.json();
-}
-
-/**
  * Profil bilgilerini getir
  */
 export async function getMyProfile() {

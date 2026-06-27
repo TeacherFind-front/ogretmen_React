@@ -21,15 +21,18 @@ import {
   Star as StarIcon
 } from "lucide-react";
 import { 
-  getMyBookings, 
   getMyStudents, 
-  approveBooking, 
-  rejectBooking,
   getMyProfile
 } from "@/services/tutorService";
+import { 
+  getMyBookings, 
+  approveBooking, 
+  rejectBooking 
+} from "@/services/bookingService";
 import { Badge } from "@/components/ui/Badge";
 import styled from "styled-components";
 import { Skeleton } from "@/components/ui/Skeleton";
+import toast from "react-hot-toast";
 
 export default function TutorDashboard() {
   const navigate = useNavigate();
@@ -65,24 +68,26 @@ export default function TutorDashboard() {
     setActionLoading(id);
     try {
       await approveBooking(id);
+      toast.success("Ders talebi onaylandı");
       await fetchData();
     } catch (error) {
-      alert(error.message || "Onaylama başarısız.");
+      toast.error(error.message || "Onaylama başarısız.");
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleReject = async (id) => {
-    const reason = window.prompt("Reddetme sebebi giriniz (Opsiyonel):");
+    const reason = window.prompt("Lütfen reddetme sebebini giriniz (Öğrenciye iletilecek):");
     if (reason === null) return;
     
     setActionLoading(id);
     try {
       await rejectBooking(id, reason);
+      toast.success("Ders talebi reddedildi");
       await fetchData();
     } catch (error) {
-      alert(error.message || "Reddetme başarısız.");
+      toast.error(error.message || "Reddetme başarısız.");
     } finally {
       setActionLoading(null);
     }
@@ -185,7 +190,7 @@ export default function TutorDashboard() {
                       <h4 className="font-black text-gray-900 dark:text-[var(--text-primary)] text-lg truncate">{b.studentName}</h4>
                       <p className="text-xs text-green-600 dark:text-green-400 font-black uppercase tracking-widest mt-1 flex items-center gap-2 truncate">
                          <Badge className="p-0 h-4 w-4 rounded-full bg-green-600 dark:bg-green-500 border-none shrink-0"></Badge>
-                         {new Date(b.startTime).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
+                         {new Date(b.startTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
@@ -231,15 +236,28 @@ export default function TutorDashboard() {
                           </div>
                        </div>
                     </div>
+
+                    <div className="flex flex-col gap-1 mb-4 text-xs font-bold text-gray-500 dark:text-slate-400">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} className="text-orange-500" />
+                        <span>{new Date(req.startTime).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul", day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-orange-500" />
+                        <span>
+                          {new Date(req.startTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })} - {new Date(req.endTime).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
                     
                     <div className="bg-white/50 dark:bg-[var(--card-bg)]/50 p-3 rounded-xl mb-4 text-[13px] font-medium text-gray-600 dark:text-[var(--text-muted)] italic">
                        "{req.studentNote || "Ders talebi oluşturuldu."}"
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button 
                         size="sm" 
-                        className="h-10 rounded-xl bg-orange-500 hover:bg-orange-600 flex-1 font-bold text-xs"
+                        className="h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white flex-1 font-bold text-xs"
                         onClick={() => handleApprove(req.id)}
                         disabled={actionLoading === req.id}
                       >
@@ -247,12 +265,20 @@ export default function TutorDashboard() {
                       </Button>
                       <Button 
                         size="sm" 
-                        variant="outline" 
-                        className="h-10 rounded-xl bg-white flex-1 font-bold text-xs border-gray-200"
+                        variant="destructive"
+                        className="h-10 rounded-xl bg-red-600 hover:bg-red-700 text-white flex-1 font-bold text-xs"
                         onClick={() => handleReject(req.id)}
                         disabled={actionLoading === req.id}
                       >
                         Reddet
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-10 rounded-xl bg-white text-gray-700 dark:bg-[var(--card-bg)] dark:text-white border border-gray-200 dark:border-slate-700 flex-1 font-bold text-xs flex items-center justify-center gap-1 hover:bg-gray-50"
+                        onClick={() => navigate(`/tutor/messages?userId=${req.studentUserId}`)}
+                      >
+                        <MessageSquare size={12} /> Mesaj At
                       </Button>
                     </div>
                   </div>

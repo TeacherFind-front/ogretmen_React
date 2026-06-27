@@ -63,6 +63,10 @@ export async function getAdminListings(query = {}) {
     const params = new URLSearchParams();
     params.set("page", query.page || 1);
     params.set("pageSize", query.pageSize || 20);
+    
+    if (query.status && query.status !== "All" && query.status !== "PendingApproval") {
+      params.set("status", query.status);
+    }
 
     // Backend specifically has a "pending" endpoint
     const url =
@@ -97,6 +101,7 @@ export async function getAdminListings(query = {}) {
         description: item.description || item.Description,
         category: item.category || item.Category,
         price: item.price || item.Price,
+        status: item.status || item.Status,
         createdAt: item.createdAt || item.CreatedAt,
         // Backend'den gelen TeacherName -> tutorName eşlemesi
         tutorName: item.tutorName || item.TeacherName || "Eğitmen",

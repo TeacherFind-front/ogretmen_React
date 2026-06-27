@@ -17,6 +17,8 @@ import { getTutorById } from "@/services/tutorService";
 import { createBooking } from "@/services/bookingService";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { apiFetch } from "@/services/api";
+import toast from "react-hot-toast";
 
 export default function NewBooking() {
   const [searchParams] = useSearchParams();
@@ -33,6 +35,9 @@ export default function NewBooking() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [studentNote, setStudentNote] = useState("");
+  const [occupiedSlots, setOccupiedSlots] = useState([]);
+  const [timeError, setTimeError] = useState("");
+  const [dateError, setDateError] = useState("");
 
   useEffect(() => {
     if (!tutorId) {
@@ -56,9 +61,110 @@ export default function NewBooking() {
     loadTutor();
   }, [tutorId]);
 
+  // Fetch occupied slots from backend
+  useEffect(() => {
+    const fetchOccupied = async () => {
+      if (!selectedListing || !selectedDate) return;
+      
+      // Geçersiz veya tamamlanmamış (0005, 0055 vb.) yılları sorgulamayı engelle (SQL Server 500 hatası almamak için)
+      const year = parseInt(selectedDate.split("-")[0], 10);
+      if (isNaN(year) || year < 2020) return;
+
+      try {
+        const from = `${selectedDate}T00:00:00Z`;
+        const to = `${selectedDate}T23:59:59Z`;
+        const response = await apiFetch(
+          `/api/bookings/occupied?teacherListingId=${selectedListing.id}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+        );
+        if (response && response.ok) {
+          const data = await response.json();
+          setOccupiedSlots(data.$values || data || []);
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          toast.error(errData.message || "Dolu saatler yüklenemedi.");
+        }
+      } catch (err) {
+        console.error("Müsait olmayan saatler yüklenemedi:", err);
+      }
+    };
+    fetchOccupied();
+  }, [selectedListing, selectedDate]);
+
+  const isPastDateTime = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr) return false;
+    const selected = new Date(`${dateStr}T${timeStr}`);
+    return selected < new Date();
+  };
+
+  const isTimeOccupied = (timeStr) => {
+    if (!selectedDate || !timeStr || !selectedListing) return false;
+    const start = new Date(`${selectedDate}T${timeStr}`);
+    const duration = selectedListing.lessonDuration || 60;
+    const end = new Date(start.getTime() + duration * 60000);
+
+    return occupiedSlots.some(slot => {
+      const slotStart = new Date(slot.startTime);
+      const slotEnd = new Date(slot.endTime);
+      // Check overlap: (start < slotEnd) && (end > slotStart)
+      return (start < slotEnd) && (end > slotStart);
+    });
+  };
+
+  const handleTimeChange = (timeValue) => {
+    setSelectedTime(timeValue);
+    if (selectedDate && timeValue) {
+      if (isPastDateTime(selectedDate, timeValue)) {
+        setTimeError("Geçmiş bir tarih/saat seçemezsiniz.");
+      } else if (isTimeOccupied(timeValue)) {
+        setTimeError("Bu saat aralığı doludur. Lütfen başka bir saat seçin.");
+      } else {
+        setTimeError("");
+      }
+    } else {
+      setTimeError("");
+    }
+  };
+
+  const handleDateChange = (dateValue) => {
+    setSelectedDate(dateValue);
+    setSelectedTime("");
+    setTimeError("");
+    
+    if (dateValue) {
+      const todayStr = new Date().toISOString().split("T")[0];
+      if (dateValue < todayStr) {
+        setDateError("Bugünden daha geçmiş bir tarih seçemezsiniz.");
+      } else {
+        setDateError("");
+      }
+    } else {
+      setDateError("");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedListing || !selectedDate || !selectedTime) return;
+
+    if (dateError) {
+      setError(dateError);
+      return;
+    }
+
+    if (timeError) {
+      setError(timeError);
+      return;
+    }
+
+    if (isPastDateTime(selectedDate, selectedTime)) {
+      setError("Geçmiş bir tarih/saat seçemezsiniz.");
+      return;
+    }
+
+    if (isTimeOccupied(selectedTime)) {
+      setError("Seçilen saat aralığı doludur. Lütfen başka bir saat seçin.");
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -103,17 +209,27 @@ export default function NewBooking() {
           <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
             <CheckCircle2 className="w-12 h-12 text-emerald-500" />
           </div>
-          <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Harika! Talebiniz Alındı</h1>
+          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Talebiniz hocaya iletildi</h1>
           <p className="text-gray-500 text-lg font-medium mb-10">
-            Rezervasyon isteğiniz <span className="text-gray-900 font-black">{tutor.teacherName}</span> hocamıza iletildi. 
-            Onaylandığında size bildirim göndereceğiz.
+            Ders talebiniz başarıyla oluşturuldu ve <span className="text-gray-900 font-black">{tutor.teacherName}</span> hocamıza gönderildi.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="h-14 px-10 rounded-2xl bg-emerald-600 hover:bg-emerald-700 font-bold shadow-xl shadow-emerald-200" onClick={() => navigate("/student/lessons")}>
               Derslerime Git
             </Button>
-            <Button variant="outline" className="h-14 px-10 rounded-2xl font-bold border-2" onClick={() => navigate("/tutors")}>
-              Başka Hocalara Bak
+            <Button 
+              variant="outline" 
+              className="h-14 px-10 rounded-2xl font-bold border-2" 
+              onClick={() => {
+                const targetId = tutor?.tutorUserId || tutor?.teacherUserId;
+                if (targetId) {
+                  navigate(`/student/messages?userId=${targetId}`);
+                } else {
+                  toast.error("Öğretmen kullanıcı bilgisi bulunamadı.");
+                }
+              }}
+            >
+              Hocaya Mesaj At
             </Button>
           </div>
         </div>
@@ -172,18 +288,28 @@ export default function NewBooking() {
                       type="date" 
                       min={new Date().toISOString().split("T")[0]}
                       value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
+                      onChange={(e) => handleDateChange(e.target.value)}
                       required
                     />
+                    {dateError && (
+                      <span className="text-xs text-red-500 font-bold mt-1">
+                        {dateError}
+                      </span>
+                    )}
                   </FormGroup>
                   <FormGroup>
                     <label><Clock className="w-4 h-4 inline mr-2 text-green-500" /> Saat Seçin</label>
                     <input 
                       type="time" 
                       value={selectedTime}
-                      onChange={(e) => setSelectedTime(e.target.value)}
+                      onChange={(e) => handleTimeChange(e.target.value)}
                       required
                     />
+                    {timeError && (
+                      <span className="text-xs text-red-500 font-bold mt-1">
+                        {timeError}
+                      </span>
+                    )}
                   </FormGroup>
                 </div>
               </section>
@@ -197,8 +323,13 @@ export default function NewBooking() {
                     placeholder="Ders hakkında sormak istediğiniz veya hocanızın bilmesini istediğiniz detaylar..."
                     value={studentNote}
                     onChange={(e) => setStudentNote(e.target.value)}
+                    maxLength={500}
                     className="resize-none"
                   ></textarea>
+                  <div className="flex justify-between items-center text-xs text-gray-400 font-bold mt-1">
+                    <span>{timeError ? <span className="text-red-500">{timeError}</span> : ""}</span>
+                    <span>{studentNote.length}/500 Karakter</span>
+                  </div>
                 </FormGroup>
               </section>
 
@@ -211,7 +342,7 @@ export default function NewBooking() {
               <Button 
                 type="submit" 
                 className="w-full h-16 rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 font-black text-lg"
-                disabled={submitting || !selectedListing || !selectedDate || !selectedTime}
+                disabled={submitting || !selectedListing || !selectedDate || !selectedTime || !!timeError}
               >
                 {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Rezervasyonu Onaya Gönder"}
               </Button>

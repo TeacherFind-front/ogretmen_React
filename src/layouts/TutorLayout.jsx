@@ -20,14 +20,26 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 
+
+/**
+ * TutorLayout - Eğitmen (Tutor) paneli sayfaları için kullanılan ana şablon/layout bileşeni.
+ * Sol tarafta geniş ekranlar için masaüstü sidebar, mobil ekranlar için ise açılır kapanır hamburger menü
+ * ve alt gezinme çubuğu (BottomNav) sunar. Üst kısımda ise bildirimler, tema seçici ve kullanıcı avatarı yer alır.
+ * Sayfa içerikleri react-router-dom'un <Outlet /> bileşeni aracılığıyla bu şablonun içine yerleştirilir.
+ */
 export default function TutorLayout() {
+  // Giriş yapmış kullanıcının bilgileri ve çıkış yapma fonksiyonu auth context'ten alınır
   const { user, logout } = useAuth();
+  // Geçerli URL yolunu (pathname) öğrenmek için useLocation kullanılır (aktif linki boyamak için)
   const location = useLocation();
+  // Mobil yan menünün (sidebar) açık/kapalı olma durumunu yöneten state
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Menüdeki yönlendirme linkleri ve bunlara ait ikon/etiket tanımları
   const navLinks = [
     { to: "/", label: "Ana Sayfa", icon: <Home size={16} /> },
     { to: "/tutor/dashboard", label: "Panel", icon: "📊" },
+    { to: "/tutor/bookings", label: "Ders Talepleri", icon: "📅" },
     { to: "/tutor/create-listing", label: "İlan Ver", icon: "➕" },
     { to: "/tutor/availability", label: "Müsaitlik Ayarları", icon: "⏰" },
     { to: "/tutor/lessons", label: "Derslerim", icon: "📚" },
@@ -40,9 +52,12 @@ export default function TutorLayout() {
 
   return (
     <div className="flex min-h-screen bg-[#f9fafb] dark:bg-[var(--page-bg)] transition-colors duration-300">
+      {/* Sayfa geçişlerinde ekranın otomatik olarak en üste kaymasını sağlar */}
       <ScrollToTop />
-      {/* Desktop Sidebar */}
+
+      {/* Desktop Sidebar (Sadece orta ve büyük ekranlarda gösterilir) */}
       <aside className="w-56 border-r bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] hidden md:block shadow-sm">
+        {/* Logo Alanı */}
         <div className="flex h-14 items-center px-6">
           <div className="flex items-center">
             <Link to="/">
@@ -50,16 +65,19 @@ export default function TutorLayout() {
             </Link>
           </div>
         </div>
+        {/* Menü Linkleri Listesi */}
         <nav className="px-3 py-4 space-y-1">
           {navLinks.map((link) => (
             <SideLink
               key={link.to}
               to={link.to}
+              // Linkin aktif olup olmadığını URL eşleşmesine göre belirliyoruz
               $active={location.pathname === link.to}
             >
               <span className="icon">{link.icon}</span> {link.label}
             </SideLink>
           ))}
+          {/* Çıkış Yap butonu */}
           <div className="pt-4 mt-4 border-t border-gray-100 dark:border-[var(--card-border)]">
             <LogoutButton onClick={logout}>
               <span className="icon">🚪</span> Çıkış Yap
@@ -68,11 +86,13 @@ export default function TutorLayout() {
         </nav>
       </aside>
 
-      {/* Mobile Sidebar & Overlay */}
+      {/* Mobile Sidebar Karartma Katmanı (Overlay) */}
       <MobileOverlay
         $isOpen={isMenuOpen}
         onClick={() => setIsMenuOpen(false)}
       />
+
+      {/* Mobile Sidebar (Hamburger menü açıldığında soldan kayarak gelen menü) */}
       <MobileSidebar $isOpen={isMenuOpen}>
         <div className="flex h-14 items-center px-6 border-b justify-between">
           <div className="flex items-center">
@@ -80,6 +100,7 @@ export default function TutorLayout() {
               <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
             </Link>
           </div>
+          {/* Kapatma Butonu */}
           <button
             onClick={() => setIsMenuOpen(false)}
             className="p-2 text-gray-500"
@@ -87,13 +108,14 @@ export default function TutorLayout() {
             <X size={20} />
           </button>
         </div>
+        {/* Mobil Menü Linkleri */}
         <nav className="px-3 py-4 space-y-1">
           {navLinks.map((link) => (
             <SideLink
               key={link.to}
               to={link.to}
               $active={location.pathname === link.to}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => setIsMenuOpen(false)} // Linke tıklandığında menüyü otomatik kapat
             >
               <span className="icon">{link.icon}</span> {link.label}
             </SideLink>
@@ -106,9 +128,12 @@ export default function TutorLayout() {
         </nav>
       </MobileSidebar>
 
+      {/* Sağ Taraf - Header ve Sayfa İçeriği Bölümü */}
       <div className="flex-1 flex flex-col">
+        {/* Üst Header (Nav Bar) */}
         <header className="h-14 border-b bg-white dark:bg-[var(--card-bg)] dark:border-[var(--card-border)] flex items-center px-4 md:px-6 justify-between shadow-sm">
           <div className="flex items-center gap-4">
+            {/* Mobil ekranlarda sol üstte görünecek logo */}
             <div className="md:hidden">
               <div className="flex items-center">
                 <Link to="/">
@@ -117,9 +142,15 @@ export default function TutorLayout() {
               </div>
             </div>
           </div>
+
+          {/* Header Sağ Bölüm: Tema seçici, bildirimler ve kullanıcı bilgileri */}
           <div className="ml-auto flex items-center gap-3">
+            {/* Karanlık/Aydınlık Tema Butonu */}
             <ThemeSwitch />
+            {/* Bildirimler Açılır Kutusu */}
             <NotificationDropdown />
+            
+            {/* Eğitmen karşılama metni (Küçük ekranlarda gizlenir) */}
             <div className="hidden sm:flex flex-col items-end mr-1">
               <span className="text-[11px] font-bold text-gray-900 dark:text-slate-100">
                 Eğitmen Paneli
@@ -128,6 +159,8 @@ export default function TutorLayout() {
                 Hoş geldin, {user?.fullName?.split(" ")[0] || "Hocam"}
               </span>
             </div>
+
+            {/* Kullanıcı Profil Resmi / Avatar */}
             <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200 overflow-hidden shrink-0">
               {user?.avatarUrl ? (
                 <img
@@ -141,12 +174,14 @@ export default function TutorLayout() {
             </div>
           </div>
         </header>
+
+        {/* Dinamik Sayfa İçeriğinin (<Outlet />) Render Edildiği Alan */}
         <main className="flex-1 p-4 pb-24 md:pb-4 bg-[#f9fafb] dark:bg-[var(--page-bg)] transition-colors duration-300 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobil Alt Menü Çubuğu (Bottom Navigation) */}
       <BottomNav onMenuClick={() => setIsMenuOpen(true)} />
     </div>
   );

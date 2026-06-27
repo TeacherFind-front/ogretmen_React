@@ -198,6 +198,27 @@ function TutorDetail() {
     }
   };
 
+  const handleLessonRequestClick = () => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+    navigate(`/student/bookings/new?tutorId=${tutor.id}`);
+  };
+
+  const handleMessageClick = () => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+    const targetId = tutor?.tutorUserId || tutor?.teacherUserId;
+    if (!targetId) {
+      toast.error("Öğretmen kullanıcı bilgisi bulunamadı.");
+      return;
+    }
+    navigate(`/student/messages?userId=${targetId}`);
+  };
+
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (reviewData.comment.length < 10)
@@ -513,6 +534,13 @@ function TutorDetail() {
                 >
                   <Share2 size={16} />
                   Paylaş
+                </ActionButton>
+                <ActionButton
+                  onClick={handleLessonRequestClick}
+                  className="lesson-btn"
+                >
+                  <Calendar size={16} />
+                  Ders Talep Et
                 </ActionButton>
               </div>
             </div>
@@ -1713,6 +1741,53 @@ const ActionButton = styled.button`
       background: #f8fafc;
       .dark & {
         background: var(--card-border);
+      }
+    }
+  }
+
+  &.lesson-btn {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: white;
+    &:hover {
+      background: #15803d;
+      border-color: #15803d;
+    }
+    .dark & {
+      background: #15803d;
+      border-color: #15803d;
+      &:hover {
+        background: #166534;
+        border-color: #166534;
+      }
+    }
+  }
+
+  &.chat-btn {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+    &:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+    .dark & {
+      background: #2563eb;
+      border-color: #2563eb;
+      &:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+      }
+    }
+    &:disabled {
+      background: #cbd5e1;
+      border-color: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
+      .dark & {
+        background: #334155;
+        border-color: #334155;
+        color: #475569;
       }
     }
   }

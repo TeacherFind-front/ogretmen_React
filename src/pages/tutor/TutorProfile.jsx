@@ -34,22 +34,42 @@ import { getUniversities, getDepartments } from "@/services/educationService";
 import { requestEmailChange, verifyEmailChange } from "@/services/authService";
 import { useAuth } from "@/store/AuthContext";
 
+/**
+ * TutorProfile - Eğitmenin (Tutor) kendi profil bilgilerini yönettiği sayfa bileşeni.
+ * Bu sayfa üzerinden eğitmen; kişisel bilgilerini (ad, telefon, headline), eğitim durumunu (üniversite, bölüm),
+ * biyografisini, eğitim metotlarını, deneyimlerini, profil resmini (avatar) güncelleyebilir.
+ * Ayrıca güvenlik amacıyla kayıtlı e-posta adresini doğrulama kodu aracılığıyla değiştirebilir.
+ */
 export default function TutorProfile() {
+  // Profil verilerinin API'den ilk yüklenme aşamasını kontrol eden yükleniyor state'i.
   const [loading, setLoading] = useState(true);
+  // Profil bilgilerini kaydederken (kaydet butonu) yüklenme animasyonunu kontrol eden state.
   const [saveLoading, setSaveLoading] = useState(false);
+  // Profil resmi (avatar) sunucuya yüklenirken çalıştırılan yüklenme state'i.
   const [uploadLoading, setUploadLoading] = useState(false);
+  // Kullanıcıya işlem durumunu bildiren uyarı mesajı state'i ({ type: "success"|"error", message: "..." }).
   const [status, setStatus] = useState({ type: null, message: "" });
+  // Resim seçimi için gizli input elemanını tetikleyen DOM referansı.
   const fileInputRef = React.useRef(null);
+  // E-posta değişikliği sonrası hesaptan çıkış yapıp tekrar giriş yaptırmak için auth context'ten logout fonksiyonu alınır.
   const { logout } = useAuth();
 
+  // E-posta değiştirme modalının (pop-up) gösterilip gösterilmeyeceğini kontrol eden state.
   const [showEmailModal, setShowEmailModal] = useState(false);
+  // E-posta değiştirme sürecinin adımlarını (1: Şifre ve Yeni Mail girişi, 2: Doğrulama Kodu girişi) tutan state.
   const [emailStep, setEmailStep] = useState(1);
+  // Yeni e-posta adresi state'i.
   const [newEmail, setNewEmail] = useState("");
+  // Kullanıcının mevcut şifresi (güvenlik doğrulaması için).
   const [currentPassword, setCurrentPassword] = useState("");
+  // Yeni e-posta adresine gönderilen 6 haneli doğrulama kodu.
   const [emailCode, setEmailCode] = useState("");
+  // E-posta değiştirme işlemi sırasındaki yüklenme state'i.
   const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  // E-posta değiştirme işlemi sırasında oluşan hata mesajını tutan state.
   const [emailChangeError, setEmailChangeError] = useState("");
 
+  // Form üzerindeki tüm eğitmen profil alanlarını tutan birleşik state objesi.
   const [profile, setProfile] = useState({
     fullName: "",
     email: "",
@@ -63,19 +83,23 @@ export default function TutorProfile() {
     teachingStyle: "",
     experience: "",
     avatarUrl: null,
-    certificates: [], // { name, organization, year, fileUrl, link }
+    certificates: [], // Sertifikaların listesi: { name, organization, year, fileUrl, link }
     socialLinks: { whatsapp: "", instagram: "", facebook: "", linkedin: "" },
     isPremium: false,
   });
 
+  // Seçilebilir üniversitelerin listesini tutan state.
   const [universities, setUniversities] = useState([]);
+  // Seçilen üniversiteye bağlı olarak listelenecek bölümlerin state'i.
   const [departments, setDepartments] = useState([]);
 
+  // Sayfa yüklendiğinde eğitmen profil verilerini ve üniversite listesini sunucudan çeker
   useEffect(() => {
     const load = async () => {
       try {
         const data = await getMyProfile();
         if (data) {
+          // Gelen verileri form state'ine aktar
           setProfile({
             fullName: data.fullName || "",
             email: data.email || "",
@@ -88,13 +112,14 @@ export default function TutorProfile() {
             headline: data.headline || "",
             teachingStyle: data.teachingStyle || "",
             experience: data.experience || "",
+            // Profil resminin CDN/API yolunu tam URL olarak çözümler
             avatarUrl: getImageUrl(data.profileImageUrl),
             certificates: data.certificates || [],
             socialLinks: data.socialLinks || { whatsapp: "", instagram: "", facebook: "", linkedin: "" },
             isPremium: data.isPremium || false,
           });
 
-          // If profile has university, load departments
+          // Eğer eğitmenin zaten kayıtlı bir üniversitesi varsa, o üniversiteye ait bölümleri API'den çek
           if (data.universityId) {
             getDepartments(data.universityId)
               .then(setDepartments)
@@ -102,29 +127,33 @@ export default function TutorProfile() {
           }
         }
 
-        // Load universities list
+        // Tüm üniversiteler listesini API'den yükle (dropdown seçimi için)
         getUniversities().then(setUniversities).catch(console.error);
       } catch (err) {
         console.error("Profile load error", err);
       } finally {
-        setLoading(false);
+        setLoading(false); // Yüklenme ekranını kapat
       }
     };
     load();
   }, []);
 
+  /**
+   * handleAvatarChange - Kullanıcı yeni bir profil resmi seçtiğinde çalışır.
+   * Resmi öncelikle önizleme için yerel olarak okur (FileReader), ardından API'ye yükler.
+   */
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Local preview
+    // 1. Tarayıcıda anlık önizleme oluşturma (yükleme tamamlanmadan resmi göstermek için)
     const reader = new FileReader();
     reader.onloadend = () => {
       setProfile((prev) => ({ ...prev, avatarUrl: reader.result }));
     };
     reader.readAsDataURL(file);
 
-    // Upload to server
+    // 2. Resmi backend API'ye gönderip sunucu tarafında güncelleme
     setUploadLoading(true);
     try {
       const result = await uploadAvatar(file);
@@ -142,12 +171,16 @@ export default function TutorProfile() {
     }
   };
 
+  /**
+   * handleSave - Profil güncelleme formunu sunucuya gönderir.
+   */
   const handleSave = async (e) => {
     e.preventDefault();
     setSaveLoading(true);
-    setStatus({ type: null, message: "" });
+    setStatus({ type: null, message: "" }); // Önceki durum mesajlarını temizle
 
     try {
+      // API'ye gönderilecek verileri düzenle
       const updateData = {
         fullName: profile.fullName,
         phoneNumber: profile.phone,
@@ -162,8 +195,10 @@ export default function TutorProfile() {
         socialLinks: profile.socialLinks,
       };
 
+      // 1. Profil genel metin bilgilerini güncelle
       await updateMyProfile(updateData);
 
+      // 2. Yeni eklenmiş (henüz id'si olmayan ve dosyası bulunan) sertifikaları yükle
       const newCerts = profile.certificates.filter((c) => c.file && !c.id);
       for (const cert of newCerts) {
         await uploadCertificate(cert.name, cert.file);
@@ -173,6 +208,7 @@ export default function TutorProfile() {
         type: "success",
         message: "Profiliniz başarıyla güncellendi!",
       });
+      // Başarı mesajını 3 saniye sonra otomatik kaldır
       setTimeout(() => setStatus({ type: null, message: "" }), 3000);
     } catch (err) {
       setStatus({
@@ -184,13 +220,17 @@ export default function TutorProfile() {
     }
   };
 
+  /**
+   * handleRequestEmailChange - E-posta değişikliği talebini başlatır.
+   * Mevcut şifreyi ve yeni girilen e-posta adresini doğrulayarak doğrulama kodu gönderir.
+   */
   const handleRequestEmailChange = async (e) => {
     e.preventDefault();
     setEmailChangeError("");
     setEmailChangeLoading(true);
     try {
       await requestEmailChange(currentPassword, newEmail);
-      setEmailStep(2);
+      setEmailStep(2); // Doğrulama kodu adımına geç
     } catch (err) {
       setEmailChangeError(err.message || "Kod gönderilemedi. Lütfen şifrenizi kontrol edin.");
     } finally {
@@ -198,6 +238,10 @@ export default function TutorProfile() {
     }
   };
 
+  /**
+   * handleVerifyEmailChange - Gelen 6 haneli kodu doğrulayarak e-posta adresini kesin olarak değiştirir.
+   * Güvenlik nedeniyle işlem başarılı olunca kullanıcı oturumunu kapatır ve çıkış yaptırır.
+   */
   const handleVerifyEmailChange = async (e) => {
     e.preventDefault();
     setEmailChangeError("");
@@ -206,6 +250,7 @@ export default function TutorProfile() {
       await verifyEmailChange(newEmail, emailCode);
       setStatus({ type: "success", message: "E-postanız başarıyla değiştirildi! Güvenliğiniz için çıkış yapılıyor..." });
       setShowEmailModal(false);
+      // 3 saniye gecikmeyle kullanıcıyı çıkış yapmaya yönlendir
       setTimeout(() => {
         logout();
       }, 3000);
@@ -216,6 +261,7 @@ export default function TutorProfile() {
     }
   };
 
+  // İlk yüklenme ekranı
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -223,6 +269,7 @@ export default function TutorProfile() {
       </div>
     );
   }
+
 
   return (
     <Container>
