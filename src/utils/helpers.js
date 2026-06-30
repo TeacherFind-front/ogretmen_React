@@ -24,9 +24,14 @@ export function resolveMediaUrl(url) {
     return url;
   }
 
+  // Env değişkeninden oku — deploy.yml branch'e göre doğru değeri yazar.
+  // Hardcoded URL KULLANMA; staging ve production farklı API adreslerine sahip.
   const apiBaseUrl =
     import.meta.env.VITE_API_BASE_URL ||
-    "https://api.ozeldersvip.com";
+    import.meta.env.VITE_API_URL ||
+    "";
+
+  if (!apiBaseUrl) return url;
 
   return `${apiBaseUrl.replace(/\/$/, "")}/${url.replace(/^\//, "")}`;
 }

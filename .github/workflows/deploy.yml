@@ -31,13 +31,20 @@ jobs:
         shell: powershell
         run: |
           # API base URL depends on the branch.
-          #   main    -> production backend (https://api.ozeldersvip.com)
-          #   Develop -> same production backend (no staging API exists)
-          # Both branches use the same API. Only the frontend site path differs:
-          #   main    -> C:\Sites\OzelDersVip\frontend  (ozeldersvip.com)
-          #   Develop -> C:\Sites\OzelDersVip\staging-frontend (test.ozeldersvip.com)
-          $apiBase = "https://api.ozeldersvip.com"
-          $signalr = "https://api.ozeldersvip.com/chat"
+          #   main    -> production backend  (https://api.ozeldersvip.com)
+          #   Develop -> staging backend     (https://testapi.ozeldersvip.com)
+          #
+          # IMPORTANT: This step OVERWRITES .env.production so committed repo
+          # values do NOT override these. Vite precedence order means the file
+          # we write here at build time takes effect correctly.
+          if ($env:GITHUB_REF -eq "refs/heads/main") {
+            $apiBase = "https://api.ozeldersvip.com"
+            $signalr = "https://api.ozeldersvip.com/chat"
+          }
+          else {
+            $apiBase = "https://testapi.ozeldersvip.com"
+            $signalr = "https://testapi.ozeldersvip.com/chat"
+          }
 
           @"
           VITE_API_BASE_URL=$apiBase
@@ -53,7 +60,7 @@ jobs:
           VITE_FIREBASE_VAPID_KEY=
           "@ | Set-Content -Path ".env.production" -Encoding UTF8
 
-          Write-Host "Built env for $($env:GITHUB_REF) with API base $apiBase"
+          Write-Host "Built env for $($env:GITHUB_REF) -> API: $apiBase"
 
       - name: Build frontend
         shell: powershell
