@@ -654,36 +654,38 @@ export default function Home() {
                 </div>
                 {subjectOpen && (
                   <div
-                    className="absolute top-full left-0 right-0 mt-3 rounded-2xl shadow-2xl border z-50 overflow-hidden max-h-72 overflow-y-auto"
+                    className="absolute top-full left-0 mt-3 min-w-full md:min-w-[320px] rounded-2xl shadow-2xl border z-50 overflow-hidden"
                     style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}
                   >
-                    {filteredSubjects.length === 0 ? (
-                      <div className="px-5 py-4 text-sm text-center" style={{ color: "var(--text-muted)" }}>
-                        Sonuç bulunamadı
-                      </div>
-                    ) : (
-                      filteredSubjects.map((s) => (
-                        <button
-                          key={s}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            setSelectedSubject(s);
-                            setSubjectSearch(s);
-                            setSubjectOpen(false);
-                            setSubjectFocused(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b last:border-0 hover:bg-[rgba(22,163,74,0.05)]"
-                          style={{
-                            borderColor: "var(--card-border)",
-                            color: selectedSubject === s ? "#16a34a" : "var(--text-primary)",
-                            background: selectedSubject === s ? "var(--section-alt)" : "transparent"
-                          }}
-                        >
-                          <Search className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--text-muted)" }} />
-                          {s}
-                        </button>
-                      ))
-                    )}
+                    <div className="max-h-72 overflow-y-auto">
+                      {filteredSubjects.length === 0 ? (
+                        <div className="px-5 py-4 text-sm text-center" style={{ color: "var(--text-muted)" }}>
+                          Sonuç bulunamadı
+                        </div>
+                      ) : (
+                        filteredSubjects.map((s) => (
+                          <button
+                            key={s}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setSelectedSubject(s);
+                              setSubjectSearch(s);
+                              setSubjectOpen(false);
+                              setSubjectFocused(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b last:border-0 hover:bg-[rgba(22,163,74,0.05)]"
+                            style={{
+                              borderColor: "var(--card-border)",
+                              color: selectedSubject === s ? "#16a34a" : "var(--text-primary)",
+                              background: selectedSubject === s ? "var(--section-alt)" : "transparent"
+                            }}
+                          >
+                            <Search className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--text-muted)" }} />
+                            {s}
+                          </button>
+                        ))
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -718,31 +720,33 @@ export default function Home() {
                 </div>
                 {locationOpen && (
                   <div
-                    className="absolute top-full left-0 right-0 mt-3 rounded-2xl shadow-2xl border z-50 overflow-hidden"
+                    className="absolute top-full left-0 mt-3 min-w-full md:min-w-[320px] rounded-2xl shadow-2xl border z-50 overflow-hidden"
                     style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}
                   >
-                    {LOCATION_OPTIONS.filter((o) => o.value !== "").map(
-                      (opt) => (
-                        <button
-                          key={opt.value}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            setSelectedLocation(opt.value);
-                            setLocationOpen(false);
-                            setLocationFocused(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b last:border-0 hover:bg-[rgba(22,163,74,0.05)]"
-                          style={{
-                            borderColor: "var(--card-border)",
-                            color: selectedLocation === opt.value ? "#16a34a" : "var(--text-primary)",
-                            background: selectedLocation === opt.value ? "var(--section-alt)" : "transparent"
-                          }}
-                        >
-                          <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--text-muted)" }} />
-                          {opt.label}
-                        </button>
-                      ),
-                    )}
+                    <div className="max-h-72 overflow-y-auto">
+                      {LOCATION_OPTIONS.filter((o) => o.value !== "").map(
+                        (opt) => (
+                          <button
+                            key={opt.value}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setSelectedLocation(opt.value);
+                              setLocationOpen(false);
+                              setLocationFocused(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-5 py-3.5 text-sm font-semibold text-left transition-colors border-b last:border-0 hover:bg-[rgba(22,163,74,0.05)]"
+                            style={{
+                              borderColor: "var(--card-border)",
+                              color: selectedLocation === opt.value ? "#16a34a" : "var(--text-primary)",
+                              background: selectedLocation === opt.value ? "var(--section-alt)" : "transparent"
+                            }}
+                          >
+                            <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--text-muted)" }} />
+                            {opt.label}
+                          </button>
+                        ),
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
