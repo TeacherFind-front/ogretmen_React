@@ -24,6 +24,7 @@ export async function login(email, password, rememberMe = false) {
     const errorObj = new Error(err.message || "Giriş başarısız.");
     errorObj.userId = err.userId || err.UserId;
     errorObj.requiresVerification = err.requiresVerification || err.RequiresVerification;
+    errorObj.status = res.status;
     throw errorObj;
   }
 

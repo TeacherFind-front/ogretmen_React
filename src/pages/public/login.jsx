@@ -108,17 +108,24 @@ export default function Login() {
         navigate(getRedirectPath(result.role));
       }, 500);
     } catch (err) {
-      const errorMessage = err.message || "";
-      
-      if (errorMessage.toLowerCase().includes("doğrula") || errorMessage.toLowerCase().includes("verify")) {
-        toast.error("E-posta adresiniz henüz doğrulanmamış. Doğrulama sayfasına yönlendiriliyorsunuz...");
-        
-        setTimeout(() => {
-          navigate("/verify-email", { state: { email: data.email, userId: err.userId, password: data.password } });
-        }, 2000);
-      } else {
-        toast.error(errorMessage || "Sunucuya bağlanılamadı veya giriş başarısız. Lütfen tekrar deneyin.");
+      if (err.status === 401) {
+        if (err.requiresVerification === true && err.userId) {
+          toast.error("E-posta adresiniz henüz doğrulanmamış. Doğrulama sayfasına yönlendiriliyorsunuz...");
+          
+          setTimeout(() => {
+            navigate("/verify-email", {
+              state: {
+                userId: err.userId,
+                email: data.email
+              }
+            });
+          }, 1500);
+          return;
+        }
       }
+
+      const errorMessage = err.message || "Giriş başarısız. Lütfen tekrar deneyin.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
