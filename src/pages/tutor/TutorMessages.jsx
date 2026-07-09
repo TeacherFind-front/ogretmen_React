@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useSearchParams } from "react-router-dom";
 import { getConversations, getMessages, sendMessage, deleteMessages, deleteConversation } from "@/services/messageService";
 import { startChatConnection, getChatConnection, sendMessageLive } from "@/services/chatService";
-import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Trash2, CheckCircle2, Reply, CornerUpLeft, X } from "lucide-react";
+import { Loader2, Send, Search, MoreVertical, Check, CheckCheck, Trash2, CheckCircle2, Reply, CornerUpLeft, X, ArrowLeft, Video, Phone } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
 import { resolveMediaUrl } from "@/utils/helpers";
 
@@ -21,26 +21,22 @@ export default function TutorMessages() {
   const [selectedMessages, setSelectedMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
-  // SignalR bağlantısı ve mesaj dinleme
   useEffect(() => {
     fetchConversations();
   }, [searchParams]);
 
   useEffect(() => {
     const handleNewMessage = (message) => {
-      // Eğer bu mesaj seçili konuşmaysa mesajlara ekle
       if (selectedConv && (message.senderId === selectedConv.otherUserId || message.receiverId === selectedConv.otherUserId)) {
         setMessages(prev => {
-          // Mükerrer eklemeyi önle
           if (prev.some(m => m.id === message.id)) return prev;
           return [...prev, message];
         });
       }
 
-      // Konuşma listesini güncelle (son mesaj ve üste taşıma)
       setConversations(prev => {
         const index = prev.findIndex(c => c.otherUserId === message.senderId || c.otherUserId === message.receiverId);
-        if (index === -1) return prev; // Yeni biriyse tekrar fetch gerekebilir ama şimdilik pas geçiyoruz
+        if (index === -1) return prev;
 
         const updated = [...prev];
         const conv = updated[index];
@@ -53,7 +49,6 @@ export default function TutorMessages() {
             : conv.unreadCount
         };
         
-        // Üste taşı
         const item = updated.splice(index, 1)[0];
         return [item, ...updated];
       });
@@ -103,12 +98,8 @@ export default function TutorMessages() {
   }, [selectedConv]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, [messages]);
 
   const fetchConversations = async () => {
     setLoading(true);
@@ -122,18 +113,16 @@ export default function TutorMessages() {
       let selection = null;
       
       if (targetUserId) {
-        // Mevcut konuşmalar arasında bu kullanıcı var mı kontrol et
         const existingIndex = updatedData.findIndex(c => c.otherUserId === targetUserId);
         
         if (existingIndex !== -1) {
           selection = updatedData[existingIndex];
         } else {
-          // İlk defa mesaj atılacaksa geçici konuşma kartı ekle
           const newConv = {
             conversationId: "new",
             otherUserId: targetUserId,
-            otherUserName: targetUserName ? decodeURIComponent(targetUserName) : "Öğrenci",
-            lastMessage: "Yeni konuşma başlat",
+            otherUserName: targetUserName ? decodeURIComponent(targetUserName) : "Ogrenci",
+            lastMessage: "Yeni konusma baslat",
             lastMessageAt: new Date().toISOString(),
             unreadCount: 0
           };
@@ -179,10 +168,10 @@ export default function TutorMessages() {
       const success = await sendMessageLive(selectedConv.otherUserId, msgContent, replyId);
       
       if (!success) {
-        const sent = await sendMessage({
-          receiverId: selectedConv.otherUserId,
+        const sent = await sendMessage({ 
+          receiverId: selectedConv.otherUserId, 
           content: msgContent,
-          replyToMessageId: replyId
+          replyToMessageId: replyId 
         });
         
         if (selectedConv.conversationId === "new") {
@@ -204,514 +193,604 @@ export default function TutorMessages() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-green-600" />
-        <p className="text-gray-500 font-medium">Mesaj kutunuz yükleniyor...</p>
+        <p className="text-gray-500 font-medium">Mesaj kutunuz yukleniyor...</p>
       </div>
     );
   }
 
   return (
-    <Container>
-      <header className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-slate-100 tracking-tight">Mesajlarım</h1>
-        <p className="text-gray-500 dark:text-[var(--text-muted)] text-sm mt-1">Öğrencilerinle olan iletişimi anlık olarak takip et.</p>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[750px]">
-        {/* Mesaj Listesi */}
-        <div className="md:col-span-1">
-          <Card className="h-full flex flex-col shadow-sm">
-            <div className="p-4 border-b dark:border-[var(--card-border)]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <SearchInput placeholder="Öğrenci ara..." />
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              {conversations.length === 0 ? (
-                <div className="p-10 text-center text-gray-400 text-sm">Henüz bir mesajınız bulunmuyor.</div>
-              ) : (
-                conversations.map((conv) => (
-                  <ConversationCard 
-                    key={conv.conversationId} 
-                    className="group"
-                    $active={selectedConv?.otherUserId === conv.otherUserId}
-                    onClick={() => setSelectedConv(conv)}
-                  >
-                    <div className="relative">
-                      <Avatar $hasImage={!!conv.otherUserAvatarUrl}>
-                        {conv.otherUserAvatarUrl ? (
-                          <img 
-                            src={resolveMediaUrl(conv.otherUserAvatarUrl)} 
-                            alt={conv.otherUserName} 
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/placeholder-avatar.png";
-                            }}
-                            className="w-full h-full object-cover" 
-                          />
-                        ) : (
-                          conv.otherUserName?.charAt(0) || "U"
-                        )}
-                      </Avatar>
-                      {conv.otherUserIsOnline && <OnlineStatus />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-gray-900 dark:text-[var(--text-primary)] truncate">{conv.otherUserName || "Kullanıcı"}</span>
-                        <span className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">
-                          {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' }) : ""}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500 dark:text-[var(--text-muted)] truncate">{conv.lastMessage}</span>
-                        {conv.unreadCount > 0 && <UnreadBadge>{conv.unreadCount}</UnreadBadge>}
-                        <button 
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            if (window.confirm(`${conv.otherUserName || "Kullanıcı"} adlı kişiyle olan tüm konuşmayı silmek istediğinize emin misiniz?`)) {
-                              try {
-                                await deleteConversation(conv.otherUserId);
-                                setConversations(prev => prev.filter(c => c.otherUserId !== conv.otherUserId));
-                                if (selectedConv?.otherUserId === conv.otherUserId) {
-                                  setSelectedConv(null);
-                                }
-                              } catch (err) {
-                                alert(err.message);
-                              }
-                            }
-                          }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg ml-2"
-                          title="Konuşmayı Sil"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </ConversationCard>
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Mesaj İçeriği */}
-        <div className="md:col-span-2">
-          <Card className="h-full flex flex-col shadow-lg border-green-50">
-            {selectedConv ? (
-              <>
-                <div className="p-5 border-b dark:border-[var(--card-border)] flex items-center justify-between bg-white dark:bg-[var(--card-bg)] z-10">
-                  <div className="flex items-center gap-4">
-                    <Avatar $large $hasImage={!!selectedConv.otherUserAvatarUrl}>
-                      {selectedConv.otherUserAvatarUrl ? (
-                        <img 
-                          src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} 
-                          alt={selectedConv.otherUserName} 
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/placeholder-avatar.png";
-                          }}
-                          className="w-full h-full object-cover" 
-                        />
-                      ) : (
-                        selectedConv.otherUserName?.charAt(0) || "U"
-                      )}
-                    </Avatar>
-                    <div>
-                      <h3 className="font-bold text-gray-900 dark:text-[var(--text-primary)]">{selectedConv.otherUserName || "Kullanıcı"}</h3>
-                      {selectedConv.otherUserIsOnline ? (
-                        <span className="text-[11px] text-green-500 font-bold flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Çevrimiçi
-                        </span>
-                      ) : selectedConv.otherUserLastSeenAt ? (
-                        <span className="text-[11px] text-gray-500 font-bold flex items-center gap-1">
-                          Son görülme: {new Date(selectedConv.otherUserLastSeenAt).toLocaleDateString('tr-TR')} {new Date(selectedConv.otherUserLastSeenAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-gray-400 font-bold flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div> Çevrimdışı
-                        </span>
-                      )}
-                    </div>
+    <ChatRoot>
+      {/* Sidebar - Sol Panel */}
+      <Sidebar $visible={!selectedConv}>
+        <SidebarHeader>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-black text-white tracking-tight">Sohbetler</h1>
+          </div>
+          <SearchWrap>
+            <Search size={16} className="text-[#aebac1]" />
+            <SearchInput type="text" placeholder="Aratin veya yeni sohbet baslatin" />
+          </SearchWrap>
+        </SidebarHeader>
+        <ConvList>
+          {conversations.length === 0 ? (
+            <div className="p-8 text-center text-[#8696a0] text-sm">Sohbet bulunamadi.</div>
+          ) : (
+            conversations.map(conv => (
+              <ConversationCard 
+                key={conv.conversationId} 
+                className="group"
+                $active={selectedConv?.otherUserId === conv.otherUserId}
+                onClick={() => setSelectedConv(conv)}
+              >
+                <div className="relative flex-shrink-0">
+                  <Avatar $hasImage={!!conv.otherUserAvatarUrl}>
+                    {conv.otherUserAvatarUrl ? (
+                      <img 
+                        src={resolveMediaUrl(conv.otherUserAvatarUrl)} 
+                        alt={conv.otherUserName} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/placeholder-avatar.png";
+                        }}
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      conv.otherUserName?.charAt(0) || "U"
+                    )}
+                  </Avatar>
+                  {conv.otherUserIsOnline && <OnlineStatus />}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold text-[#e9edef] text-sm truncate">{conv.otherUserName || "Kullanici"}</h4>
+                    <span className="text-[10px] font-semibold text-[#8696a0]">
+                      {new Date(conv.lastMessageAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {selectionMode ? (
+                  <p className="text-xs text-[#8696a0] truncate leading-none mt-1">{conv.lastMessage}</p>
+                </div>
+                
+                {conv.unreadCount > 0 && (
+                  <UnreadBadge>{conv.unreadCount}</UnreadBadge>
+                )}
+                
+                <button 
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`${conv.otherUserName || "Kullanici"} ile olan konusmayi silmek istiyor musunuz?`)) {
+                      try {
+                        await deleteConversation(conv.otherUserId);
+                        setConversations(prev => prev.filter(c => c.otherUserId !== conv.otherUserId));
+                        if (selectedConv?.otherUserId === conv.otherUserId) {
+                          setSelectedConv(null);
+                        }
+                      } catch (err) {
+                        alert(err.message);
+                      }
+                    }
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-[#8696a0] hover:text-[#ef4444] rounded-lg ml-2 hover:bg-[#202c33]"
+                  title="Konusmayi Sil"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </ConversationCard>
+            ))
+          )}
+        </ConvList>
+      </Sidebar>
+
+      {/* Chat Area - Sag Panel */}
+      <ChatArea $visible={!!selectedConv}>
+        {selectedConv ? (
+          <>
+            {/* Sohbet Basligi */}
+            <ChatHeader>
+              <div className="flex items-center gap-3">
+                <button 
+                  className="md:hidden p-2 -ml-2 text-[#8696a0] hover:text-white rounded-xl"
+                  onClick={() => setSelectedConv(null)}
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <Avatar $small $hasImage={!!selectedConv.otherUserAvatarUrl}>
+                  {selectedConv.otherUserAvatarUrl ? (
+                    <img 
+                      src={resolveMediaUrl(selectedConv.otherUserAvatarUrl)} 
+                      alt={selectedConv.otherUserName} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "/placeholder-avatar.png";
+                      }}
+                      className="w-full h-full object-cover" 
+                    />
+                  ) : (
+                    selectedConv.otherUserName?.charAt(0) || "U"
+                  )}
+                </Avatar>
+                <div>
+                  <h3 className="font-bold text-[#e9edef] leading-tight text-sm md:text-base">{selectedConv.otherUserName || "Kullanici"}</h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {selectedConv.otherUserIsOnline ? (
                       <>
-                        <button 
-                          onClick={() => { setSelectionMode(false); setSelectedMessages([]); }}
-                          className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl"
-                        >
-                          İptal
-                        </button>
-                        {selectedMessages.length > 0 && (
-                          <button 
-                            onClick={async () => {
-                              if(window.confirm(`${selectedMessages.length} mesajı silmek istediğinize emin misiniz?`)) {
-                                try {
-                                  await deleteMessages(selectedMessages);
-                                  setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
-                                  setSelectionMode(false);
-                                  setSelectedMessages([]);
-                                } catch(err) {
-                                  alert("Silme işlemi başarısız: " + err.message);
-                                }
-                              }
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                          >
-                            <Trash2 size={16} /> <span className="hidden sm:inline">Sil ({selectedMessages.length})</span>
-                          </button>
-                        )}
+                        <span className="w-1.5 h-1.5 bg-[#00a884] rounded-full"></span>
+                        <span className="text-[10px] font-semibold text-[#00a884]">Cevrimici</span>
                       </>
                     ) : (
-                      <div className="relative group/menu">
-                        <button className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                          <MoreVertical className="w-5 h-5 text-gray-400" />
-                        </button>
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[var(--card-bg)] rounded-xl shadow-xl border border-gray-100 dark:border-[var(--card-border)] opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
-                          <button 
-                            onClick={() => setSelectionMode(true)}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-[var(--text-primary)] hover:bg-gray-50 dark:hover:bg-slate-700 text-left"
-                          >
-                            <CheckCircle2 size={16} /> Mesaj Seç
-                          </button>
-                        </div>
-                      </div>
+                      <>
+                        <span className="w-1.5 h-1.5 bg-[#8696a0] rounded-full"></span>
+                        <span className="text-[10px] font-semibold text-[#8696a0]">
+                          {selectedConv.otherUserLastSeenAt 
+                            ? `Son gorulme: ${new Date(selectedConv.otherUserLastSeenAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}` 
+                            : "Cevrimdisi"}
+                        </span>
+                      </>
                     )}
                   </div>
                 </div>
-
-                <div className="flex-1 bg-[#f8fafc] dark:bg-[var(--page-bg)] p-6 overflow-y-auto custom-scrollbar space-y-4">
-                  {msgLoading && messages.length === 0 ? (
-                    <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-green-400" /></div>
-                  ) : (
-                    messages.map((m, i) => {
-                      const isMine = m.senderId === user?.userId;
-                      const isSelected = selectedMessages.includes(m.id || i);
-
-                      return (
-                        <div key={m.id || i} className={`flex items-center gap-4 group/msg ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
-                          {selectionMode && (
-                            <button 
-                              onClick={() => setSelectedMessages(prev => 
-                                prev.includes(m.id || i) ? prev.filter(id => id !== (m.id || i)) : [...prev, m.id || i]
-                              )}
-                              className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 dark:border-slate-600'}`}
-                            >
-                              {isSelected && <Check size={14} strokeWidth={3} />}
-                            </button>
-                          )}
-
-                          <MessageGroup $isMine={isMine} className="flex-1">
-                            <div className={`flex items-center gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} w-full`}>
-                              <MessageBubble $isMine={isMine}>
-                                {m.replyToMessageContent && (
-                                  <div className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg text-sm border-l-4 border-black/10 dark:border-white/10 opacity-80">
-                                    <span className="font-bold block mb-0.5 text-xs">Yanıt:</span>
-                                    <p className="truncate">{m.replyToMessageContent}</p>
-                                  </div>
-                                )}
-                                {m.content}
-                                <div className="time flex items-center justify-end gap-1">
-                                  {new Date(m.sentAt).toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
-                                  {isMine && (
-                                    m.isRead ? <CheckCheck className="w-3 h-3 text-white" /> : <Check className="w-3 h-3 text-white/70" />
-                                  )}
-                                </div>
-                              </MessageBubble>
-
-                              {!selectionMode && (
-                                <button 
-                                  onClick={() => setReplyTo(m)}
-                                  className="opacity-0 group-hover/msg:opacity-100 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all shrink-0 mx-2"
-                                >
-                                  <Reply size={16} />
-                                </button>
-                              )}
-                            </div>
-                          </MessageGroup>
-                        </div>
-                      );
-                    })
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="p-4 border-t dark:border-[var(--card-border)] bg-white dark:bg-[var(--card-bg)]">
-                  {replyTo && (
-                    <div className="mb-4 flex items-start justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-xl border-l-4 border-green-500">
-                      <div className="flex-1 min-w-0 pr-4">
-                        <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1 flex items-center gap-1.5">
-                          <CornerUpLeft size={12} />
-                          {replyTo.senderId === user?.userId ? 'Kendi mesajınıza yanıt veriyorsunuz' : 'Yanıt veriyorsunuz'}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-[var(--text-primary)] truncate">
-                          {replyTo.content}
-                        </div>
-                      </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <button className="text-[#aebac1] hover:text-white transition-colors hidden sm:block">
+                  <Video size={20} />
+                </button>
+                <button className="text-[#aebac1] hover:text-white transition-colors hidden sm:block">
+                  <Phone size={18} />
+                </button>
+                
+                {selectionMode ? (
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => { setSelectionMode(false); setSelectedMessages([]); }}
+                      className="px-3 py-1.5 text-xs font-bold text-[#8696a0] hover:text-white bg-[#202c33] rounded-lg transition-all"
+                    >
+                      Iptal
+                    </button>
+                    {selectedMessages.length > 0 && (
                       <button 
-                        onClick={() => setReplyTo(null)}
-                        className="p-1.5 text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors shrink-0"
+                        onClick={async () => {
+                          if(window.confirm(`${selectedMessages.length} mesaji silmek istediginize emin misiniz?`)) {
+                            try {
+                              await deleteMessages(selectedMessages);
+                              setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
+                              setSelectionMode(false);
+                              setSelectedMessages([]);
+                            } catch(err) {
+                              alert(err.message);
+                            }
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ea0038]/20 text-[#ff4b72] rounded-lg font-bold text-xs hover:bg-[#ea0038]/30 transition-all"
                       >
-                        <X size={14} />
+                        <Trash2 size={13} />
+                        Sil ({selectedMessages.length})
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="relative group/menu">
+                    <button className="w-9 h-9 rounded-full text-[#aebac1] hover:text-white hover:bg-[#202c33] flex items-center justify-center transition-all">
+                      <MoreVertical size={18} />
+                    </button>
+                    <div className="absolute right-0 top-full mt-2 w-40 bg-[#233138] rounded-lg shadow-2xl border border-[#2f3b43] opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
+                      <button 
+                        onClick={() => setSelectionMode(true)}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-bold text-[#e9edef] hover:bg-[#182229] text-left transition-colors"
+                      >
+                        <CheckCircle2 size={14} /> Mesaj Sec
                       </button>
                     </div>
-                  )}
-                  <form onSubmit={handleSend} className="flex gap-3">
-                    <InputWrapper>
-                      <input 
-                        type="text" 
-                        placeholder="Mesajınızı buraya yazın..." 
-                        value={newMsg}
-                        onChange={(e) => setNewMsg(e.target.value)}
-                      />
-                    </InputWrapper>
-                    <SendButton type="submit" disabled={!newMsg.trim()}>
-                      <Send className="w-5 h-5" />
-                    </SendButton>
-                  </form>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 p-10 text-center">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-[var(--card-bg)] rounded-full flex items-center justify-center mb-4">
-                  <Send className="w-10 h-10 opacity-20 dark:text-slate-500" />
-                </div>
-                <h3 className="font-bold text-gray-900 dark:text-[var(--text-primary)] mb-1">Henüz Seçim Yapılmadı</h3>
-                <p className="text-sm dark:text-[var(--text-muted)] max-w-xs">Mesajlaşmaya başlamak için sol taraftan bir öğrenci seçin.</p>
+                  </div>
+                )}
               </div>
-            )}
-          </Card>
-        </div>
-      </div>
-    </Container>
+            </ChatHeader>
+
+            {/* Mesaj Govdesi */}
+            <MsgArea>
+              {msgLoading && (
+                <div className="flex justify-center p-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#00a884]" />
+                </div>
+              )}
+              {messages.map((m, i) => {
+                const isMine = m.senderId === user?.userId;
+                const isSelected = selectedMessages.includes(m.id || i);
+                
+                return (
+                  <MsgRow key={m.id || i} $isMine={isMine} className="group/msg">
+                    {selectionMode && (
+                      <button 
+                        onClick={() => setSelectedMessages(prev => 
+                           prev.includes(m.id || i) ? prev.filter(id => id !== (m.id || i)) : [...prev, m.id || i]
+                        )}
+                        className={`shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#00a884] border-[#00a884] text-white' : 'border-[#4b5a64]'}`}
+                      >
+                        {isSelected && <Check size={11} strokeWidth={3} />}
+                      </button>
+                    )}
+                    
+                    {!selectionMode && !isMine && (
+                      <ReplyBtn 
+                        onClick={() => setReplyTo(m)}
+                        className="opacity-0 group-hover/msg:opacity-100"
+                      >
+                        <Reply size={13} />
+                      </ReplyBtn>
+                    )}
+                    
+                    <MessageBubble $isMine={isMine}>
+                      {m.replyToMessageContent && (
+                        <ReplyPreview $isMine={isMine}>
+                          <span className="font-extrabold block mb-0.5 text-[10px] text-[#00a884]">Yanit:</span>
+                          <p className="truncate text-xs opacity-80">{m.replyToMessageContent}</p>
+                        </ReplyPreview>
+                      )}
+                      <div className="text-[13.5px] leading-relaxed break-words">{m.content}</div>
+                      <MsgMeta $isMine={isMine}>
+                        <span>
+                          {new Date(m.sentAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {isMine && (
+                          <span className="text-[#53bdeb]"><CheckCheck size={13} /></span>
+                        )}
+                      </MsgMeta>
+                    </MessageBubble>
+                    
+                    {!selectionMode && isMine && (
+                      <ReplyBtn 
+                        onClick={() => setReplyTo(m)}
+                        className="opacity-0 group-hover/msg:opacity-100"
+                      >
+                        <Reply size={13} />
+                      </ReplyBtn>
+                    )}
+                  </MsgRow>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </MsgArea>
+
+            {/* Mesaj Giris Alani */}
+            <InputArea>
+              {replyTo && (
+                <ReplyBanner>
+                  <div className="flex-1 min-w-0 pr-4">
+                    <div className="text-[10px] font-bold text-[#00a884] mb-0.5 flex items-center gap-1">
+                      <CornerUpLeft size={10} />
+                      {replyTo.senderId === user?.userId ? 'Kendi mesajiniza yanit' : 'Yanit veriyorsunuz'}
+                    </div>
+                    <div className="text-xs text-[#8696a0] truncate">
+                      {replyTo.content}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setReplyTo(null)}
+                    className="p-1 text-[#8696a0] hover:text-white rounded-full transition-colors"
+                  >
+                    <X size={13} />
+                  </button>
+                </ReplyBanner>
+              )}
+
+              <form onSubmit={handleSend} className="flex items-center gap-3">
+                <MsgInput 
+                  placeholder="Mesaj yazin..." 
+                  value={newMsg}
+                  onChange={(e) => setNewMsg(e.target.value)}
+                />
+                <SendBtn 
+                  type="submit" 
+                  disabled={!newMsg.trim()}
+                  $active={!!newMsg.trim()}
+                >
+                  <Send size={16} />
+                </SendBtn>
+              </form>
+            </InputArea>
+          </>
+        ) : (
+          <EmptyState>
+            <EmptyIcon>
+              <Send size={32} className="text-[#00a884]" />
+            </EmptyIcon>
+            <h2 className="text-xl font-bold text-[#e9edef] mb-2">Canli Sohbet</h2>
+            <p className="text-xs text-[#8696a0] max-w-xs leading-relaxed">
+              Egitmenlerinizle iletisime gecmek icin sol menuden bir konusma secin.
+            </p>
+          </EmptyState>
+        )}
+      </ChatArea>
+    </ChatRoot>
   );
 }
 
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 10px 12px 10px 40px;
-  border-radius: 12px;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
-  font-size: 14px;
-  transition: all 0.2s;
-  
-  .dark & {
-    background: var(--page-bg);
-    border-color: var(--card-border);
-    color: #f1f5f9;
-  }
-  
-  &:focus { 
-    outline: none; 
-    border-color: #16a34a; 
-    background: white; 
-    .dark & { background: var(--page-bg); border-color: #16a34a; }
+/* ─── Styled Components ─── */
+
+const ChatRoot = styled.div`
+  display: flex;
+  height: calc(100vh - 120px);
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #111b21;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  border: 1px solid #2f3b43;
+`;
+
+const Sidebar = styled.div`
+  width: 320px;
+  flex-shrink: 0;
+  display: ${p => p.$visible ? 'flex' : 'none'};
+  flex-direction: column;
+  background: #111b21;
+  border-right: 1px solid #222e35;
+  @media (min-width: 768px) {
+    display: flex;
   }
 `;
 
-const ConversationItem = styled.div`
+const SidebarHeader = styled.div`
+  padding: 14px 16px;
+  background: #111b21;
+  border-bottom: 1px solid #222e35;
+  flex-shrink: 0;
+`;
+
+const SearchWrap = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: ${props => props.$active ? '#f0fdf4' : 'transparent'};
-  border-left: 4px solid ${props => props.$active ? '#16a34a' : 'transparent'};
-  
-  .dark & {
-    background: ${props => props.$active ? '#14532d30' : 'transparent'};
-    border-left-color: ${props => props.$active ? '#16a34a' : 'transparent'};
-    span { color: #f1f5f9 !important; }
-    p { color: var(--text-muted) !important; }
-  }
+  gap: 10px;
+  background: #202c33;
+  border-radius: 8px;
+  padding: 8px 12px;
+`;
 
-  &:hover {
-    background: #f8fafc;
-    .dark & { background: var(--card-border)40; }
+const SearchInput = styled.input`
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e9edef;
+  font-size: 13px;
+  font-weight: 500;
+  &::placeholder {
+    color: #8696a0;
   }
 `;
 
-const OnlineStatus = styled.div`
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 14px;
-  height: 14px;
-  background: #22c55e;
-  border: 3px solid white;
-  border-radius: 50%;
-
-  .dark & {
-    border-color: var(--text-primary);
+const ConvList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  background: #111b21;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #374248;
+    border-radius: 3px;
   }
 `;
 
 const ConversationCard = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  border-radius: 1.5rem;
+  gap: 12px;
+  padding: 10px 16px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  margin: 0 4px;
-  
-  ${props => props.$active ? `
-    background: white;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.04);
-    border: 1px solid #f1f5f9;
-
-    .dark & {
-      background: var(--card-bg);
-      border-color: var(--card-border);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-  ` : `
-    &:hover { 
-      background: rgba(255,255,255,0.5); 
-      .dark & { background: rgba(255,255,255,0.05); }
-    }
-  `}
-
-  .dark & {
-    h4 { color: #f1f5f9 !important; }
-    p { color: var(--text-muted) !important; }
+  transition: background 0.15s;
+  background: ${p => p.$active ? '#2a3942' : 'transparent'};
+  border-bottom: 1px solid #222e35;
+  &:hover {
+    background: ${p => p.$active ? '#2a3942' : '#202c33'};
   }
 `;
 
 const Avatar = styled.div`
-  width: ${props => props.$large ? '48px' : '40px'};
-  height: ${props => props.$large ? '48px' : '40px'};
-  border-radius: 14px;
-  background: ${props => props.$hasImage ? 'transparent' : 'linear-gradient(135deg, #16a34a 0%, #1e40af 100%)'};
+  width: ${p => p.$small ? '34px' : '44px'};
+  height: ${p => p.$small ? '34px' : '44px'};
+  border-radius: 50%;
+  background: ${p => p.$hasImage ? 'transparent' : 'linear-gradient(135deg, #16a34a, #1b4332)'};
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: ${props => props.$large ? '18px' : '15px'};
+  font-weight: 900;
+  font-size: ${p => p.$small ? '12px' : '16px'};
   flex-shrink: 0;
-  box-shadow: ${props => props.$hasImage ? 'none' : '0 4px 10px rgba(22, 163, 74, 0.2)'};
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 `;
 
-const UnreadBadge = styled.span`
-  background: #ef4444;
-  color: white;
+const OnlineStatus = styled.div`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #00a884;
+  border: 1.5px solid #111b21;
+  border-radius: 50%;
+`;
+
+const UnreadBadge = styled.div`
+  background: #00a884;
+  color: #111b21;
   font-size: 10px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 8px;
+  font-weight: 900;
   min-width: 18px;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 `;
 
-const MessageGroup = styled.div`
+const ChatArea = styled.div`
+  flex: 1;
+  display: ${p => p.$visible ? 'flex' : 'none'};
+  flex-direction: column;
+  background: #0b141a;
+  overflow: hidden;
+  @media (min-width: 768px) {
+    display: flex;
+  }
+`;
+
+const ChatHeader = styled.div`
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #202c33;
+  border-bottom: 1px solid #2f3b43;
+  flex-shrink: 0;
+`;
+
+const MsgArea = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  align-items: ${props => props.$isMine ? 'flex-end' : 'flex-start'};
-  width: 100%;
+  gap: 4px;
+  background-color: #0b141a;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.025) 1px, transparent 0);
+  background-size: 24px 24px;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #374248;
+    border-radius: 3px;
+  }
+`;
+
+const MsgRow = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  justify-content: ${p => p.$isMine ? 'flex-end' : 'flex-start'};
+  padding: 1px 0;
 `;
 
 const MessageBubble = styled.div`
-  max-width: 75%;
-  padding: 12px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  line-height: 1.6;
-  position: relative;
-  background: ${props => props.$isMine ? '#16a34a' : 'white'};
-  color: ${props => props.$isMine ? 'white' : 'var(--text-primary, #334155)'};
-  box-shadow: ${props => props.$isMine ? '0 4px 12px rgba(22, 163, 74, 0.15)' : '0 2px 5px rgba(0,0,0,0.03)'};
-  border-bottom-${props => props.$isMine ? 'right' : 'left'}-radius: 4px;
-  
-  .dark & {
-    background: ${props => props.$isMine ? '#15803d' : 'var(--card-bg)'};
-    color: #f1f5f9;
-    border: ${props => props.$isMine ? 'none' : '1px solid var(--card-border)'};
-  }
-
-  .time {
-    font-size: 10px;
-    margin-top: 6px;
-    opacity: 0.7;
-  }
+  max-width: 65%;
+  padding: 8px 12px 6px;
+  border-radius: ${p => p.$isMine ? '12px 12px 2px 12px' : '12px 12px 12px 2px'};
+  background: ${p => p.$isMine ? '#005c4b' : '#202c33'};
+  color: #e9edef;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  border: 1px solid ${p => p.$isMine ? 'rgba(22,163,74,0.1)' : 'rgba(255,255,255,0.03)'};
+  word-break: break-word;
 `;
 
-const InputWrapper = styled.div`
-  flex: 1;
-  background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 2px 18px;
+const ReplyPreview = styled.div`
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  border-left: 3px solid #00a884;
+`;
+
+const MsgMeta = styled.div`
   display: flex;
   align-items: center;
-  transition: all 0.2s;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 3px;
+  opacity: 0.65;
+  font-size: 10px;
+  color: #8696a0;
+`;
 
-  .dark & {
-    background: var(--page-bg);
-    border-color: var(--card-border);
-  }
-  
-  input {
-    width: 100%;
-    padding: 12px 0;
-    background: transparent;
-    border: none;
-    font-size: 14px;
-    color: var(--text-primary);
-    .dark & { color: #f1f5f9; }
-    &:focus { outline: none; }
+const ReplyBtn = styled.button`
+  padding: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #8696a0;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  &:hover {
+    background: #202c33;
+    color: #00a884;
   }
 `;
 
-const SendButton = styled.button`
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: #16a34a;
-  color: white;
+const InputArea = styled.div`
+  padding: 10px 16px;
+  background: #202c33;
+  border-top: 1px solid #222e35;
+  flex-shrink: 0;
+`;
+
+const ReplyBanner = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: rgba(0,168,132,0.08);
+  border-left: 3px solid #00a884;
+  border-radius: 6px;
+`;
+
+const MsgInput = styled.input`
+  flex: 1;
+  height: 40px;
+  background: #2a3942;
+  border: none;
+  border-radius: 8px;
+  padding: 0 16px;
+  color: #e9edef;
+  font-size: 13.5px;
+  outline: none;
+  &::placeholder {
+    color: #8696a0;
+  }
+`;
+
+const SendBtn = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: ${p => p.$active ? '#00a884' : 'transparent'};
+  border: none;
+  cursor: ${p => p.$active ? 'pointer' : 'not-allowed'};
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
-  
-  &:hover:not(:disabled) {
-    background: #1e40af;
-    transform: translateY(-2px);
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    box-shadow: none;
+  color: ${p => p.$active ? '#111b21' : '#8696a0'};
+  flex-shrink: 0;
+  transition: all 0.15s;
+  box-shadow: ${p => p.$active ? '0 2px 8px rgba(0,168,132,0.3)' : 'none'};
+  &:hover {
+    transform: ${p => p.$active ? 'scale(1.05)' : 'none'};
   }
 `;
 
-
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  .dark & {
-    h3 { color: #f1f5f9 !important; }
-    p { color: var(--text-muted) !important; }
-  }
+const EmptyState = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #222e35;
 `;
 
-const Card = styled.div`
-  background: white;
-  border-radius: 24px;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-
-  .dark & {
-    background: var(--card-bg);
-    border-color: var(--card-border);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-  }
+const EmptyIcon = styled.div`
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0,168,132,0.1);
+  border: 1px solid rgba(0,168,132,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
 `;
