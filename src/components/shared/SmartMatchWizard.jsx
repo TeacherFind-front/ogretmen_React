@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+ï»¿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   X,
@@ -24,40 +24,40 @@ import {
 
 const SUBJECTS = [
   { id: "Matematik", icon: Calculator, color: "#3b82f6" },
-  { id: "Ýngilizce", icon: Languages, color: "#8b5cf6" },
+  { id: "Ingilizce", icon: Languages, color: "#8b5cf6" },
   { id: "Fizik", icon: FlaskConical, color: "#06b6d4" },
-  { id: "Türkçe ve Edebiyat", icon: BookOpen, color: "#f59e0b" },
+  { id: "Turkce ve Edebiyat", icon: BookOpen, color: "#f59e0b" },
   { id: "Kimya", icon: FlaskConical, color: "#10b981" },
   { id: "Biyoloji", icon: FlaskConical, color: "#84cc16" },
   { id: "Tarih", icon: BookOpen, color: "#f97316" },
   { id: "Almanca", icon: Languages, color: "#ec4899" },
-  { id: "Yazýlým", icon: Code, color: "#6366f1" },
-  { id: "Müzik", icon: Music, color: "#ef4444" },
-  { id: "Sýnav Hazýrlýk", icon: GraduationCap, color: "#14b8a6" },
-  { id: "Diðer", icon: Zap, color: "#a78bfa" },
+  { id: "Yazilim", icon: Code, color: "#6366f1" },
+  { id: "Muzik", icon: Music, color: "#ef4444" },
+  { id: "Sinav Hazirlik", icon: GraduationCap, color: "#14b8a6" },
+  { id: "Diger", icon: Zap, color: "#a78bfa" },
 ];
 
 const LESSON_TYPES = [
   {
     id: "online",
     label: "Online",
-    desc: "Evinden çýk, eðitiminden çýkma",
+    desc: "Evinden cik, egitiminden cikma",
     icon: Monitor,
     gradient: "linear-gradient(135deg, #3b82f6, #6366f1)",
     serviceType: "1",
   },
   {
     id: "yuz-yuze",
-    label: "Yüz Yüze",
-    desc: "Kiþisel ve odaklanmýþ eðitim",
+    label: "Yuz Yuze",
+    desc: "Kisisel ve odaklanmis egitim",
     icon: HomeIcon,
     gradient: "linear-gradient(135deg, #f59e0b, #f97316)",
     serviceType: "2",
   },
   {
     id: "her-ikisi",
-    label: "Her Ýkisi",
-    desc: "Hem online hem de yüz yüze",
+    label: "Her Ikisi",
+    desc: "Hem online hem de yuz yuze",
     icon: Globe,
     gradient: "linear-gradient(135deg, #16a34a, #22c55e)",
     serviceType: "3",
@@ -65,17 +65,17 @@ const LESSON_TYPES = [
 ];
 
 const BUDGETS = [
-  { id: "0-250", label: "0 – 250 TL", sub: "Ekonomik", min: "0", max: "250" },
-  { id: "250-500", label: "250 – 500 TL", sub: "Orta Bütçe", min: "250", max: "500" },
-  { id: "500-1000", label: "500 – 1.000 TL", sub: "Premium", min: "500", max: "1000" },
-  { id: "1000+", label: "1.000 TL+", sub: "VIP Eðitim", min: "1000", max: "" },
+  { id: "0-250", label: "0 - 250 TL", sub: "Ekonomik", min: "0", max: "250" },
+  { id: "250-500", label: "250 - 500 TL", sub: "Orta Butce", min: "250", max: "500" },
+  { id: "500-1000", label: "500 - 1.000 TL", sub: "Premium", min: "500", max: "1000" },
+  { id: "1000+", label: "1.000 TL+", sub: "VIP Egitim", min: "1000", max: "" },
 ];
 
 const STEPS = [
   { num: 1, label: "Alan" },
   { num: 2, label: "Mod" },
-  { num: 3, label: "Bütçe" },
-  { num: 4, label: "Eþleþme" },
+  { num: 3, label: "Butce" },
+  { num: 4, label: "Eslesme" },
 ];
 
 export default function SmartMatchWizard({ open, onClose, categories = [] }) {
@@ -226,9 +226,9 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
               </div>
               <div>
                 <h2 style={{ fontWeight: 900, color: "white", fontSize: 18, margin: 0, lineHeight: 1.3 }}>
-                  Akýllý Eþleþtirme
+                  Akilli Eslestirme
                 </h2>
-                <p style={{ fontSize: 12, color: "#86efac", margin: 0 }}>Sana özel eðitmen buluyoruz ?</p>
+                <p style={{ fontSize: 12, color: "#86efac", margin: 0 }}>Sana ozel egitmen buluyoruz âœ¨</p>
               </div>
             </div>
             <button
@@ -319,10 +319,10 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
             {step === 1 && (
               <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
                 <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>
-                  Hangi alanda eðitim almak istiyorsun?
+                  Hangi alanda egitim almak istiyorsun?
                 </p>
                 <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
-                  En uygun eðitmenleri listeleyebilmemiz için bir alan seç.
+                  En uygun egitmenleri listeleyebilmemiz icin bir alan sec.
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
                   {displaySubjects.map((s) => {
@@ -382,7 +382,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                     color: "var(--text-muted)",
                   }}
                 >
-                  Alanýmý bilmiyorum, devam et ›
+                  Alanimi bilmiyorum, devam et
                 </button>
               </div>
             )}
@@ -391,10 +391,10 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
             {step === 2 && (
               <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
                 <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>
-                  Dersi nasýl almak istersin?
+                  Dersi nasil almak istersin?
                 </p>
                 <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
-                  Eðitim modeline göre sana uygun hocalarý gösterelim.
+                  Egitim modeline gore sana uygun hocalari gostetelim.
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {LESSON_TYPES.map((t) => {
@@ -448,7 +448,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                   onClick={() => setStep(1)}
                   style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
                 >
-                  <ChevronLeft style={{ width: 14, height: 14 }} /> Geri dön
+                  <ChevronLeft style={{ width: 14, height: 14 }} /> Geri don
                 </button>
               </div>
             )}
@@ -457,10 +457,10 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
             {step === 3 && (
               <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
                 <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>
-                  Saatlik bütçen ne kadar?
+                  Saatlik butcen ne kadar?
                 </p>
                 <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
-                  Bütçene uygun eðitmenleri listeleyelim.
+                  Butcene uygun egitmenleri listeleyelim.
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {BUDGETS.map((b) => {
@@ -508,13 +508,13 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                   onClick={() => setStep(4)}
                   style={{ marginTop: 14, width: "100%", padding: "10px", borderRadius: 12, border: "1.5px dashed var(--card-border)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}
                 >
-                  Bütçe önemli deðil, devam et ›
+                  Butce onemli degil, devam et
                 </button>
                 <button
                   onClick={() => setStep(2)}
                   style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
                 >
-                  <ChevronLeft style={{ width: 14, height: 14 }} /> Geri dön
+                  <ChevronLeft style={{ width: 14, height: 14 }} /> Geri don
                 </button>
               </div>
             )}
@@ -540,10 +540,10 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                       <Sparkles style={{ width: 34, height: 34, color: "white" }} />
                     </div>
                     <h3 style={{ fontWeight: 900, fontSize: 20, color: "var(--text-primary)", margin: "0 0 8px", textAlign: "center" }}>
-                      Eþleþtirmeye Hazýr!
+                      Eslestirmeye Hazir!
                     </h3>
                     <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 24px", textAlign: "center", maxWidth: 280 }}>
-                      Seçimlerine göre sana en uygun eðitmenleri bulalým.
+                      Secimlerine gore sana en uygun egitmenleri bulalim.
                     </p>
                     <div
                       style={{
@@ -561,7 +561,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                       {[
                         { label: "Alan", val: subject || "Belirtilmedi" },
                         { label: "Mod", val: LESSON_TYPES.find((t) => t.id === lessonType)?.label || "Belirtilmedi" },
-                        { label: "Bütçe", val: BUDGETS.find((b) => b.id === budget)?.label || "Belirtilmedi" },
+                        { label: "Butce", val: BUDGETS.find((b) => b.id === budget)?.label || "Belirtilmedi" },
                       ].map((r) => (
                         <div key={r.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>{r.label}</span>
@@ -589,18 +589,18 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                         transition: "all 0.2s",
                         marginBottom: 12,
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.boxShadow = "0 14px 40px rgba(22,163,74,0.55)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 10px 30px rgba(22,163,74,0.45)"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                     >
                       <Sparkles style={{ width: 18, height: 18 }} />
-                      Eðitmenlerimi Bul
+                      Egitmenlerimi Bul
                       <ArrowRight style={{ width: 18, height: 18 }} />
                     </button>
                     <button
                       onClick={() => setStep(3)}
                       style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
                     >
-                      <ChevronLeft style={{ width: 14, height: 14 }} /> Geri dön
+                      <ChevronLeft style={{ width: 14, height: 14 }} /> Geri don
                     </button>
                   </>
                 )}
@@ -633,7 +633,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                       </div>
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", margin: 0 }}>Eðitmenler Aranýyor…</p>
+                      <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", margin: 0 }}>Egitmenler Araniyor...</p>
                       <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "6px 0 0" }}>Kriterlerine en uygun hocalar filtreleniyor</p>
                     </div>
                     <div style={{ width: "100%", maxWidth: 260, height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
@@ -659,7 +659,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                     >
                       <CheckCircle style={{ width: 34, height: 34, color: "white" }} />
                     </div>
-                    <p style={{ fontWeight: 900, fontSize: 18, color: "var(--text-primary)", margin: 0 }}>Eðitmenler Bulundu! ??</p>
+                    <p style={{ fontWeight: 900, fontSize: 18, color: "var(--text-primary)", margin: 0 }}>Egitmenler Bulundu! ðŸŽ‰</p>
                   </div>
                 )}
               </div>
