@@ -217,7 +217,13 @@ export default function Home() {
   const isDark = resolvedTheme === "dark";
   const waveColor = isDark ? "#213d2b" : "#f0fdf4";
 
-  const [tutors, setTutors] = useState([]);
+  const [featuredTutors, setFeaturedTutors] = useState([]);
+  const [allTutors, setAllTutors] = useState([]);
+  const [filteredTutors, setFilteredTutors] = useState([]);
+  const [selectedSubCategory, setSelectedSubCategory] = useState("Hepsi");
+  const [visibleCount, setVisibleCount] = useState(8);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [allLoading, setAllLoading] = useState(false);
   const [totalTutors, setTotalTutors] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -327,7 +333,7 @@ export default function Home() {
       }
     }, 4000);
     return () => clearInterval(interval);
-  }, [tutors]);
+  }, [featuredTutors]);
 
   const scroll = (direction) => {
     if (scrollContainerRef.current) {
@@ -350,13 +356,11 @@ export default function Home() {
   };
 
   const fetchTutors = async () => {
-    setLoading(true);
+    setFeaturedLoading(true);
+    setAllLoading(true);
     try {
-      const response = await getTutors({ page: 1, pageSize: 6 });
-      if (response && response.totalCount !== undefined) {
-        setTotalTutors((prev) => (prev > 0 ? prev : response.totalCount));
-      }
-      const realTutors = (response.items || []).map((tutor) => {
+      const featuredResponse = await getTutors({ page: 1, pageSize: 6 });
+      const parseTutorsList = (items) => (items || []).map((tutor) => {
         const name = tutor.teacherName || tutor.name || "Öğretmen";
         const imageUrl =
           tutor.photos?.find((p) => p.isMain)?.photoUrl ||
@@ -372,7 +376,18 @@ export default function Home() {
           plainAbout.length > 120
             ? plainAbout.substring(0, 120) + "..."
             : plainAbout;
+
+        const tutorSubjects = [];
+        const rates = tutor.lessonRates?.$values || tutor.lessonRates || [];
+        rates.forEach(r => {
+          if (r.subjectName) tutorSubjects.push(r.subjectName.toLowerCase());
+          if (r.categoryName) tutorSubjects.push(r.categoryName.toLowerCase());
+        });
+        if (tutor.subject) tutorSubjects.push(tutor.subject.toLowerCase());
+        if (tutor.department) tutorSubjects.push(tutor.department.toLowerCase());
+
         return {
+          ...tutor,
           id: tutor.id,
           teacherName: name,
           headline: toPlainText(tutor.title || "Eğitmen"),
@@ -380,13 +395,38 @@ export default function Home() {
           about: truncatedAbout,
           price: tutor.price,
           imageUrl: resolvedImg,
+          subjectsList: tutorSubjects
         };
       });
-      setTutors(realTutors);
+
+      const parsedFeatured = parseTutorsList(featuredResponse.items);
+      setFeaturedTutors(parsedFeatured);
+
+      const allResponse = await getTutors({ page: 1, pageSize: 48 });
+      const parsedAll = parseTutorsList(allResponse.items);
+      setAllTutors(parsedAll);
+      setFilteredTutors(parsedAll);
     } catch (err) {
       console.error("Tutors fetch failed", err);
     } finally {
-      setLoading(false);
+      setFeaturedLoading(false);
+      setAllLoading(false);
+    }
+  };
+
+  const handleCategoryFilter = (cat) => {
+    setSelectedSubCategory(cat);
+    setVisibleCount(8); // Limit sıfırlansın
+    if (cat === "Hepsi") {
+      setFilteredTutors(allTutors);
+    } else {
+      const lowerCat = cat.toLowerCase();
+      const filtered = allTutors.filter(tutor => {
+        return tutor.subjectsList?.some(s => s.includes(lowerCat)) || 
+               tutor.headline?.toLowerCase().includes(lowerCat) ||
+               tutor.about?.toLowerCase().includes(lowerCat);
+      });
+      setFilteredTutors(filtered);
     }
   };
 
@@ -868,7 +908,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════ ÖĞRETMENLER ══════════ */}
+      {/* ══════════ ÖĞRETMENLER (SLIDER) ══════════ */}
       <section
         className="py-14 px-6 transition-colors duration-300"
         style={{ background: "var(--card-bg)" }}
@@ -887,7 +927,7 @@ export default function Home() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => scroll("left")}
                   className="p-2.5 rounded-xl border transition-all hover:scale-105"
@@ -930,7 +970,7 @@ export default function Home() {
             className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {loading ? (
+            {featuredLoading ? (
               [1, 2, 3, 4].map((n) => (
                 <div
                   key={n}
@@ -940,8 +980,8 @@ export default function Home() {
                   }}
                 />
               ))
-            ) : tutors.length > 0 ? (
-              tutors.map((tutor) => (
+            ) : featuredTutors.length > 0 ? (
+              featuredTutors.map((tutor) => (
                 <div
                   key={tutor.id}
                   className="w-[280px] md:w-[300px] shrink-0 snap-center"
@@ -957,6 +997,95 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* ══════════ DERS İLANLARI (GRID + FİLTRE) ══════════ */}
+      <section
+        className="py-16 px-6 transition-colors duration-300 border-t"
+        style={{ background: "var(--section-alt)", borderColor: "var(--card-border)" }}
+      >
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-10">
+            <h2
+              className="text-3xl font-extrabold tracking-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Ders İlanları
+            </h2>
+            <p className="text-sm mt-2" style={{ color: "#16a34a" }}>
+              İstediğiniz branşta uzman eğitmenleri süzün ve hızlıca ders talebi oluşturun
+            </p>
+
+            {/* Kategori / Branş Filtreleme Butonları */}
+            <div className="flex flex-wrap justify-center gap-2 mt-8">
+              {["Hepsi", "Matematik", "Fizik", "Kimya", "Biyoloji", "Türkçe", "İngilizce", "Almanca", "Yazılım"].map((cat) => {
+                const isActive = selectedSubCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => handleCategoryFilter(cat)}
+                    className="px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 border"
+                    style={{
+                      background: isActive ? "linear-gradient(135deg, #16a34a, #22c55e)" : "var(--card-bg)",
+                      color: isActive ? "white" : "var(--text-primary)",
+                      borderColor: isActive ? "#16a34a" : "var(--card-border)",
+                      boxShadow: isActive ? "0 4px 12px rgba(22,163,74,0.2)" : "none"
+                    }}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* İlanlar Grid Düzeni */}
+          {allLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((n) => (
+                <div
+                  key={n}
+                  className="rounded-3xl h-[340px] animate-pulse"
+                  style={{ background: "linear-gradient(135deg, #dcfce7, #f0fdf4)" }}
+                />
+              ))}
+            </div>
+          ) : filteredTutors.length > 0 ? (
+            <div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredTutors.slice(0, visibleCount).map((tutor) => (
+                  <div key={tutor.id} className="transition-all duration-300 hover:-translate-y-1">
+                    <TeacherCard teacher={tutor} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Daha Fazla Göster Butonu */}
+              {filteredTutors.length > visibleCount && (
+                <div className="flex justify-center mt-12">
+                  <button
+                    onClick={() => setVisibleCount((prev) => prev + 8)}
+                    className="px-8 py-3 rounded-2xl text-sm font-extrabold transition-all duration-300 shadow hover:shadow-lg border"
+                    style={{
+                      background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                      color: "white",
+                      borderColor: "#16a34a",
+                      boxShadow: "0 4px 16px rgba(22,163,74,0.2)"
+                    }}
+                  >
+                    Daha Fazla Göster
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="py-20 text-center rounded-3xl border" style={{ background: "var(--card-bg)", borderColor: "var(--card-border)" }}>
+              <p style={{ color: "#16a34a" }} className="font-semibold text-base">
+                Seçilen branşta henüz ders ilanı bulunmamaktadır.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

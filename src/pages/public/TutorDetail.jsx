@@ -920,7 +920,15 @@ function TutorDetail() {
                     {["Sabah", "Öğle", "Öğleden Sonra", "Akşam"].map((slot) => {
                       return (
                         <tr key={slot}>
-                          <td className="slot-label">{slot}</td>
+                          <td className="slot-label">
+                            {slot === "Sabah"
+                              ? "Sabah (... - 12.00)"
+                              : slot === "Öğle"
+                              ? "Öğle (12.00 - 16.00)"
+                              : slot === "Öğleden Sonra"
+                              ? "Öğleden Sonra (16.00 - 20.00)"
+                              : "Akşam (20.00 - ...)"}
+                          </td>
                           {[0, 1, 2, 3, 4, 5, 6].map((dayIdx) => {
                             const slotAvailability = tutor.availability?.find(
                               (a) => {
@@ -2230,12 +2238,12 @@ const SchedulerContainer = styled.div`
   }
   .scheduler-table {
     width: 100%;
-    min-width: 560px;
+    min-width: 750px;
     border-collapse: separate;
     border-spacing: 4px;
     table-layout: fixed;
     .corner-col {
-      width: 90px;
+      width: 180px;
       font-size: 10px;
       font-weight: 800;
       color: var(--text-muted);

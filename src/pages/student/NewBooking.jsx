@@ -329,7 +329,7 @@ const SchedWrap = styled.div`
   table {
     border-collapse: separate;
     border-spacing: 3px;
-    min-width: 440px;
+    min-width: 750px;
     width: 100%;
     table-layout: fixed;
   }
@@ -342,7 +342,7 @@ const SchedWrap = styled.div`
     text-align: center;
     &.cor {
       text-align: left;
-      width: 72px;
+      width: 180px;
     }
   }
   td.lbl {
@@ -1067,16 +1067,44 @@ export default function NewBooking() {
         }
         if (!rates.length)
           rates = data.lessonRates?.$values || data.lessonRates || [];
-        setLessonRates(rates);
-        if (rates.length) {
-          const r = rates[0];
+
+        // Backend'den gelen düz yapıyı gruplanmış arayüz nesnelerine çevirelim
+        const grouped = [];
+        rates.forEach(r => {
+          const subName = r.subjectName || r.title || "Ders";
+          const existing = grouped.find(g => g.subjectName?.toLowerCase() === subName?.toLowerCase());
+          const isOnline = r.serviceType === "Online";
+          if (existing) {
+            if (isOnline) {
+              existing.onlinePrice = r.price;
+              existing.onlineId = r.id;
+            } else {
+              existing.inPersonPrice = r.price;
+              existing.inPersonId = r.id;
+            }
+          } else {
+            grouped.push({
+              title: subName,
+              subjectName: subName,
+              duration: r.durationMinutes || r.duration || 60,
+              onlinePrice: isOnline ? r.price : 0,
+              inPersonPrice: !isOnline ? r.price : 0,
+              onlineId: isOnline ? r.id : null,
+              inPersonId: !isOnline ? r.id : null,
+            });
+          }
+        });
+
+        setLessonRates(grouped);
+        if (grouped.length) {
+          const r = grouped[0];
           setSelectedLessonRate(r);
           setSelectedLessonType(
             r.onlinePrice
               ? "online"
               : r.inPersonPrice
                 ? "inperson"
-                : r.type || "online",
+                : "online"
           );
         }
         if (data.listings?.length) setSelectedListing(data.listings[0]);
@@ -1223,6 +1251,20 @@ export default function NewBooking() {
     );
   })();
 
+  const getActualLessonRate = () => {
+    if (!selectedLessonRate || !tutor) return null;
+    const rates = tutor.lessonRates?.$values || tutor.lessonRates || [];
+    
+    // subjectName'e göre eşleştir
+    const subName = selectedLessonRate.subjectName || selectedLessonRate.title;
+    const targetType = selectedLessonType === "online" ? "Online" : "FaceToFace";
+    
+    return rates.find(
+      r => r.subjectName?.toLowerCase() === subName?.toLowerCase() &&
+           (r.serviceType === targetType || (targetType === "FaceToFace" && r.serviceType === "Face_to_face"))
+    ) || rates.find(r => r.subjectName?.toLowerCase() === subName?.toLowerCase()) || null;
+  };
+
   const getPrice = () => {
     if (!selectedLessonRate) return 0;
     return selectedLessonType === "online"
@@ -1243,17 +1285,23 @@ export default function NewBooking() {
     setError(null);
     try {
       const start = new Date(`${selectedDate}T${selectedTime}`);
+      const actualRate = getActualLessonRate();
+      
       const duration =
-        selectedLessonRate?.duration || selectedListing?.lessonDuration || 60;
+        actualRate?.durationMinutes || actualRate?.duration || selectedListing?.lessonDuration || 60;
       const end = new Date(start.getTime() + duration * 60000);
-      const note = `[Seçilen Ders: ${selectedLessonRate.title} - Tip: ${selectedLessonType === "online" ? "Online" : "Yüz Yüze"}] ${studentNote.trim()}`;
-      await createBooking({
+      
+      const payload = {
         teacherListingId: selectedListing.id,
+        lessonRateId: actualRate?.id || null,
+        requestedServiceType: selectedLessonType === "online" ? "Online" : "FaceToFace",
         startTime: start.toISOString(),
         endTime: end.toISOString(),
-        studentNote: note,
-        source: 1,
-      });
+        studentNote: studentNote.trim(),
+        source: "Site",
+      };
+
+      await createBooking(payload);
       setSuccess(true);
     } catch (e) {
       setError(e.message || "Rezervasyon oluşturulurken bir hata oluştu.");
@@ -1465,7 +1513,15 @@ export default function NewBooking() {
                   <tbody>
                     {["Sabah", "Öğle", "Öğleden Sonra", "Akşam"].map((slot) => (
                       <tr key={slot}>
-                        <td className="lbl">{slot}</td>
+                        <td className="lbl">
+                          {slot === "Sabah"
+                            ? "Sabah (... - 12.00)"
+                            : slot === "Öğle"
+                            ? "Öğle (12.00 - 16.00)"
+                            : slot === "Öğleden Sonra"
+                            ? "Öğleden Sonra (16.00 - 20.00)"
+                            : "Akşam (20.00 - ...)"}
+                        </td>
                         {[0, 1, 2, 3, 4, 5, 6].map((di) => {
                           const avList =
                             tutor.availability?.$values ||

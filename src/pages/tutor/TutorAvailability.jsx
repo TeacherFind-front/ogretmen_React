@@ -25,6 +25,12 @@ const DAYS = [
   "Pazar",
 ];
 const SLOTS = ["Sabah", "Öğle", "Öğleden Sonra", "Akşam"];
+const SLOT_DISPLAY_NAMES = {
+  "Sabah": "Sabah (... - 12.00)",
+  "Öğle": "Öğle (12.00 - 16.00)",
+  "Öğleden Sonra": "Öğleden Sonra (16.00 - 20.00)",
+  "Akşam": "Akşam (20.00 - ...)"
+};
 
 export default function TutorAvailability() {
   const [loading, setLoading] = useState(true);
@@ -226,7 +232,7 @@ export default function TutorAvailability() {
               {SLOTS.map((slot) => (
                 <tr key={slot}>
                   <td className="slot-label">
-                    <div className="slot-pill">{slot}</div>
+                    <div className="slot-pill">{SLOT_DISPLAY_NAMES[slot] || slot}</div>
                   </td>
                   {DAYS.map((day) => {
                     const type = availability[`${day}-${slot}`];
