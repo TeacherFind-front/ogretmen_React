@@ -27,6 +27,7 @@ import { useTheme } from "next-themes";
 import { getTutors, getTutorsCount } from "@/services/tutorService";
 import { getCategories } from "@/services/locationService";
 import { toPlainText, resolveMediaUrl } from "@/utils/helpers";
+import SmartMatchWizard from "@/components/shared/SmartMatchWizard";
 
 // ─── Renk Sabitleri ──────────────────────────────────────────────────────────
 const GREEN_PRIMARY = "#16a34a"; // Koyu canlı yeşil
@@ -229,6 +230,7 @@ export default function Home() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [smartMatchOpen, setSmartMatchOpen] = useState(false);
   const scrollContainerRef = useRef(null);
 
   const [gridCategories, setGridCategories] = useState(CATEGORIES);
@@ -574,6 +576,23 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+
+              {/* Akıllı Eşleştirme Butonu */}
+              <button
+                onClick={() => setSmartMatchOpen(true)}
+                className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-100"
+                style={{
+                  background: "rgba(74,222,128,0.15)",
+                  border: "1.5px solid rgba(74,222,128,0.4)",
+                  backdropFilter: "blur(8px)",
+                  color: "#bbf7d0",
+                  boxShadow: "0 4px 20px rgba(74,222,128,0.12)",
+                }}
+              >
+                <Sparkles className="w-4 h-4" style={{ color: "#4ade80" }} />
+                ✨ Akıllı Eşleştirme ile Eğitmen Bul
+                <ArrowRight className="w-4 h-4" style={{ color: "#4ade80" }} />
+              </button>
             </div>
 
             {/* SAĞ KOLON - Fotoğraf */}
@@ -808,6 +827,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ══════════ SMART MATCH WIZARD MODAL ══════════ */}
+      <SmartMatchWizard
+        open={smartMatchOpen}
+        onClose={() => setSmartMatchOpen(false)}
+        categories={allCategories}
+      />
 
       {/* ══════════ KATEORİ GRID ══════════ */}
       <section
