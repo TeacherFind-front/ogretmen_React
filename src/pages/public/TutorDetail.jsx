@@ -655,7 +655,7 @@ function TutorDetail() {
                           </PriceBadge>
                         ) : (
                           <div className="price-split">
-                            {lr.onlinePrice && (
+                            {lr.onlinePrice > 0 && (
                               <PriceBadge $type="online">
                                 <Monitor size={12} /> Online: ₺
                                 {parseFloat(lr.onlinePrice || 0).toLocaleString(
@@ -664,7 +664,7 @@ function TutorDetail() {
                                 )}
                               </PriceBadge>
                             )}
-                            {lr.inPersonPrice && (
+                            {lr.inPersonPrice > 0 && (
                               <PriceBadge $type="inperson">
                                 <Home size={12} /> Yüz Yüze: ₺
                                 {parseFloat(

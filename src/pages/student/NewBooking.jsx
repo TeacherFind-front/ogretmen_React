@@ -1068,29 +1068,46 @@ export default function NewBooking() {
         if (!rates.length)
           rates = data.lessonRates?.$values || data.lessonRates || [];
 
-        // Backend'den gelen düz yapıyı gruplanmış arayüz nesnelerine çevirelim
+        // Backend'den gelen düz yapıyı ve eski bio JSON yapısını gruplanmış arayüz nesnelerine çevirelim
         const grouped = [];
         rates.forEach(r => {
           const subName = r.subjectName || r.title || "Ders";
           const existing = grouped.find(g => g.subjectName?.toLowerCase() === subName?.toLowerCase());
-          const isOnline = r.serviceType === "Online";
+          
+          let onPrice = r.onlinePrice || 0;
+          let ipPrice = r.inPersonPrice || 0;
+          let onId = r.onlineId || null;
+          let ipId = r.inPersonId || null;
+
+          if (r.serviceType === "Online") {
+            onPrice = r.price;
+            onId = r.id;
+          } else if (["facetoface", "face_to_face", "f2f", "yüzyüze", "yüz yüze"].includes(r.serviceType?.toLowerCase())) {
+            ipPrice = r.price;
+            ipId = r.id;
+          } else if (r.price) {
+            onPrice = r.price;
+            ipPrice = r.price;
+          }
+
           if (existing) {
-            if (isOnline) {
-              existing.onlinePrice = r.price;
-              existing.onlineId = r.id;
-            } else {
-              existing.inPersonPrice = r.price;
-              existing.inPersonId = r.id;
+            if (onPrice) {
+              existing.onlinePrice = onPrice;
+              existing.onlineId = onId || existing.onlineId;
+            }
+            if (ipPrice) {
+              existing.inPersonPrice = ipPrice;
+              existing.inPersonId = ipId || existing.inPersonId;
             }
           } else {
             grouped.push({
               title: subName,
               subjectName: subName,
               duration: r.durationMinutes || r.duration || 60,
-              onlinePrice: isOnline ? r.price : 0,
-              inPersonPrice: !isOnline ? r.price : 0,
-              onlineId: isOnline ? r.id : null,
-              inPersonId: !isOnline ? r.id : null,
+              onlinePrice: onPrice,
+              inPersonPrice: ipPrice,
+              onlineId: onId,
+              inPersonId: ipId,
             });
           }
         });
@@ -1457,17 +1474,17 @@ export default function NewBooking() {
                         {tutor?.category && ` · ${tutor.category}`}
                       </div>
                       <div className="badges">
-                        {r.onlinePrice && (
+                        {r.onlinePrice > 0 && (
                           <span className="bdg on">
                             <Monitor size={9} />₺{r.onlinePrice}
                           </span>
                         )}
-                        {r.inPersonPrice && (
+                        {r.inPersonPrice > 0 && (
                           <span className="bdg ip">
                             <HomeIcon size={9} />₺{r.inPersonPrice}
                           </span>
                         )}
-                        {!r.onlinePrice && !r.inPersonPrice && r.price && (
+                        {!(r.onlinePrice > 0) && !(r.inPersonPrice > 0) && r.price > 0 && (
                           <span className="bdg gn">₺{r.price}</span>
                         )}
                       </div>
