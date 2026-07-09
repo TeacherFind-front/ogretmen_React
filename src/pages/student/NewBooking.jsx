@@ -1311,11 +1311,11 @@ export default function NewBooking() {
       const payload = {
         teacherListingId: selectedListing.id,
         lessonRateId: actualRate?.id || null,
-        requestedServiceType: selectedLessonType === "online" ? "Online" : "FaceToFace",
+        requestedServiceType: selectedLessonType === "online" ? 1 : 2,
         startTime: start.toISOString(),
         endTime: end.toISOString(),
         studentNote: studentNote.trim(),
-        source: "Site",
+        source: 1,
       };
 
       await createBooking(payload);
