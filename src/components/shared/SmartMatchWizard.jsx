@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   X,
@@ -20,22 +20,21 @@ import {
   Code,
   Zap,
   Wallet,
+  Search,
 } from "lucide-react";
 
-const SUBJECTS = [
-  { id: "Matematik", icon: Calculator, color: "#3b82f6" },
-  { id: "Ingilizce", icon: Languages, color: "#8b5cf6" },
-  { id: "Fizik", icon: FlaskConical, color: "#06b6d4" },
-  { id: "Turkce ve Edebiyat", icon: BookOpen, color: "#f59e0b" },
-  { id: "Kimya", icon: FlaskConical, color: "#10b981" },
-  { id: "Biyoloji", icon: FlaskConical, color: "#84cc16" },
-  { id: "Tarih", icon: BookOpen, color: "#f97316" },
-  { id: "Almanca", icon: Languages, color: "#ec4899" },
-  { id: "Yazilim", icon: Code, color: "#6366f1" },
-  { id: "Muzik", icon: Music, color: "#ef4444" },
-  { id: "Sinav Hazirlik", icon: GraduationCap, color: "#14b8a6" },
-  { id: "Diger", icon: Zap, color: "#a78bfa" },
-];
+const CATEGORY_STYLES = {
+  "Matematik": { color: "#3b82f6", icon: Calculator },
+  "Yabanci Dil": { color: "#8b5cf6", icon: Languages },
+  "Dil Egitimi": { color: "#8b5cf6", icon: Languages },
+  "Fen Bilimleri": { color: "#06b6d4", icon: FlaskConical },
+  "Turkce ve Edebiyat": { color: "#f59e0b", icon: BookOpen },
+  "Sinav Hazirlik": { color: "#14b8a6", icon: GraduationCap },
+  "Muzik & Sanat": { color: "#ef4444", icon: Music },
+  "Muzik": { color: "#ef4444", icon: Music },
+  "Yazilim & Bilisim": { color: "#6366f1", icon: Code },
+  "Yazilim": { color: "#6366f1", icon: Code },
+};
 
 const LESSON_TYPES = [
   {
@@ -81,7 +80,12 @@ const STEPS = [
 export default function SmartMatchWizard({ open, onClose, categories = [] }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [subject, setSubject] = useState("");
+  const [subStep, setSubStep] = useState(1); // 1: Main Category, 2: Subject/Subcategory selection
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [selectedSubjectName, setSelectedSubjectName] = useState("");
+  const [subSearch, setSubSearch] = useState("");
+  
   const [lessonType, setLessonType] = useState("");
   const [budget, setBudget] = useState("");
   const [matching, setMatching] = useState(false);
@@ -90,7 +94,11 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
   useEffect(() => {
     if (open) {
       setStep(1);
-      setSubject("");
+      setSubStep(1);
+      setSelectedCategory("");
+      setSelectedSubjectId("");
+      setSelectedSubjectName("");
+      setSubSearch("");
       setLessonType("");
       setBudget("");
       setMatching(false);
@@ -106,21 +114,21 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  const displaySubjects =
-    categories.length > 0
-      ? categories.slice(0, 11).map((c) => {
-          const found = SUBJECTS.find((s) => s.id === c.category);
-          return {
-            id: c.category,
-            icon: found?.icon || BookOpen,
-            color: found?.color || "#16a34a",
-          };
-        })
-      : SUBJECTS;
+  const handleCategorySelect = (catName) => {
+    setSelectedCategory(catName);
+    const catObj = categories.find(c => c.category === catName);
+    if (catObj && catObj.subjects && catObj.subjects.length > 0) {
+      setSubStep(2);
+      setSubSearch("");
+    } else {
+      setStep(2);
+    }
+  };
 
-  const handleSubjectSelect = (id) => {
-    setSubject(id);
-    setTimeout(() => setStep(2), 220);
+  const handleSubjectSelect = (subId, subName) => {
+    setSelectedSubjectId(subId);
+    setSelectedSubjectName(subName);
+    setStep(2);
   };
 
   const handleTypeSelect = (id) => {
@@ -140,7 +148,9 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
     await new Promise((r) => setTimeout(r, 700));
 
     const params = new URLSearchParams();
-    if (subject) params.append("category", subject);
+    if (selectedCategory) params.append("category", selectedCategory);
+    if (selectedSubjectId) params.append("subjectId", selectedSubjectId);
+    
     const lt = LESSON_TYPES.find((t) => t.id === lessonType);
     if (lt) params.append("serviceType", lt.serviceType);
     const bg = BUDGETS.find((b) => b.id === budget);
@@ -150,6 +160,13 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
     onClose();
     navigate(`/tutors?${params.toString()}`);
   };
+
+  // Get subjects for selected category
+  const activeCategoryObj = categories.find(c => c.category === selectedCategory);
+  const subjectsList = activeCategoryObj ? activeCategoryObj.subjects : [];
+  const filteredSubjects = subjectsList.filter(s => 
+    s.name.toLocaleLowerCase("tr-TR").includes(subSearch.toLocaleLowerCase("tr-TR"))
+  );
 
   if (!open) return null;
 
@@ -315,8 +332,8 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
           {/* Content */}
           <div style={{ overflowY: "auto", flex: 1 }}>
 
-            {/* Step 1 */}
-            {step === 1 && (
+            {/* Step 1 - Substep 1: Main Category Selection */}
+            {step === 1 && subStep === 1 && (
               <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
                 <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>
                   Hangi alanda egitim almak istiyorsun?
@@ -324,44 +341,46 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                 <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
                   En uygun egitmenleri listeleyebilmemiz icin bir alan sec.
                 </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
-                  {displaySubjects.map((s) => {
-                    const Icon = s.icon;
-                    const active = subject === s.id;
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {categories.map((c) => {
+                    const style = CATEGORY_STYLES[c.category] || { color: "#16a34a", icon: BookOpen };
+                    const Icon = style.icon;
+                    const active = selectedCategory === c.category;
                     return (
                       <button
-                        key={s.id}
-                        onClick={() => handleSubjectSelect(s.id)}
+                        key={c.category}
+                        onClick={() => handleCategorySelect(c.category)}
                         style={{
                           display: "flex",
-                          flexDirection: "column",
                           alignItems: "center",
-                          gap: 8,
-                          padding: "14px 8px",
+                          gap: 12,
+                          padding: "16px",
                           borderRadius: 18,
                           cursor: "pointer",
                           transition: "all 0.2s",
-                          background: active ? `${s.color}18` : "var(--page-bg)",
-                          border: `2px solid ${active ? s.color : "var(--card-border)"}`,
-                          boxShadow: active ? `0 4px 16px ${s.color}30` : "none",
-                          transform: active ? "scale(1.04)" : "scale(1)",
+                          background: active ? `${style.color}15` : "var(--page-bg)",
+                          border: `2px solid ${active ? style.color : "var(--card-border)"}`,
+                          boxShadow: active ? `0 4px 16px ${style.color}25` : "none",
+                          transform: active ? "scale(1.02)" : "scale(1)",
+                          textAlign: "left",
                         }}
                       >
                         <div
                           style={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 11,
+                            width: 40,
+                            height: 40,
+                            borderRadius: 12,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            background: `${s.color}22`,
+                            background: `${style.color}20`,
+                            flexShrink: 0,
                           }}
                         >
-                          <Icon style={{ width: 18, height: 18, color: s.color }} />
+                          <Icon style={{ width: 20, height: 20, color: style.color }} />
                         </div>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3, textAlign: "center" }}>
-                          {s.id}
+                        <span style={{ fontSize: 13, fontWeight: 750, color: "var(--text-primary)", lineHeight: 1.3 }}>
+                          {c.category}
                         </span>
                       </button>
                     );
@@ -370,7 +389,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                 <button
                   onClick={() => setStep(2)}
                   style={{
-                    marginTop: 16,
+                    marginTop: 20,
                     width: "100%",
                     padding: "12px",
                     borderRadius: 14,
@@ -382,12 +401,123 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                     color: "var(--text-muted)",
                   }}
                 >
-                  Alanimi bilmiyorum, devam et
+                  Alanimi belirtmeden devam et →
                 </button>
               </div>
             )}
 
-            {/* Step 2 */}
+            {/* Step 1 - Substep 2: Subcategory / Subject Selection */}
+            {step === 1 && subStep === 2 && (
+              <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <button
+                    onClick={() => setSubStep(1)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--text-muted)",
+                      display: "flex",
+                      alignItems: "center",
+                      padding: 4,
+                      borderRadius: 6,
+                    }}
+                  >
+                    <ChevronLeft style={{ width: 18, height: 18 }} />
+                  </button>
+                  <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", margin: 0 }}>
+                    {selectedCategory}
+                  </p>
+                </div>
+                
+                {/* Search Bar for Subcategories */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: "var(--page-bg)",
+                    border: "1px solid var(--card-border)",
+                    borderRadius: 12,
+                    padding: "8px 12px",
+                    marginBottom: 16,
+                  }}
+                >
+                  <Search style={{ width: 16, height: 16, color: "var(--text-muted)" }} />
+                  <input
+                    type="text"
+                    placeholder="Ders veya alt kategori ara..."
+                    value={subSearch}
+                    onChange={(e) => setSubSearch(e.target.value)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      outline: "none",
+                      color: "var(--text-primary)",
+                      fontSize: 13,
+                      width: "100%",
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, maxHeight: "240px", overflowY: "auto", padding: 2 }}>
+                  {filteredSubjects.map((s) => {
+                    const active = selectedSubjectId === s.id;
+                    const style = CATEGORY_STYLES[selectedCategory] || { color: "#16a34a" };
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => handleSubjectSelect(s.id, s.name)}
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: 14,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          transition: "all 0.15s",
+                          background: active ? `${style.color}15` : "var(--page-bg)",
+                          border: `1.5px solid ${active ? style.color : "var(--card-border)"}`,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                  {filteredSubjects.length === 0 && (
+                    <div style={{ gridColumn: "span 2", textAlign: "center", padding: "20px 0", color: "var(--text-muted)", fontSize: 13 }}>
+                      Aradiginiz ders bulunamadi.
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+                  <button
+                    onClick={() => {
+                      setSelectedSubjectId("");
+                      setSelectedSubjectName("");
+                      setStep(2);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      borderRadius: 14,
+                      background: "rgba(22,163,74,0.1)",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 750,
+                      color: "#16a34a",
+                    }}
+                  >
+                    Tum {selectedCategory} Derslerini Gor
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Lesson Type */}
             {step === 2 && (
               <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
                 <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>
@@ -445,7 +575,14 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                   })}
                 </div>
                 <button
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    if (activeCategoryObj && activeCategoryObj.subjects?.length > 0) {
+                      setSubStep(2);
+                    } else {
+                      setSubStep(1);
+                    }
+                    setStep(1);
+                  }}
                   style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
                 >
                   <ChevronLeft style={{ width: 14, height: 14 }} /> Geri don
@@ -453,7 +590,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
               </div>
             )}
 
-            {/* Step 3 */}
+            {/* Step 3: Budget */}
             {step === 3 && (
               <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
                 <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>
@@ -508,7 +645,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                   onClick={() => setStep(4)}
                   style={{ marginTop: 14, width: "100%", padding: "10px", borderRadius: 12, border: "1.5px dashed var(--card-border)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}
                 >
-                  Butce onemli degil, devam et
+                  Butce onemli degil, devam et →
                 </button>
                 <button
                   onClick={() => setStep(2)}
@@ -519,7 +656,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
               </div>
             )}
 
-            {/* Step 4 */}
+            {/* Step 4: Final Match Confirmation */}
             {step === 4 && (
               <div style={{ padding: 28, display: "flex", flexDirection: "column", alignItems: "center", animation: "smSlideUp 0.25s ease" }}>
                 {!matching && !matchDone && (
@@ -559,7 +696,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                       }}
                     >
                       {[
-                        { label: "Alan", val: subject || "Belirtilmedi" },
+                        { label: "Alan", val: selectedSubjectName || selectedCategory || "Belirtilmedi" },
                         { label: "Mod", val: LESSON_TYPES.find((t) => t.id === lessonType)?.label || "Belirtilmedi" },
                         { label: "Butce", val: BUDGETS.find((b) => b.id === budget)?.label || "Belirtilmedi" },
                       ].map((r) => (
