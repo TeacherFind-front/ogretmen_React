@@ -80,10 +80,11 @@ const STEPS = [
 export default function SmartMatchWizard({ open, onClose, categories = [] }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [subStep, setSubStep] = useState(1); // 1: Main Category, 2: Subject/Subcategory selection
+  const [subStep, setSubStep] = useState(1); // 1: Main Category, 2: Subject/Branch, 3: Option/Level selection
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubjectNameOnly, setSelectedSubjectNameOnly] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
-  const [selectedSubjectName, setSelectedSubjectName] = useState("");
+  const [selectedSubjectOptionLabel, setSelectedSubjectOptionLabel] = useState("");
   const [subSearch, setSubSearch] = useState("");
   
   const [lessonType, setLessonType] = useState("");
@@ -96,8 +97,9 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
       setStep(1);
       setSubStep(1);
       setSelectedCategory("");
+      setSelectedSubjectNameOnly("");
       setSelectedSubjectId("");
-      setSelectedSubjectName("");
+      setSelectedSubjectOptionLabel("");
       setSubSearch("");
       setLessonType("");
       setBudget("");
@@ -125,9 +127,20 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
     }
   };
 
-  const handleSubjectSelect = (subId, subName) => {
-    setSelectedSubjectId(subId);
-    setSelectedSubjectName(subName);
+  const handleSubjectSelect = (subName) => {
+    setSelectedSubjectNameOnly(subName);
+    const catObj = categories.find(c => c.category === selectedCategory);
+    const subObj = catObj?.subjects?.find(s => s.name === subName);
+    if (subObj && subObj.options && subObj.options.length > 0) {
+      setSubStep(3);
+    } else {
+      setStep(2);
+    }
+  };
+
+  const handleOptionSelect = (optId, optLabel) => {
+    setSelectedSubjectId(optId);
+    setSelectedSubjectOptionLabel(optLabel);
     setStep(2);
   };
 
@@ -150,6 +163,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
     const params = new URLSearchParams();
     if (selectedCategory) params.append("category", selectedCategory);
     if (selectedSubjectId) params.append("subjectId", selectedSubjectId);
+    if (selectedSubjectNameOnly) params.append("subjectName", selectedSubjectNameOnly);
     
     const lt = LESSON_TYPES.find((t) => t.id === lessonType);
     if (lt) params.append("serviceType", lt.serviceType);
@@ -161,12 +175,16 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
     navigate(`/tutors?${params.toString()}`);
   };
 
-  // Get subjects for selected category
+  // Get branches for selected category
   const activeCategoryObj = categories.find(c => c.category === selectedCategory);
   const subjectsList = activeCategoryObj ? activeCategoryObj.subjects : [];
   const filteredSubjects = subjectsList.filter(s => 
     s.name.toLocaleLowerCase("tr-TR").includes(subSearch.toLocaleLowerCase("tr-TR"))
   );
+
+  // Get options for selected subject
+  const activeSubjectObj = subjectsList.find(s => s.name === selectedSubjectNameOnly);
+  const optionsList = activeSubjectObj ? activeSubjectObj.options : [];
 
   if (!open) return null;
 
@@ -406,7 +424,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
               </div>
             )}
 
-            {/* Step 1 - Substep 2: Subcategory / Subject Selection */}
+            {/* Step 1 - Substep 2: Subject/Branch Selection */}
             {step === 1 && subStep === 2 && (
               <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -430,7 +448,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                   </p>
                 </div>
                 
-                {/* Search Bar for Subcategories */}
+                {/* Search Bar */}
                 <div
                   style={{
                     display: "flex",
@@ -446,7 +464,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                   <Search style={{ width: 16, height: 16, color: "var(--text-muted)" }} />
                   <input
                     type="text"
-                    placeholder="Ders veya alt kategori ara..."
+                    placeholder="Brans veya ders ara..."
                     value={subSearch}
                     onChange={(e) => setSubSearch(e.target.value)}
                     style={{
@@ -462,12 +480,12 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, maxHeight: "240px", overflowY: "auto", padding: 2 }}>
                   {filteredSubjects.map((s) => {
-                    const active = selectedSubjectId === s.id;
+                    const active = selectedSubjectNameOnly === s.name;
                     const style = CATEGORY_STYLES[selectedCategory] || { color: "#16a34a" };
                     return (
                       <button
-                        key={s.id}
-                        onClick={() => handleSubjectSelect(s.id, s.name)}
+                        key={s.name}
+                        onClick={() => handleSubjectSelect(s.name)}
                         style={{
                           padding: "12px 14px",
                           borderRadius: 14,
@@ -487,7 +505,7 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                   })}
                   {filteredSubjects.length === 0 && (
                     <div style={{ gridColumn: "span 2", textAlign: "center", padding: "20px 0", color: "var(--text-muted)", fontSize: 13 }}>
-                      Aradiginiz ders bulunamadi.
+                      Aradiginiz brans bulunamadi.
                     </div>
                   )}
                 </div>
@@ -495,8 +513,9 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                 <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
                   <button
                     onClick={() => {
+                      setSelectedSubjectNameOnly("");
                       setSelectedSubjectId("");
-                      setSelectedSubjectName("");
+                      setSelectedSubjectOptionLabel("");
                       setStep(2);
                     }}
                     style={{
@@ -511,7 +530,87 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                       color: "#16a34a",
                     }}
                   >
-                    Tum {selectedCategory} Derslerini Gor
+                    Tum {selectedCategory} Branslarini Gor
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 1 - Substep 3: Level / Option Selection */}
+            {step === 1 && subStep === 3 && (
+              <div style={{ padding: 28, animation: "smSlideUp 0.25s ease" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <button
+                    onClick={() => setSubStep(2)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--text-muted)",
+                      display: "flex",
+                      alignItems: "center",
+                      padding: 4,
+                      borderRadius: 6,
+                    }}
+                  >
+                    <ChevronLeft style={{ width: 18, height: 18 }} />
+                  </button>
+                  <p style={{ fontWeight: 900, fontSize: 16, color: "var(--text-primary)", margin: 0 }}>
+                    {selectedSubjectNameOnly} - Seviye Secin
+                  </p>
+                </div>
+
+                <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
+                  Ders almak istediginiz seviyeyi/alani belirleyin.
+                </p>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, maxHeight: "240px", overflowY: "auto", padding: 2 }}>
+                  {optionsList.map((o) => {
+                    const active = String(selectedSubjectId) === String(o.id);
+                    const style = CATEGORY_STYLES[selectedCategory] || { color: "#16a34a" };
+                    return (
+                      <button
+                        key={o.id}
+                        onClick={() => handleOptionSelect(o.id, o.label)}
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: 14,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          transition: "all 0.15s",
+                          background: active ? `${style.color}15` : "var(--page-bg)",
+                          border: `1.5px solid ${active ? style.color : "var(--card-border)"}`,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {o.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+                  <button
+                    onClick={() => {
+                      setSelectedSubjectId("");
+                      setSelectedSubjectOptionLabel("");
+                      setStep(2);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      borderRadius: 14,
+                      background: "rgba(22,163,74,0.1)",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 750,
+                      color: "#16a34a",
+                    }}
+                  >
+                    Fark Etmez / Tum Seviyeler
                   </button>
                 </div>
               </div>
@@ -576,7 +675,10 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                 </div>
                 <button
                   onClick={() => {
-                    if (activeCategoryObj && activeCategoryObj.subjects?.length > 0) {
+                    if (selectedSubjectNameOnly) {
+                      const hasOptions = optionsList.length > 0;
+                      setSubStep(hasOptions ? 3 : 2);
+                    } else if (selectedCategory) {
                       setSubStep(2);
                     } else {
                       setSubStep(1);
@@ -696,11 +798,16 @@ export default function SmartMatchWizard({ open, onClose, categories = [] }) {
                       }}
                     >
                       {[
-                        { label: "Alan", val: selectedSubjectName || selectedCategory || "Belirtilmedi" },
+                        { 
+                          label: "Alan", 
+                          val: selectedSubjectOptionLabel 
+                            ? `${selectedSubjectNameOnly} (${selectedSubjectOptionLabel})` 
+                            : selectedSubjectNameOnly || selectedCategory || "Belirtilmedi" 
+                        },
                         { label: "Mod", val: LESSON_TYPES.find((t) => t.id === lessonType)?.label || "Belirtilmedi" },
                         { label: "Butce", val: BUDGETS.find((b) => b.id === budget)?.label || "Belirtilmedi" },
                       ].map((r) => (
-                        <div key={r.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div key={r.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
                           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>{r.label}</span>
                           <span style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)" }}>{r.val}</span>
                         </div>

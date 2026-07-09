@@ -25,7 +25,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { getTutors, getTutorsCount } from "@/services/tutorService";
-import { getCategories } from "@/services/locationService";
+import { getSubjectsHierarchy } from "@/services/locationService";
 import { toPlainText, resolveMediaUrl } from "@/utils/helpers";
 import SmartMatchWizard from "@/components/shared/SmartMatchWizard";
 
@@ -297,7 +297,7 @@ export default function Home() {
 
   const fetchCategories = async () => {
     try {
-      const data = await getCategories();
+      const data = await getSubjectsHierarchy();
       if (Array.isArray(data) && data.length > 0) {
         setAllCategories(data);
         setGridCategories(
