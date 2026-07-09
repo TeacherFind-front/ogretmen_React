@@ -203,7 +203,7 @@ function TutorDetail() {
       navigate("/login", { state: { from: location } });
       return;
     }
-    navigate(`/student/bookings/new?tutorId=${tutor.id}`);
+    navigate(`/bookings/new?tutorId=${tutor.id}`);
   };
 
   const handleMessageClick = () => {
@@ -1690,6 +1690,22 @@ const HeroGrid = styled.div`
       margin-top: 20px;
       @media (max-width: 768px) {
         justify-content: center;
+      }
+      @media (max-width: 540px) {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: 100%;
+        .lesson-btn {
+          grid-column: span 2;
+          width: 100%;
+          justify-content: center;
+          order: -1;
+        }
+        .fav-btn, .share-btn {
+          justify-content: center;
+          width: 100%;
+        }
       }
     }
   }

@@ -76,6 +76,7 @@ const router = createBrowserRouter([
       { path: "sss", element: <FAQ /> }, // Sıkça sorulan sorular
       { path: "hakkimizda", element: <About /> }, // Hakkımızda
       { path: "iletisim", element: <Contact /> }, // İletişim
+      { path: "bookings/new", element: <NewBooking /> }, // Yeni ders rezervasyonu oluşturma (Öğrenci menüsü dışında)
     ],
   },
   {
@@ -94,7 +95,6 @@ const router = createBrowserRouter([
       { path: "messages", element: <StudentMessages /> }, // Mesajlaşma kutusu
       { path: "profile", element: <StudentProfile /> }, // Profil ayarları
       { path: "security", element: <StudentSecurity /> }, // Şifre değiştirme vb. güvenlik ayarları
-      { path: "bookings/new", element: <NewBooking /> }, // Yeni ders rezervasyonu oluşturma
       { path: "review/:bookingId", element: <StudentReview /> }, // Rezervasyona/derse yorum yazma
       { path: "favorites", element: <StudentFavorites /> }, // Favori eğitmenler listesi
       { path: "support", element: <SupportMessages /> }, // Destek mesajları

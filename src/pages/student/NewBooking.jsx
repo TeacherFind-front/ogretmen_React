@@ -1,713 +1,1078 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import styled from "styled-components";
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  ChevronRight, 
-  ChevronLeft, 
-  Loader2, 
-  CheckCircle2, 
+import { useSearchParams, useNavigate } from "react-router-dom";
+import styled, { keyframes } from "styled-components";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  ChevronLeft,
+  Loader2,
+  CheckCircle2,
   AlertCircle,
   MessageSquare,
   ArrowRight,
-  Sparkles,
   Monitor,
   Home as HomeIcon,
-  BookOpen
+  BookOpen,
+  Globe,
+  Zap,
 } from "lucide-react";
 import { getTutorById } from "@/services/tutorService";
 import { createBooking } from "@/services/bookingService";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { apiFetch } from "@/services/api";
+import { useAuth } from "@/store/AuthContext";
 import toast from "react-hot-toast";
 
+/* ─────────────────────────────────────────── */
+/* ANIMATIONS                                  */
+/* ─────────────────────────────────────────── */
+const fadeUp = keyframes`
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+`;
+const spin = keyframes`
+  to { transform:rotate(360deg); }
+`;
+const pulseAnim = keyframes`
+  0%,100% { transform:scale(1); }
+  50%      { transform:scale(1.06); }
+`;
+
+/* ─────────────────────────────────────────── */
+/* LAYOUT                                      */
+/* ─────────────────────────────────────────── */
+const Wrap = styled.div`
+  min-height: 100vh;
+  background: var(--page-bg);
+  padding: 28px 16px 72px;
+  box-sizing: border-box;
+  @media(max-width:600px){ padding:16px 10px 60px; }
+`;
+
+const Inner = styled.div`
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  animation: ${fadeUp} .45s ease both;
+`;
+
+const TopBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+
+  h1 {
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 900;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+  }
+  p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 3px 0 0;
+  }
+`;
+
+const BackBtn = styled.button`
+  width: 42px; height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1.5px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .2s;
+  &:hover { color: hsl(var(--primary)); border-color: hsl(var(--primary)/.5); }
+`;
+
+/* Two-column grid – sidebar goes below on mobile */
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  align-items: start;
+
+  @media(max-width:900px){
+    grid-template-columns: 1fr;
+  }
+`;
+
+const FormCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0; /* prevent overflow */
+`;
+
+const Sidebar = styled.aside`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+
+  @media(max-width:900px){
+    /* Show sidebar BELOW the form on mobile */
+    order: 1;
+  }
+`;
+
+/* ─────────────────────────────────────────── */
+/* STEP CARD                                   */
+/* ─────────────────────────────────────────── */
+const Card = styled.div`
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 20px;
+  padding: 22px 20px;
+  overflow: hidden;
+  @media(max-width:480px){ padding:16px 14px; border-radius:16px; }
+`;
+
+const CardHead = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+`;
+
+const Num = styled.span`
+  width: 28px; height: 28px;
+  border-radius: 9px;
+  background: ${p => p.$ghost ? "hsl(var(--accent))" : "hsl(var(--primary))"};
+  color: ${p => p.$ghost ? "hsl(var(--accent-foreground))" : "hsl(var(--primary-foreground))"};
+  font-size: 12px;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+`;
+
+const CardTitle = styled.h3`
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+`;
+
+/* ─────────────────────────────────────────── */
+/* LESSON CARDS                                */
+/* ─────────────────────────────────────────── */
+const LessonGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+  @media(max-width:480px){ grid-template-columns: 1fr 1fr; gap:9px; }
+`;
+
+const LessonCard = styled.button`
+  position: relative;
+  padding: 16px 14px;
+  border-radius: 16px;
+  border: 2px solid ${p => p.$active ? "hsl(var(--primary))" : "var(--card-border)"};
+  background: ${p => p.$active ? "hsl(var(--primary)/.09)" : "var(--page-bg)"};
+  cursor: pointer;
+  text-align: left;
+  transition: all .22s;
+  &:hover { border-color:hsl(var(--primary)); transform:translateY(-2px); box-shadow:0 6px 18px hsl(var(--primary)/.1); }
+
+  .ic {
+    width:34px; height:34px; border-radius:10px;
+    background:hsl(var(--primary)/.13);
+    color:hsl(var(--primary));
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:10px;
+  }
+  .chk {
+    position:absolute; top:10px; right:10px;
+    color:hsl(var(--primary));
+  }
+  .name { font-size:13px; font-weight:800; color:var(--text-primary); line-height:1.3; margin-bottom:3px; }
+  .meta { font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+  .badges { display:flex; gap:5px; flex-wrap:wrap; }
+  .bdg {
+    display:inline-flex; align-items:center; gap:3px;
+    font-size:10px; font-weight:800;
+    padding:2px 7px; border-radius:5px;
+    &.on  { background:#dbeafe; color:#1d4ed8; }
+    &.ip  { background:#ffedd5; color:#c2410c; }
+    &.gn  { background:hsl(var(--secondary)); color:hsl(var(--secondary-foreground)); }
+    .dark &.on  { background:hsl(220 70% 25%/.4); color:#93c5fd; }
+    .dark &.ip  { background:hsl(25 80% 25%/.4);  color:#fdba74; }
+  }
+`;
+
+/* ─────────────────────────────────────────── */
+/* WEEKLY CALENDAR                             */
+/* ─────────────────────────────────────────── */
+const LegendRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 12px;
+
+  .leg {
+    display:flex; align-items:center; gap:5px;
+    font-size:9px; font-weight:800; color:var(--text-muted);
+    text-transform:uppercase; letter-spacing:.05em;
+  }
+  .dot {
+    width:16px; height:16px; border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    color:white; border:1.5px solid transparent;
+    &.on  { background:#2563eb; }
+    &.ip  { background:#ea580c; }
+    &.bt  { background:hsl(var(--primary)); }
+    &.em  { background:transparent; border-color:var(--card-border); }
+  }
+`;
+
+const SchedWrap = styled.div`
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-border) transparent;
+  border-radius: 12px;
+  background: var(--page-bg);
+  border: 1px solid var(--card-border);
+  padding: 10px;
+
+  table {
+    border-collapse: separate;
+    border-spacing: 3px;
+    min-width: 440px;
+    width: 100%;
+    table-layout: fixed;
+  }
+  th {
+    font-size:10px; font-weight:800; color:var(--text-muted);
+    text-transform:uppercase; padding-bottom:5px; text-align:center;
+    &.cor { text-align:left; width:72px; }
+  }
+  td.lbl {
+    font-size:10px; font-weight:700; color:var(--text-muted);
+    white-space:nowrap; padding:3px 5px;
+  }
+  .cell {
+    height:28px; border-radius:7px;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px solid transparent;
+    &.on  { background:#2563eb; color:white; }
+    &.ip  { background:#ea580c; color:white; }
+    &.bt  { background:hsl(var(--primary)); color:white; }
+    &.em  { background:transparent; border-color:var(--card-border); }
+  }
+`;
+
+/* ─────────────────────────────────────────── */
+/* TYPE SELECTOR                               */
+/* ─────────────────────────────────────────── */
+const TypeRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  @media(max-width:420px){ grid-template-columns:1fr; }
+`;
+
+const TypeBtn = styled.button`
+  position:relative;
+  display:flex; align-items:center; gap:12px;
+  padding:15px 14px;
+  border-radius:16px;
+  border: 2px solid ${p => p.$active ? "hsl(var(--primary))" : "var(--card-border)"};
+  background: ${p => p.$active ? "hsl(var(--primary)/.09)" : "var(--card-bg)"};
+  cursor:${p => p.$dis ? "not-allowed" : "pointer"};
+  opacity:${p => p.$dis ? .5 : 1};
+  transition:all .2s;
+  text-align:left;
+
+  &:hover:not([disabled]) {
+    border-color:hsl(var(--primary));
+    transform:translateY(-1px);
+  }
+
+  .ti {
+    width:38px; height:38px; border-radius:11px; flex-shrink:0;
+    background:${p => p.$active ? "hsl(var(--primary))" : "hsl(var(--muted))"};
+    color:${p => p.$active ? "hsl(var(--primary-foreground))" : "var(--text-muted)"};
+    display:flex; align-items:center; justify-content:center;
+    transition:all .2s;
+  }
+  .tl { font-size:12px; font-weight:700; color:var(--text-primary); }
+  .tp { font-size:16px; font-weight:900; color:hsl(var(--primary)); margin-top:1px; }
+  .chk { position:absolute; top:10px; right:10px; color:hsl(var(--primary)); }
+  .dbdg {
+    position:absolute; top:8px; right:8px;
+    font-size:9px; font-weight:800;
+    background:hsl(var(--muted)); color:var(--text-muted);
+    padding:2px 6px; border-radius:5px; text-transform:uppercase;
+  }
+`;
+
+/* ─────────────────────────────────────────── */
+/* DATE CAROUSEL                               */
+/* ─────────────────────────────────────────── */
+const SecLabel = styled.div`
+  display:flex; align-items:center; gap:6px;
+  font-size:10px; font-weight:800; color:var(--text-muted);
+  text-transform:uppercase; letter-spacing:.06em;
+  margin-bottom:10px;
+`;
+
+const DateScroll = styled.div`
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding-bottom:8px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:var(--card-border) transparent;
+  &::-webkit-scrollbar { height:3px; }
+  &::-webkit-scrollbar-thumb { background:var(--card-border); border-radius:4px; }
+`;
+
+const DateChip = styled.button`
+  flex:0 0 66px;
+  height:84px;
+  border-radius:16px;
+  border:2px solid ${p => p.$active ? "hsl(var(--primary))" : "var(--card-border)"};
+  background:${p => p.$active ? "hsl(var(--primary))" : "var(--card-bg)"};
+  box-shadow:${p => p.$active ? "0 6px 16px hsl(var(--primary)/.22)" : "none"};
+  transform:${p => p.$active ? "translateY(-3px)" : "none"};
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1px; cursor:pointer;
+  transition:all .2s;
+  position:relative;
+
+  &:hover:not(:disabled) {
+    border-color:hsl(var(--primary));
+    background:${p => p.$active ? "hsl(var(--primary))" : "hsl(var(--primary)/.07)"};
+    transform:translateY(-2px);
+  }
+
+  .dn  { font-size:9px;  font-weight:700; text-transform:uppercase; color:${p => p.$active ? "rgba(255,255,255,.8)" : "var(--text-muted)"}; }
+  .num { font-size:19px; font-weight:900; color:${p => p.$active ? "#fff" : "var(--text-primary)"}; }
+  .mo  { font-size:9px;  font-weight:600; color:${p => p.$active ? "rgba(255,255,255,.75)" : "var(--text-muted)"}; }
+  .dot {
+    position:absolute; bottom:7px;
+    width:4px; height:4px; border-radius:50%;
+    background:${p => p.$active ? "rgba(255,255,255,.6)" : "hsl(var(--primary))"};
+  }
+`;
+
+/* ─────────────────────────────────────────── */
+/* TIME SLOTS                                  */
+/* ─────────────────────────────────────────── */
+const SlotGrid = styled.div`
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  gap:7px;
+`;
+
+const SlotSection = styled.div`
+  margin-top: 18px;
+  animation: ${fadeUp} .3s ease both;
+`;
+
+const Slot = styled.button`
+  padding:9px 4px;
+  border-radius:11px;
+  font-size:12px; font-weight:700;
+  text-align:center;
+  cursor:${p => p.$dis ? "not-allowed" : "pointer"};
+  transition:all .18s;
+
+  ${p => p.$sel && `
+    background:hsl(var(--primary));
+    color:hsl(var(--primary-foreground));
+    border:2px solid hsl(var(--primary));
+    box-shadow:0 4px 12px hsl(var(--primary)/.22);
+    transform:scale(1.04);
+  `}
+  ${p => !p.$sel && !p.$dis && `
+    background:hsl(var(--secondary));
+    color:hsl(var(--secondary-foreground));
+    border:1.5px solid var(--card-border);
+    &:hover { background:hsl(var(--primary)); color:hsl(var(--primary-foreground)); border-color:hsl(var(--primary)); }
+  `}
+  ${p => p.$dis && `
+    background:var(--page-bg);
+    color:var(--card-border);
+    border:1.5px solid var(--card-border);
+    text-decoration:line-through;
+    opacity:.55;
+  `}
+`;
+
+/* ─────────────────────────────────────────── */
+/* NOTE / SUBMIT                               */
+/* ─────────────────────────────────────────── */
+const NoteBox = styled.textarea`
+  width:100%; box-sizing:border-box;
+  padding:14px 15px;
+  border-radius:14px;
+  border:1.5px solid var(--card-border);
+  background:var(--page-bg);
+  color:var(--text-primary);
+  font-size:14px; font-weight:500;
+  font-family:inherit;
+  resize:none; line-height:1.5;
+  transition:all .2s;
+  &::placeholder { color:var(--text-muted); }
+  &:focus { outline:none; border-color:hsl(var(--primary)); background:var(--card-bg); box-shadow:0 0 0 3px hsl(var(--primary)/.1); }
+`;
+
+const CharCnt = styled.div`
+  font-size:11px; font-weight:700; color:var(--text-muted);
+  text-align:right; margin-top:5px;
+`;
+
+const ErrBanner = styled.div`
+  display:flex; align-items:center; gap:10px;
+  padding:13px 16px;
+  background:hsl(0 84% 60%/.09);
+  border:1.5px solid hsl(0 84% 60%/.2);
+  border-radius:13px;
+  font-size:13px; font-weight:600; color:hsl(0 84% 60%);
+`;
+
+const SubmitBtn = styled.button`
+  width:100%; height:56px;
+  border-radius:18px;
+  background:hsl(var(--primary));
+  color:hsl(var(--primary-foreground));
+  border:none;
+  font-size:15px; font-weight:900;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  cursor:pointer;
+  transition:all .22s;
+  box-shadow:0 6px 20px hsl(var(--primary)/.22);
+  &:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 28px hsl(var(--primary)/.3); }
+  &:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+  .sp { animation:${spin} .9s linear infinite; }
+`;
+
+/* ─────────────────────────────────────────── */
+/* SIDEBAR CARDS                               */
+/* ─────────────────────────────────────────── */
+const SCard = styled.div`
+  background:var(--card-bg);
+  border:1.5px solid var(--card-border);
+  border-radius:20px;
+  padding:20px 18px;
+  overflow:hidden;
+  @media(max-width:480px){ padding:16px 14px; border-radius:16px; }
+`;
+
+const AvatarRow = styled.div`
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+  img {
+    width:48px; height:48px; border-radius:14px;
+    object-fit:cover; border:2px solid var(--card-border); flex-shrink:0;
+  }
+  .lbl { font-size:9px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
+  .nm  { font-size:14px; font-weight:900; color:var(--text-primary); margin:2px 0; }
+  .ct  { display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--text-muted); }
+`;
+
+const Hr = styled.div`
+  height:1px; background:var(--card-border); margin:0 0 16px;
+`;
+
+const SLabel = styled.div`
+  font-size:9px; font-weight:800; color:var(--text-muted);
+  text-transform:uppercase; letter-spacing:.06em; margin-bottom:7px;
+`;
+
+const SelBox = styled.div`
+  background:hsl(var(--primary)/.09);
+  border:1.5px solid hsl(var(--primary)/.2);
+  border-radius:12px; padding:11px 13px;
+  .sn { font-size:13px; font-weight:800; color:var(--text-primary); margin-bottom:3px; }
+  .sm { display:flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:hsl(var(--primary)); }
+`;
+
+const InfoLine = styled.div`
+  display:flex; align-items:center; gap:7px;
+  font-size:12px; font-weight:700; color:var(--text-primary);
+  margin-bottom:5px;
+  svg { color:hsl(var(--primary)); flex-shrink:0; }
+`;
+
+const PricePill = styled.div`
+  display:flex; justify-content:space-between; align-items:center;
+  background:hsl(var(--primary));
+  border-radius:14px; padding:12px 16px; margin-top:6px;
+  .pl { font-size:12px; font-weight:800; color:hsl(var(--primary-foreground)/.8); }
+  .pv { font-size:22px; font-weight:900; color:hsl(var(--primary-foreground)); letter-spacing:-.02em; }
+`;
+
+const HelpCard = styled.div`
+  background:linear-gradient(135deg, hsl(153 50% 12%), hsl(153 45% 17%));
+  border:1.5px solid hsl(var(--primary)/.3);
+  border-radius:18px; padding:20px 18px;
+  svg { color:hsl(var(--primary)); margin-bottom:8px; }
+  h4 { font-size:14px; font-weight:800; color:#fff; margin:0 0 7px; }
+  p  { font-size:12px; color:rgba(255,255,255,.55); margin:0 0 13px; line-height:1.5; }
+  button {
+    display:flex; align-items:center; gap:5px;
+    font-size:12px; font-weight:800; color:hsl(var(--primary));
+    background:none; border:none; cursor:pointer; padding:0;
+    transition:gap .18s;
+    &:hover { gap:8px; }
+  }
+`;
+
+/* ─────────────────────────────────────────── */
+/* LOADING / UNAUTHORIZED / SUCCESS            */
+/* ─────────────────────────────────────────── */
+const Overlay = styled.div`
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  min-height:65vh; gap:18px;
+  .ring {
+    width:46px; height:46px; border-radius:50%;
+    border:4px solid hsl(var(--primary)/.15);
+    border-top-color:hsl(var(--primary));
+    animation:${spin} .85s linear infinite;
+  }
+  p { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; }
+`;
+
+const Center = styled.div`
+  max-width:480px; margin:60px auto 0;
+  background:var(--card-bg); border:1.5px solid var(--card-border);
+  border-radius:26px; padding:44px 32px; text-align:center;
+  animation:${fadeUp} .45s ease both;
+  @media(max-width:540px){ padding:30px 18px; margin-top:30px; }
+
+  .ico {
+    width:66px; height:66px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
+    &.err { background:hsl(0 84% 60%/.12); color:hsl(0 84% 60%); }
+    &.ok  { background:hsl(var(--primary)/.12); color:hsl(var(--primary)); animation:${pulseAnim} 2s ease infinite; }
+  }
+  h1 { font-size:clamp(20px,4vw,26px); font-weight:900; color:var(--text-primary); margin:0 0 10px; }
+  p  { font-size:14px; color:var(--text-muted); line-height:1.6; margin:0 0 22px;
+       strong { color:var(--text-primary); }
+  }
+  .acts { display:flex; flex-direction:column; gap:10px;
+    @media(min-width:400px){ flex-direction:row; justify-content:center; }
+  }
+`;
+
+const Pill = styled.div`
+  display:flex; align-items:center; justify-content:center;
+  flex-wrap:wrap; gap:8px; margin-bottom:24px;
+  .it {
+    display:flex; align-items:center; gap:5px;
+    background:hsl(var(--primary)/.11); color:hsl(var(--primary));
+    padding:5px 11px; border-radius:9px; font-size:11px; font-weight:700;
+  }
+`;
+
+const ABtn = styled.button`
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  padding:11px 20px; border-radius:14px;
+  font-size:13px; font-weight:800; cursor:pointer; transition:all .2s;
+  ${p => p.$out
+    ? `background:transparent; border:2px solid var(--card-border); color:var(--text-primary);
+       &:hover { border-color:hsl(var(--primary)); color:hsl(var(--primary)); }`
+    : `background:hsl(var(--primary)); border:2px solid hsl(var(--primary));
+       color:hsl(var(--primary-foreground));
+       box-shadow:0 5px 14px hsl(var(--primary)/.2);
+       &:hover { transform:translateY(-1px); box-shadow:0 9px 22px hsl(var(--primary)/.28); }`
+  }
+`;
+
+const ErrMsg = styled.span`
+  display:block; font-size:11px; font-weight:700;
+  color:hsl(0 84% 60%); margin-top:5px;
+`;
+
+const Empty = styled.div`
+  display:flex; align-items:center; gap:9px;
+  padding:12px 15px;
+  background:${p => p.$warn ? "hsl(45 100% 95%)" : "var(--page-bg)"};
+  border:1.5px solid ${p => p.$warn ? "hsl(45 100% 82%)" : "var(--card-border)"};
+  border-radius:12px; font-size:12px; font-weight:600;
+  color:${p => p.$warn ? "hsl(30 80% 38%)" : "var(--text-muted)"};
+  .dark & {
+    background:${p => p.$warn ? "hsl(45 40% 18%)" : "var(--page-bg)"};
+    border-color:${p => p.$warn ? "hsl(45 40% 28%)" : "var(--card-border)"};
+    color:${p => p.$warn ? "hsl(45 80% 58%)" : "var(--text-muted)"};
+  }
+`;
+
+/* ═══════════════════════════════════════════ */
+/* COMPONENT                                   */
+/* ═══════════════════════════════════════════ */
 export default function NewBooking() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const tutorId = searchParams.get("tutorId");
+  const navigate       = useNavigate();
+  const tutorId        = searchParams.get("tutorId");
+  const { user }       = useAuth();
 
-  const [tutor, setTutor] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(null);
-
-  const [selectedListing, setSelectedListing] = useState(null);
-  const [lessonRates, setLessonRates] = useState([]);
+  const [tutor,              setTutor]              = useState(null);
+  const [loading,            setLoading]            = useState(true);
+  const [submitting,         setSubmitting]         = useState(false);
+  const [success,            setSuccess]            = useState(false);
+  const [error,              setError]              = useState(null);
+  const [selectedListing,    setSelectedListing]    = useState(null);
+  const [lessonRates,        setLessonRates]        = useState([]);
   const [selectedLessonRate, setSelectedLessonRate] = useState(null);
-  const [selectedLessonType, setSelectedLessonType] = useState("online"); // online veya inperson
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [studentNote, setStudentNote] = useState("");
-  const [occupiedSlots, setOccupiedSlots] = useState([]);
-  const [dateError, setDateError] = useState("");
+  const [selectedLessonType, setSelectedLessonType] = useState("online");
+  const [selectedDate,       setSelectedDate]       = useState(new Date().toISOString().split("T")[0]);
+  const [selectedTime,       setSelectedTime]       = useState("");
+  const [studentNote,        setStudentNote]        = useState("");
+  const [occupiedSlots,      setOccupiedSlots]      = useState([]);
+  const [dateError,          setDateError]          = useState("");
 
-  const daysEnglish = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const daysEn = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
 
-  useEffect(() => {
-    if (!tutorId) {
-      navigate("/tutors");
-      return;
+  const daysList = (() => {
+    const arr = []; const today = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(); d.setDate(today.getDate() + i);
+      arr.push({
+        dateString: [d.getFullYear(), String(d.getMonth()+1).padStart(2,"0"), String(d.getDate()).padStart(2,"0")].join("-"),
+        dayName:    d.toLocaleDateString("tr-TR", { weekday:"short" }),
+        dayNumber:  d.getDate(),
+        monthName:  d.toLocaleDateString("tr-TR", { month:"short" }),
+        isToday:    i === 0,
+      });
     }
+    return arr;
+  })();
 
-    const loadTutor = async () => {
+  /* ── Load tutor ── */
+  useEffect(() => {
+    if (!tutorId) { navigate("/tutors"); return; }
+    (async () => {
       try {
         const data = await getTutorById(tutorId);
         setTutor(data);
-        
-        // Parse lesson rates from bio JSON marker
         let rates = [];
-        const bioText = data.bio || "";
-        const match = bioText.match(/---LESSON_RATES_JSON---([\s\S]*?)---END_LESSON_RATES_JSON---/);
-        if (match && match[1]) {
-          try {
-            rates = JSON.parse(match[1].trim());
-          } catch (e) {
-            console.error("Failed to parse lesson rates JSON", e);
-          }
-        }
-        
-        if (rates.length === 0) {
-          rates = data.lessonRates?.$values || data.lessonRates || [];
-        }
-        
+        const m = (data.bio||"").match(/---LESSON_RATES_JSON---([\s\S]*?)---END_LESSON_RATES_JSON---/);
+        if (m) { try { rates = JSON.parse(m[1].trim()); } catch {} }
+        if (!rates.length) rates = data.lessonRates?.$values || data.lessonRates || [];
         setLessonRates(rates);
-        if (rates.length > 0) {
-          const firstRate = rates[0];
-          setSelectedLessonRate(firstRate);
-          
-          // Set initial lesson type based on availability
-          if (firstRate.onlinePrice && firstRate.inPersonPrice) {
-            setSelectedLessonType("online");
-          } else if (firstRate.onlinePrice) {
-            setSelectedLessonType("online");
-          } else if (firstRate.inPersonPrice) {
-            setSelectedLessonType("inperson");
-          } else {
-            setSelectedLessonType(firstRate.type || "online");
-          }
+        if (rates.length) {
+          const r = rates[0]; setSelectedLessonRate(r);
+          setSelectedLessonType(r.onlinePrice ? "online" : r.inPersonPrice ? "inperson" : r.type || "online");
         }
-
-        if (data.listings?.length > 0) {
-          setSelectedListing(data.listings[0]);
-        }
-      } catch (err) {
-        setError("Eğitmen bilgileri yüklenemedi.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadTutor();
+        if (data.listings?.length) setSelectedListing(data.listings[0]);
+      } catch { setError("Eğitmen bilgileri yüklenemedi."); }
+      finally { setLoading(false); }
+    })();
   }, [tutorId]);
 
-  // Fetch occupied slots from backend
+  /* ── Occupied slots ── */
   useEffect(() => {
-    const fetchOccupied = async () => {
-      if (!selectedListing || !selectedDate) return;
-      
-      const year = parseInt(selectedDate.split("-")[0], 10);
-      if (isNaN(year) || year < 2020) return;
-
+    if (!selectedListing || !selectedDate) return;
+    if (isNaN(parseInt(selectedDate.split("-")[0], 10))) return;
+    (async () => {
       try {
-        const from = `${selectedDate}T00:00:00Z`;
-        const to = `${selectedDate}T23:59:59Z`;
-        const response = await apiFetch(
-          `/api/bookings/occupied?teacherListingId=${selectedListing.id}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
-        );
-        if (response && response.ok) {
-          const data = await response.json();
-          setOccupiedSlots(data.$values || data || []);
-        } else {
-          const errData = await response.json().catch(() => ({}));
-          toast.error(errData.message || "Dolu saatler yüklenemedi.");
-        }
-      } catch (err) {
-        console.error("Müsait olmayan saatler yüklenemedi:", err);
-      }
-    };
-    fetchOccupied();
+        const from = `${selectedDate}T00:00:00Z`, to = `${selectedDate}T23:59:59Z`;
+        const res = await apiFetch(`/api/bookings/occupied?teacherListingId=${selectedListing.id}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+        if (res?.ok) { const d = await res.json(); setOccupiedSlots(d.$values || d || []); }
+      } catch {}
+    })();
   }, [selectedListing, selectedDate]);
 
-  const handleLessonRateChange = (rate) => {
-    setSelectedLessonRate(rate);
-    setSelectedTime("");
-    
-    if (rate.onlinePrice && rate.inPersonPrice) {
-      setSelectedLessonType("online");
-    } else if (rate.onlinePrice) {
-      setSelectedLessonType("online");
-    } else if (rate.inPersonPrice) {
-      setSelectedLessonType("inperson");
-    } else {
-      setSelectedLessonType(rate.type || "online");
-    }
+  const getDayAvails = (dateStr) => {
+    const ds = daysEn[new Date(dateStr).getDay()];
+    return (tutor?.availabilities || []).filter(x => x.day?.toLowerCase() === ds);
   };
 
-  const handleDateChange = (dateValue) => {
-    setSelectedDate(dateValue);
-    setSelectedTime("");
-    
-    if (dateValue) {
-      const todayStr = new Date().toISOString().split("T")[0];
-      if (dateValue < todayStr) {
-        setDateError("Bugünden daha geçmiş bir tarih seçemezsiniz.");
-      } else {
-        setDateError("");
+  const isTypeDis = (type) => {
+    if (!selectedDate || !tutor) return false;
+    const avs = getDayAvails(selectedDate);
+    if (!avs.length) return false;
+    if (type === "online")   return avs.every(x => ["inperson","face_to_face","f2f"].includes(x.type));
+    if (type === "inperson") return avs.every(x => x.type === "online");
+    return false;
+  };
+
+  const handleDateChange = (v) => {
+    setSelectedDate(v); setSelectedTime("");
+    const today = new Date().toISOString().split("T")[0];
+    if (v < today) { setDateError("Geçmiş tarih seçemezsiniz."); return; }
+    setDateError("");
+    if (tutor) {
+      const avs = getDayAvails(v);
+      if (avs.length) {
+        if (avs.every(x => x.type === "online")) setSelectedLessonType("online");
+        else if (avs.every(x => ["inperson","face_to_face","f2f"].includes(x.type))) setSelectedLessonType("inperson");
       }
-    } else {
-      setDateError("");
     }
   };
 
-  // Generate dynamic time slots based on tutor's availability for the selected day
-  const getTimeSlots = () => {
+  const handleRateChange = (r) => {
+    setSelectedLessonRate(r); setSelectedTime("");
+    setSelectedLessonType(r.onlinePrice ? "online" : r.inPersonPrice ? "inperson" : r.type || "online");
+  };
+
+  const timeSlots = (() => {
     if (!selectedDate || !tutor || !selectedLessonRate) return [];
-    
-    const dateObj = new Date(selectedDate);
-    const dayOfWeekStr = daysEnglish[dateObj.getDay()];
-    
-    // Find availability configurations for selected day of week
-    const dayAvailabilities = tutor.availabilities?.filter(
-      x => x.day.toLowerCase() === dayOfWeekStr
-    ) || [];
-    
-    if (dayAvailabilities.length === 0) return [];
-    
-    const slots = [];
+    const avs = getDayAvails(selectedDate);
+    if (!avs.length) return [];
     const duration = selectedLessonRate.duration || 60;
-    
-    dayAvailabilities.forEach(av => {
+    const raw = [];
+    avs.forEach(av => {
       if (!av.start || !av.end) return;
-      
-      const [startHour, startMin] = av.start.split(":").map(Number);
-      const [endHour, endMin] = av.end.split(":").map(Number);
-      
-      let current = new Date(selectedDate);
-      current.setHours(startHour, startMin, 0, 0);
-      
-      const limit = new Date(selectedDate);
-      limit.setHours(endHour, endMin, 0, 0);
-      
-      while (current.getTime() + duration * 60000 <= limit.getTime()) {
-        const timeStr = current.toTimeString().split(" ")[0].substring(0, 5);
-        
-        const startDateTime = new Date(`${selectedDate}T${timeStr}`);
-        const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
-        
-        // Past time check
-        const isPast = startDateTime < new Date();
-        
-        // Overlap checking against occupiedSlots
-        const isOccupied = occupiedSlots.some(slot => {
-          const slotStart = new Date(slot.startTime);
-          const slotEnd = new Date(slot.endTime);
-          return (startDateTime < slotEnd) && (endDateTime > slotStart);
+      const [sh, sm] = av.start.split(":").map(Number);
+      const [eh, em] = av.end.split(":").map(Number);
+      let cur = new Date(selectedDate); cur.setHours(sh, sm, 0, 0);
+      const lim = new Date(selectedDate); lim.setHours(eh, em, 0, 0);
+      while (cur.getTime() + duration*60000 <= lim.getTime()) {
+        const t = cur.toTimeString().slice(0,5);
+        const st = new Date(`${selectedDate}T${t}`);
+        const en = new Date(st.getTime() + duration*60000);
+        raw.push({
+          time: t,
+          isPast: st < new Date(),
+          isOccupied: occupiedSlots.some(s => st < new Date(s.endTime) && en > new Date(s.startTime)),
         });
-        
-        slots.push({
-          time: timeStr,
-          isPast,
-          isOccupied
-        });
-        
-        // 30 mins intervals for start times
-        current.setTime(current.getTime() + 30 * 60000);
+        cur = new Date(cur.getTime() + 30*60000);
       }
     });
-    
-    // Deduplicate and sort
-    const uniqueSlots = Array.from(new Map(slots.map(item => [item.time, item])).values());
-    uniqueSlots.sort((a, b) => a.time.localeCompare(b.time));
-    
-    return uniqueSlots;
+    return [...new Map(raw.map(x => [x.time, x])).values()].sort((a,b) => a.time.localeCompare(b.time));
+  })();
+
+  const getPrice = () => {
+    return selectedListing?.price || tutor?.price || 0;
   };
 
-  const handleSlotClick = (slot) => {
-    if (slot.isPast || slot.isOccupied) return;
-    setSelectedTime(slot.time);
-  };
-
-  const getSelectedPrice = () => {
-    if (!selectedLessonRate) return 0;
-    if (selectedLessonType === "online") {
-      return selectedLessonRate.onlinePrice || selectedLessonRate.price || 0;
-    } else {
-      return selectedLessonRate.inPersonPrice || selectedLessonRate.price || 0;
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedListing || !selectedDate || !selectedTime || !selectedLessonRate) return;
-
-    if (dateError) {
-      setError(dateError);
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
+  const handleSubmit = async () => {
+    if (!selectedListing || !selectedDate || !selectedTime || !selectedLessonRate || dateError) return;
+    setSubmitting(true); setError(null);
     try {
       const start = new Date(`${selectedDate}T${selectedTime}`);
-      const duration = selectedLessonRate.duration || 60;
-      const end = new Date(start.getTime() + duration * 60000);
-
-      const typeLabel = selectedLessonType === "online" ? "Online" : "Yüz Yüze";
-      const fullNote = `[Seçilen Ders: ${selectedLessonRate.title} - Ders Tipi: ${typeLabel}] ${studentNote.trim()}`;
-
-      await createBooking({
-        teacherListingId: selectedListing.id,
-        startTime: start.toISOString(),
-        endTime: end.toISOString(),
-        studentNote: fullNote,
-        source: 1 // Site
-      });
-
+      const duration = selectedListing?.lessonDuration || selectedLessonRate?.duration || 60;
+      const end   = new Date(start.getTime() + duration * 60000);
+      const note  = `[Seçilen Ders: ${selectedLessonRate.title} - Tip: ${selectedLessonType === "online" ? "Online" : "Yüz Yüze"}] ${studentNote.trim()}`;
+      await createBooking({ teacherListingId: selectedListing.id, startTime: start.toISOString(), endTime: end.toISOString(), studentNote: note, source: 1 });
       setSuccess(true);
-    } catch (err) {
-      setError(err.message || "Rezervasyon oluşturulurken bir hata oluştu.");
+    } catch (e) {
+      setError(e.message || "Rezervasyon oluşturulurken bir hata oluştu.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const timeSlots = getTimeSlots();
+  const isStudent     = user?.role?.toLowerCase() === "student";
+  const hasBothTypes  = selectedLessonRate?.onlinePrice && selectedLessonRate?.inPersonPrice;
+  const stepLessonType = hasBothTypes ? 3 : 2;
+  const stepNote       = hasBothTypes ? 4 : 3;
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <Loader2 className="w-12 h-12 animate-spin text-green-600" />
-        <p className="text-gray-400 font-black uppercase tracking-widest text-xs">Rezervasyon Paneli Hazırlanıyor</p>
-      </div>
-    );
-  }
+  /* ── LOADING ── */
+  if (loading) return (
+    <Wrap><Inner>
+      <Overlay>
+        <div className="ring" />
+        <p>Rezervasyon Hazırlanıyor…</p>
+      </Overlay>
+    </Inner></Wrap>
+  );
 
-  if (success) {
-    return (
-      <div className="max-w-2xl mx-auto py-20 px-6 text-center animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-white p-12 rounded-[3rem] shadow-2xl shadow-emerald-900/5 border border-emerald-50 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-10 opacity-5">
-             <Sparkles className="w-40 h-40 text-emerald-500" />
-          </div>
-          <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
-            <CheckCircle2 className="w-12 h-12 text-emerald-500" />
-          </div>
-          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Talebiniz hocaya iletildi</h1>
-          <p className="text-gray-500 text-lg font-medium mb-10">
-            Ders talebiniz başarıyla oluşturuldu ve <span className="text-gray-900 font-black">{tutor.teacherName}</span> hocamıza gönderildi.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="h-14 px-10 rounded-2xl bg-emerald-600 hover:bg-emerald-700 font-bold shadow-xl shadow-emerald-200" onClick={() => navigate("/student/lessons")}>
-              Derslerime Git
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-14 px-10 rounded-2xl font-bold border-2" 
-              onClick={() => {
-                const targetId = tutor?.tutorUserId || tutor?.teacherUserId;
-                if (targetId) {
-                  navigate(`/student/messages?userId=${targetId}`);
-                } else {
-                  toast.error("Öğretmen kullanıcı bilgisi bulunamadı.");
-                }
-              }}
-            >
-              Hocaya Mesaj At
-            </Button>
-          </div>
+  /* ── UNAUTHORIZED ── */
+  if (!isStudent) return (
+    <Wrap><Inner>
+      <Center>
+        <div className="ico err"><AlertCircle size={30}/></div>
+        <h1>Yetkisiz Erişim</h1>
+        <p>Bu sayfaya yalnızca <strong>öğrenci hesabı</strong> ile erişebilirsiniz.</p>
+        <div className="acts">
+          <ABtn onClick={() => navigate("/tutors")}><Zap size={14}/> Eğitmenleri Listele</ABtn>
+          <ABtn $out onClick={() => navigate("/")}>Ana Sayfaya Dön</ABtn>
         </div>
-      </div>
-    );
-  }
+      </Center>
+    </Inner></Wrap>
+  );
 
+  /* ── SUCCESS ── */
+  if (success) return (
+    <Wrap><Inner>
+      <Center>
+        <div className="ico ok"><CheckCircle2 size={30}/></div>
+        <h1>Talebiniz İletildi 🎉</h1>
+        <p>Ders talebiniz <strong>{tutor.teacherName}</strong> hocamıza başarıyla gönderildi.</p>
+        <Pill>
+          <div className="it"><CalendarIcon size={12}/>{selectedDate}</div>
+          <div className="it"><Clock size={12}/>{selectedTime}</div>
+          <div className="it"><BookOpen size={12}/>{selectedLessonRate?.title}</div>
+        </Pill>
+        <div className="acts">
+          <ABtn onClick={() => navigate("/student/lessons")}><Zap size={14}/>Derslerime Git</ABtn>
+          <ABtn $out onClick={() => {
+            const id = tutor?.tutorUserId || tutor?.teacherUserId;
+            if (id) navigate(`/student/messages?userId=${id}`);
+            else toast.error("Öğretmen bilgisi bulunamadı.");
+          }}><MessageSquare size={14}/>Hocaya Mesaj</ABtn>
+        </div>
+      </Center>
+    </Inner></Wrap>
+  );
+
+  /* ── MAIN ── */
   return (
-    <div className="max-w-5xl mx-auto py-12 px-6 animate-in fade-in duration-700">
-      <header className="flex items-center gap-6 mb-12">
-        <button onClick={() => navigate(-1)} className="w-14 h-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-100 transition-all shadow-sm">
-          <ChevronLeft size={24} />
-        </button>
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Ders Rezervasyonu</h1>
-          <p className="text-gray-500 font-medium">Hocanızla ders saatinizi planlayın.</p>
-        </div>
-      </header>
+    <Wrap>
+      <Inner>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Left: Selection Form */}
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="p-8 md:p-10">
-            <form onSubmit={handleSubmit} className="space-y-10">
-              
-              {/* 1. Ders Seçimi */}
-              <section>
-                <SectionTitle>
-                  <Badge className="bg-green-100 text-green-600 border-none mr-3">1</Badge> 
-                  Ders Seçin
-                </SectionTitle>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                  {lessonRates.map((rate, idx) => (
-                    <SelectionCard 
-                      key={idx} 
-                      $active={selectedLessonRate?.title === rate.title}
-                      onClick={() => handleLessonRateChange(rate)}
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
-                          <BookOpen size={20} />
+        {/* Header */}
+        <TopBar>
+          <BackBtn onClick={() => navigate(-1)}><ChevronLeft size={20}/></BackBtn>
+          <div>
+            <h1>Ders Rezervasyonu</h1>
+            <p>Hocanızla ders saatinizi planlayın</p>
+          </div>
+        </TopBar>
+
+        <Grid>
+          {/* ── FORM ── */}
+          <FormCol>
+
+            {/* 1. Ders Seçimi */}
+            <Card>
+              <CardHead>
+                <Num>1</Num>
+                <CardTitle>Ders Seçin</CardTitle>
+              </CardHead>
+              {lessonRates.length === 0
+                ? <Empty><AlertCircle size={16}/>Bu eğitmen için ders bilgisi bulunamadı.</Empty>
+                : <LessonGrid>
+                    {lessonRates.map((r, i) => (
+                      <LessonCard key={i} $active={selectedLessonRate?.title === r.title}
+                        onClick={() => handleRateChange(r)} type="button">
+                        <div className="ic"><BookOpen size={17}/></div>
+                        {selectedLessonRate?.title === r.title && <div className="chk"><CheckCircle2 size={15}/></div>}
+                        <div className="name">{r.title}</div>
+                        <div className="meta">{r.duration} dk{tutor?.category && ` · ${tutor.category}`}</div>
+                        <div className="badges">
+                          {r.onlinePrice   && <span className="bdg on"><Monitor size={9}/>₺{r.onlinePrice}</span>}
+                          {r.inPersonPrice && <span className="bdg ip"><HomeIcon size={9}/>₺{r.inPersonPrice}</span>}
+                          {!r.onlinePrice && !r.inPersonPrice && r.price && <span className="bdg gn">₺{r.price}</span>}
                         </div>
-                        {selectedLessonRate?.title === rate.title && <CheckCircle2 className="w-5 h-5 text-green-600" />}
-                      </div>
-                      <h4 className="font-black text-gray-900 text-base">{rate.title}</h4>
-                      <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-widest">{tutor.category || "Ders"} • {rate.duration} Dakika</p>
-                      
-                      <div className="mt-4 pt-3 border-t border-gray-50 flex gap-2 flex-wrap">
-                        {rate.onlinePrice && (
-                          <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none text-[11px] font-bold">
-                            Online: ₺{rate.onlinePrice}
-                          </Badge>
-                        )}
-                        {rate.inPersonPrice && (
-                          <Badge variant="secondary" className="bg-orange-50 text-orange-600 border-none text-[11px] font-bold">
-                            Yüz Yüze: ₺{rate.inPersonPrice}
-                          </Badge>
-                        )}
-                        {!rate.onlinePrice && !rate.inPersonPrice && rate.price && (
-                          <Badge variant="secondary" className="bg-green-50 text-green-600 border-none text-[11px] font-bold">
-                            Fiyat: ₺{rate.price}
-                          </Badge>
-                        )}
-                      </div>
-                    </SelectionCard>
-                  ))}
-                </div>
-              </section>
+                      </LessonCard>
+                    ))}
+                  </LessonGrid>
+              }
+            </Card>
 
-              {/* 2. Ders Tipi Seçimi */}
-              {selectedLessonRate && (selectedLessonRate.onlinePrice && selectedLessonRate.inPersonPrice) && (
-                <section className="animate-in fade-in duration-300">
-                  <SectionTitle>
-                    <Badge className="bg-green-100 text-green-600 border-none mr-3">2</Badge> 
-                    Ders Alma Tipi
-                  </SectionTitle>
-                  <p className="text-gray-400 text-sm font-medium mt-1 mb-4">Dersinizi online mı yoksa yüz yüze mi almak istersiniz?</p>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <TypeSelectorCard 
-                      $active={selectedLessonType === "online"}
-                      onClick={() => setSelectedLessonType("online")}
-                    >
-                      <Monitor size={22} className={selectedLessonType === "online" ? "text-green-600" : "text-gray-400"} />
-                      <div className="text-left">
-                        <p className="font-bold text-sm text-gray-900">Uzaktan / Online</p>
-                        <p className="text-green-600 font-black text-base mt-0.5">₺{selectedLessonRate.onlinePrice}</p>
-                      </div>
-                    </TypeSelectorCard>
-
-                    <TypeSelectorCard 
-                      $active={selectedLessonType === "inperson"}
-                      onClick={() => setSelectedLessonType("inperson")}
-                    >
-                      <HomeIcon size={22} className={selectedLessonType === "inperson" ? "text-green-600" : "text-gray-400"} />
-                      <div className="text-left">
-                        <p className="font-bold text-sm text-gray-900">Yüz Yüze</p>
-                        <p className="text-green-600 font-black text-base mt-0.5">₺{selectedLessonRate.inPersonPrice}</p>
-                      </div>
-                    </TypeSelectorCard>
+            {/* Haftalık Takvim */}
+            <Card>
+              <CardHead>
+                <Num $ghost>✓</Num>
+                <CardTitle>Haftalık Ders Takvimi</CardTitle>
+              </CardHead>
+              <LegendRow>
+                {[["on",Monitor,"Online"],["ip",HomeIcon,"Yüz Yüze"],["bt",Globe,"Her İkisi"],["em",null,"Müsait Değil"]].map(([cls, Icon, lbl]) => (
+                  <div key={cls} className="leg">
+                    <div className={`dot ${cls}`}>{Icon && <Icon size={9}/>}</div>
+                    <span>{lbl}</span>
                   </div>
-                </section>
-              )}
+                ))}
+              </LegendRow>
+              <SchedWrap>
+                <table>
+                  <thead>
+                    <tr>
+                      <th className="cor">Saatler</th>
+                      {["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"].map(d=><th key={d}>{d}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {["Sabah","Öğle","Öğleden Sonra","Akşam"].map(slot => (
+                      <tr key={slot}>
+                        <td className="lbl">{slot}</td>
+                        {[0,1,2,3,4,5,6].map(di => {
+                          const avList =
+                            tutor.availability?.$values ||
+                            tutor.availability ||
+                            tutor.availabilities?.$values ||
+                            tutor.availabilities || [];
+                          const en7 = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+                          const tr7 = ["pazartesi","salı","çarşamba","perşembe","cuma","cumartesi","pazar"];
+                          const av = avList.find(a => {
+                            const ad = a.day.trim().toLowerCase();
+                            if (ad !== en7[di] && ad !== tr7[di]) return false;
+                            const h = parseInt(a.start.split(":")[0]);
+                            if (slot==="Sabah" && h>=6  && h<12) return true;
+                            if (slot==="Öğle"  && h>=12 && h<15) return true;
+                            if (slot==="Öğleden Sonra" && h>=15 && h<18) return true;
+                            if (slot==="Akşam" && h>=18 && h<=23) return true;
+                            return false;
+                          });
+                          let cls="em", Icon=null;
+                          if (av) {
+                            const t = av.type || tutor.serviceType;
+                            if      (["both","Both",3,"OnlineAndFaceToFace"].includes(t)) { cls="bt"; Icon=Globe; }
+                            else if (["online","Online",1,"OnlineOnly"].includes(t))       { cls="on"; Icon=Monitor; }
+                            else                                                            { cls="ip"; Icon=HomeIcon; }
+                          }
+                          return <td key={di}><div className={`cell ${cls}`}>{Icon&&<Icon size={9}/>}</div></td>;
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </SchedWrap>
+            </Card>
 
-              {/* 3. Tarih ve Saat Seçimi */}
-              <section>
-                <SectionTitle>
-                  <Badge className="bg-green-100 text-green-600 border-none mr-3">
-                    {selectedLessonRate && (selectedLessonRate.onlinePrice && selectedLessonRate.inPersonPrice) ? "3" : "2"}
-                  </Badge> 
-                  Tarih ve Saat Seçin
-                </SectionTitle>
-                
-                <div className="grid grid-cols-1 gap-6 mt-6">
-                  <FormGroup>
-                    <label><CalendarIcon className="w-4 h-4 inline mr-2 text-green-500" /> Ders Tarihi</label>
-                    <input 
-                      type="date" 
-                      min={new Date().toISOString().split("T")[0]}
-                      value={selectedDate}
-                      onChange={(e) => handleDateChange(e.target.value)}
-                      required
-                    />
-                    {dateError && (
-                      <span className="text-xs text-red-500 font-bold mt-1">
-                        {dateError}
-                      </span>
-                    )}
-                  </FormGroup>
-
-                  {selectedDate && !dateError && (
-                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 block">
-                        <Clock className="w-4 h-4 inline mr-2 text-green-500" /> Boş Saatler (Haftalık Takvim)
-                      </label>
-                      
-                      {timeSlots.length > 0 ? (
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2.5">
-                          {timeSlots.map((slot, index) => {
-                            const isSelected = selectedTime === slot.time;
-                            const isUnavailable = slot.isPast || slot.isOccupied;
-                            
-                            return (
-                              <SlotButton
-                                key={index}
-                                type="button"
-                                $selected={isSelected}
-                                $disabled={isUnavailable}
-                                onClick={() => handleSlotClick(slot)}
-                                disabled={isUnavailable}
-                              >
-                                {slot.time}
-                              </SlotButton>
-                            );
-                          })}
+            {/* 2. Ders Tipi */}
+            {hasBothTypes && (
+              <Card>
+                <CardHead>
+                  <Num>2</Num>
+                  <CardTitle>Ders Alma Tipi</CardTitle>
+                </CardHead>
+                <p style={{fontSize:12, color:"var(--text-muted)", margin:"0 0 14px"}}>Online mı yoksa yüz yüze mi almak istersiniz?</p>
+                <TypeRow>
+                  {[
+                    {key:"online",  Icon:Monitor,  lbl:"Uzaktan / Online", price:selectedLessonRate.onlinePrice},
+                    {key:"inperson",Icon:HomeIcon, lbl:"Yüz Yüze",        price:selectedLessonRate.inPersonPrice},
+                  ].map(({key,Icon,lbl,price}) => {
+                    const dis = isTypeDis(key);
+                    return (
+                      <TypeBtn key={key} type="button"
+                        $active={selectedLessonType===key} $dis={dis}
+                        disabled={dis}
+                        onClick={()=>{ if(!dis) setSelectedLessonType(key); }}>
+                        <div className="ti"><Icon size={18}/></div>
+                        <div>
+                          <div className="tl">{lbl}</div>
+                          <div className="tp">₺{price}</div>
                         </div>
-                      ) : (
-                        <div className="p-6 bg-amber-50 border border-amber-100 rounded-2xl text-amber-800 text-sm font-medium flex items-center gap-3">
-                          <AlertCircle size={20} className="text-amber-600 flex-shrink-0" />
-                          Hocanın bu günde herhangi bir müsaitlik takvimi veya boş saati bulunmamaktadır.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </section>
+                        {selectedLessonType===key && !dis && <CheckCircle2 size={16} className="chk"/>}
+                        {dis && <span className="dbdg">Bu gün yok</span>}
+                      </TypeBtn>
+                    );
+                  })}
+                </TypeRow>
+              </Card>
+            )}
 
-              {/* 4. Not Ekleme */}
-              <section>
-                <SectionTitle>
-                  <Badge className="bg-green-100 text-green-600 border-none mr-3">
-                    {selectedLessonRate && (selectedLessonRate.onlinePrice && selectedLessonRate.inPersonPrice) ? "4" : "3"}
-                  </Badge> 
-                  Hocaya Not (Opsiyonel)
-                </SectionTitle>
-                <FormGroup className="mt-6">
-                  <textarea 
-                    rows="4" 
-                    placeholder="Ders hakkında sormak istediğiniz veya hocanızın bilmesini istediğiniz detaylar..."
-                    value={studentNote}
-                    onChange={(e) => setStudentNote(e.target.value)}
-                    maxLength={500}
-                    className="resize-none"
-                  ></textarea>
-                  <div className="flex justify-between items-center text-xs text-gray-400 font-bold mt-1">
-                    <span></span>
-                    <span>{studentNote.length}/500 Karakter</span>
-                  </div>
-                </FormGroup>
-              </section>
+            {/* 3. Tarih & Saat */}
+            <Card>
+              <CardHead>
+                <Num>{stepLessonType}</Num>
+                <CardTitle>Tarih ve Saat Seçin</CardTitle>
+              </CardHead>
 
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-3">
-                  <AlertCircle size={20} /> {error}
-                </div>
+              <SecLabel><CalendarIcon size={12}/>Önümüzdeki 14 Gün</SecLabel>
+              <DateScroll>
+                {daysList.map((d, i) => (
+                  <DateChip key={i} type="button"
+                    $active={selectedDate===d.dateString}
+                    onClick={()=>handleDateChange(d.dateString)}>
+                    <span className="dn">{d.dayName}</span>
+                    <span className="num">{d.dayNumber}</span>
+                    <span className="mo">{d.monthName}</span>
+                    {d.isToday && <span className="dot"/>}
+                  </DateChip>
+                ))}
+              </DateScroll>
+              {dateError && <ErrMsg>{dateError}</ErrMsg>}
+
+              {selectedDate && !dateError && (
+                <SlotSection>
+                  <SecLabel style={{marginTop:0}}><Clock size={12}/>Müsait Saatler</SecLabel>
+                  {timeSlots.length > 0
+                    ? <SlotGrid>
+                        {timeSlots.map((s, i) => (
+                          <Slot key={i} type="button"
+                            $sel={selectedTime===s.time}
+                            $dis={s.isPast||s.isOccupied}
+                            disabled={s.isPast||s.isOccupied}
+                            onClick={()=>{ if(!s.isPast&&!s.isOccupied) setSelectedTime(s.time); }}>
+                            {s.time}
+                          </Slot>
+                        ))}
+                      </SlotGrid>
+                    : <Empty $warn><AlertCircle size={15}/>Bu günde müsait saat bulunmamaktadır.</Empty>
+                  }
+                </SlotSection>
               )}
+            </Card>
 
-              <Button 
-                type="submit" 
-                className="w-full h-16 rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 font-black text-lg"
-                disabled={submitting || !selectedListing || !selectedDate || !selectedTime || !selectedLessonRate}
-              >
-                {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Rezervasyonu Onaya Gönder"}
-              </Button>
-            </form>
-          </Card>
-        </div>
+            {/* 4. Not */}
+            <Card>
+              <CardHead>
+                <Num>{stepNote}</Num>
+                <CardTitle>Hocaya Not (Opsiyonel)</CardTitle>
+              </CardHead>
+              <NoteBox rows={4}
+                placeholder="Ders hakkında sormak istediğiniz detayları yazın..."
+                value={studentNote}
+                onChange={e=>setStudentNote(e.target.value)}
+                maxLength={500}/>
+              <CharCnt>{studentNote.length}/500</CharCnt>
+            </Card>
 
-        {/* Right: Summary Sidebar */}
-        <aside className="space-y-6">
-          <Card className="p-8 border-none shadow-2xl shadow-green-900/5 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
-            <h3 className="text-xl font-black text-gray-900 mb-8 relative z-10">Özet Bilgiler</h3>
-            
-            <div className="space-y-6 relative z-10">
-              <div className="flex items-center gap-4">
-                <img 
-                  src={tutor.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.teacherName)}&background=2d79f3&color=fff`} 
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-sm"
-                  alt="Tutor"
+            {error && <ErrBanner><AlertCircle size={17}/><span>{error}</span></ErrBanner>}
+
+            <SubmitBtn type="button" onClick={handleSubmit}
+              disabled={submitting || !selectedListing || !selectedDate || !selectedTime || !selectedLessonRate}>
+              {submitting
+                ? <Loader2 size={20} className="sp"/>
+                : <><Zap size={18}/>Rezervasyonu Onaya Gönder</>
+              }
+            </SubmitBtn>
+
+          </FormCol>
+
+          {/* ── SIDEBAR ── */}
+          <Sidebar>
+            <SCard>
+              <AvatarRow>
+                <img
+                  src={tutor.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.teacherName)}&background=16a34a&color=fff`}
+                  alt={tutor.teacherName}
                 />
                 <div>
-                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest">EĞİTMEN</p>
-                  <p className="font-black text-gray-900">{tutor.teacherName}</p>
+                  <div className="lbl">Eğitmen</div>
+                  <div className="nm">{tutor.teacherName}</div>
+                  {tutor.category && <div className="ct"><BookOpen size={10}/>{tutor.category}</div>}
                 </div>
-              </div>
+              </AvatarRow>
+              <Hr/>
 
-              <hr className="border-gray-50" />
+              <SLabel>Seçilen Ders</SLabel>
+              {selectedLessonRate
+                ? <SelBox>
+                    <div className="sn">{selectedLessonRate.title}</div>
+                    <div className="sm">
+                      {selectedLessonType==="online" ? <><Monitor size={11}/>Online</> : <><HomeIcon size={11}/>Yüz Yüze</>}
+                      <span>· {selectedListing?.lessonDuration || selectedLessonRate?.duration || 60} Dk</span>
+                    </div>
+                  </SelBox>
+                : <p style={{fontSize:12,color:"var(--text-muted)",fontStyle:"italic"}}>Henüz seçilmedi</p>
+              }
 
-              <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">SEÇİLEN DERS & TİP</p>
-                {selectedLessonRate ? (
-                  <div className="bg-green-50/50 p-4 rounded-2xl border border-green-50">
-                    <p className="font-black text-gray-900 text-sm">{selectedLessonRate.title}</p>
-                    <p className="text-xs text-green-600 font-bold mt-1 flex items-center gap-1.5">
-                      {selectedLessonType === "online" ? (
-                        <><Monitor size={12} /> Online ({selectedLessonRate.duration || 60} Dk)</>
-                      ) : (
-                        <><HomeIcon size={12} /> Yüz Yüze ({selectedLessonRate.duration || 60} Dk)</>
-                      )}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-400 italic">Henüz bir branş seçilmedi.</p>
-                )}
-              </div>
+              <SLabel style={{marginTop:16}}>Tarih & Saat</SLabel>
+              <InfoLine><CalendarIcon size={13}/>{selectedDate || "—"}</InfoLine>
+              <InfoLine><Clock size={13}/>{selectedTime || "—"}</InfoLine>
 
-              <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">TARİH & SAAT</p>
-                <div className="space-y-2">
-                   <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                      <CalendarIcon size={16} className="text-green-500" /> 
-                      {selectedDate || "Tarih Seçilmedi"}
-                   </div>
-                   <div className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                      <Clock size={16} className="text-green-500" /> 
-                      {selectedTime || "Saat Seçilmedi"}
-                   </div>
-                </div>
-              </div>
+              <PricePill>
+                <span className="pl">Toplam Ücret</span>
+                <span className="pv">₺{getPrice()}</span>
+              </PricePill>
+            </SCard>
 
-              <div className="pt-6 border-t border-gray-50">
-                <div className="flex justify-between items-end">
-                   <span className="text-sm font-black text-gray-900">Toplam Ücret</span>
-                   <span className="text-2xl font-black text-green-600">₺{getSelectedPrice()}</span>
-                </div>
-              </div>
-            </div>
-          </Card>
+            <HelpCard>
+              <MessageSquare size={18}/>
+              <h4>Yardıma mı ihtiyacınız var?</h4>
+              <p>Rezervasyon süreci hakkında sorularınız için destek merkezimize başvurabilirsiniz.</p>
+              <button onClick={() => navigate("/student/support")}>
+                Yardım merkezine git <ArrowRight size={13}/>
+              </button>
+            </HelpCard>
+          </Sidebar>
 
-          <div className="bg-gray-900 rounded-[2rem] p-8 text-white shadow-xl">
-             <div className="flex items-center gap-3 mb-4">
-                <MessageSquare className="text-green-400" />
-                <h4 className="font-black">Destek mi lazım?</h4>
-             </div>
-             <p className="text-sm text-gray-400 font-medium leading-relaxed">
-                Rezervasyon süreci hakkında bir sorunuz varsa veya yardıma ihtiyacınız olursa bizimle iletişime geçebilirsiniz.
-             </p>
-             <Button variant="link" className="text-green-400 font-black p-0 mt-4 h-auto">Yardım merkezine git <ArrowRight className="ml-2 w-4 h-4" /></Button>
-          </div>
-        </aside>
-      </div>
-    </div>
+        </Grid>
+      </Inner>
+    </Wrap>
   );
 }
-
-const Card = styled.div`
-  background: white;
-  border-radius: 32px;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.02);
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-`;
-
-const SelectionCard = styled.div`
-  padding: 24px;
-  border-radius: 24px;
-  border: 2px solid ${props => props.$active ? '#16a34a' : '#f8fafc'};
-  background: ${props => props.$active ? '#f3f7ff' : '#f8fafc'};
-  cursor: pointer;
-  transition: all 0.2s;
-  &:hover {
-    border-color: #16a34a;
-    transform: translateY(-2px);
-  }
-`;
-
-const TypeSelectorCard = styled.button`
-  padding: 20px;
-  border-radius: 20px;
-  border: 2px solid ${props => props.$active ? '#16a34a' : '#f1f5f9'};
-  background: ${props => props.$active ? '#f0fdf4' : 'white'};
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-  &:hover {
-    border-color: #16a34a;
-  }
-`;
-
-const SlotButton = styled.button`
-  padding: 12px 6px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-  transition: all 0.2s;
-  
-  ${props => props.$selected && `
-    background: #16a34a;
-    color: white;
-    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);
-  `}
-  
-  ${props => !props.$selected && !props.$disabled && `
-    background: #f0fdf4;
-    color: #16a34a;
-    border: 1px solid #dcfce7;
-    &:hover {
-      background: #16a34a;
-      color: white;
-      border-color: #16a34a;
-    }
-  `}
-  
-  ${props => props.$disabled && `
-    background: #f8fafc;
-    color: #cbd5e1;
-    border: 1px solid #f1f5f9;
-    text-decoration: line-through;
-    cursor: not-allowed;
-  `}
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  label {
-    font-size: 13px;
-    font-weight: 800;
-    color: #4b5563;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  input, textarea, select {
-    padding: 16px 20px;
-    border-radius: 18px;
-    border: 2px solid #f1f5f9;
-    background: #f8fafc;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-primary);
-    width: 100%;
-    transition: all 0.2s;
-    
-    &:focus {
-      outline: none;
-      border-color: #16a34a;
-      background: white;
-      box-shadow: 0 0 0 4px rgba(45, 121, 243, 0.05);
-    }
-  }
-`;
