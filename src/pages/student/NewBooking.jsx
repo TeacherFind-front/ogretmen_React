@@ -11,7 +11,10 @@ import {
   AlertCircle,
   MessageSquare,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Monitor,
+  Home as HomeIcon,
+  BookOpen
 } from "lucide-react";
 import { getTutorById } from "@/services/tutorService";
 import { createBooking } from "@/services/bookingService";
@@ -32,12 +35,16 @@ export default function NewBooking() {
   const [error, setError] = useState(null);
 
   const [selectedListing, setSelectedListing] = useState(null);
+  const [lessonRates, setLessonRates] = useState([]);
+  const [selectedLessonRate, setSelectedLessonRate] = useState(null);
+  const [selectedLessonType, setSelectedLessonType] = useState("online"); // online veya inperson
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [studentNote, setStudentNote] = useState("");
   const [occupiedSlots, setOccupiedSlots] = useState([]);
-  const [timeError, setTimeError] = useState("");
   const [dateError, setDateError] = useState("");
+
+  const daysEnglish = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
   useEffect(() => {
     if (!tutorId) {
@@ -49,6 +56,40 @@ export default function NewBooking() {
       try {
         const data = await getTutorById(tutorId);
         setTutor(data);
+        
+        // Parse lesson rates from bio JSON marker
+        let rates = [];
+        const bioText = data.bio || "";
+        const match = bioText.match(/---LESSON_RATES_JSON---([\s\S]*?)---END_LESSON_RATES_JSON---/);
+        if (match && match[1]) {
+          try {
+            rates = JSON.parse(match[1].trim());
+          } catch (e) {
+            console.error("Failed to parse lesson rates JSON", e);
+          }
+        }
+        
+        if (rates.length === 0) {
+          rates = data.lessonRates?.$values || data.lessonRates || [];
+        }
+        
+        setLessonRates(rates);
+        if (rates.length > 0) {
+          const firstRate = rates[0];
+          setSelectedLessonRate(firstRate);
+          
+          // Set initial lesson type based on availability
+          if (firstRate.onlinePrice && firstRate.inPersonPrice) {
+            setSelectedLessonType("online");
+          } else if (firstRate.onlinePrice) {
+            setSelectedLessonType("online");
+          } else if (firstRate.inPersonPrice) {
+            setSelectedLessonType("inperson");
+          } else {
+            setSelectedLessonType(firstRate.type || "online");
+          }
+        }
+
         if (data.listings?.length > 0) {
           setSelectedListing(data.listings[0]);
         }
@@ -66,7 +107,6 @@ export default function NewBooking() {
     const fetchOccupied = async () => {
       if (!selectedListing || !selectedDate) return;
       
-      // Geçersiz veya tamamlanmamış (0005, 0055 vb.) yılları sorgulamayı engelle (SQL Server 500 hatası almamak için)
       const year = parseInt(selectedDate.split("-")[0], 10);
       if (isNaN(year) || year < 2020) return;
 
@@ -90,45 +130,24 @@ export default function NewBooking() {
     fetchOccupied();
   }, [selectedListing, selectedDate]);
 
-  const isPastDateTime = (dateStr, timeStr) => {
-    if (!dateStr || !timeStr) return false;
-    const selected = new Date(`${dateStr}T${timeStr}`);
-    return selected < new Date();
-  };
-
-  const isTimeOccupied = (timeStr) => {
-    if (!selectedDate || !timeStr || !selectedListing) return false;
-    const start = new Date(`${selectedDate}T${timeStr}`);
-    const duration = selectedListing.lessonDuration || 60;
-    const end = new Date(start.getTime() + duration * 60000);
-
-    return occupiedSlots.some(slot => {
-      const slotStart = new Date(slot.startTime);
-      const slotEnd = new Date(slot.endTime);
-      // Check overlap: (start < slotEnd) && (end > slotStart)
-      return (start < slotEnd) && (end > slotStart);
-    });
-  };
-
-  const handleTimeChange = (timeValue) => {
-    setSelectedTime(timeValue);
-    if (selectedDate && timeValue) {
-      if (isPastDateTime(selectedDate, timeValue)) {
-        setTimeError("Geçmiş bir tarih/saat seçemezsiniz.");
-      } else if (isTimeOccupied(timeValue)) {
-        setTimeError("Bu saat aralığı doludur. Lütfen başka bir saat seçin.");
-      } else {
-        setTimeError("");
-      }
+  const handleLessonRateChange = (rate) => {
+    setSelectedLessonRate(rate);
+    setSelectedTime("");
+    
+    if (rate.onlinePrice && rate.inPersonPrice) {
+      setSelectedLessonType("online");
+    } else if (rate.onlinePrice) {
+      setSelectedLessonType("online");
+    } else if (rate.inPersonPrice) {
+      setSelectedLessonType("inperson");
     } else {
-      setTimeError("");
+      setSelectedLessonType(rate.type || "online");
     }
   };
 
   const handleDateChange = (dateValue) => {
     setSelectedDate(dateValue);
     setSelectedTime("");
-    setTimeError("");
     
     if (dateValue) {
       const todayStr = new Date().toISOString().split("T")[0];
@@ -142,27 +161,89 @@ export default function NewBooking() {
     }
   };
 
+  // Generate dynamic time slots based on tutor's availability for the selected day
+  const getTimeSlots = () => {
+    if (!selectedDate || !tutor || !selectedLessonRate) return [];
+    
+    const dateObj = new Date(selectedDate);
+    const dayOfWeekStr = daysEnglish[dateObj.getDay()];
+    
+    // Find availability configurations for selected day of week
+    const dayAvailabilities = tutor.availabilities?.filter(
+      x => x.day.toLowerCase() === dayOfWeekStr
+    ) || [];
+    
+    if (dayAvailabilities.length === 0) return [];
+    
+    const slots = [];
+    const duration = selectedLessonRate.duration || 60;
+    
+    dayAvailabilities.forEach(av => {
+      if (!av.start || !av.end) return;
+      
+      const [startHour, startMin] = av.start.split(":").map(Number);
+      const [endHour, endMin] = av.end.split(":").map(Number);
+      
+      let current = new Date(selectedDate);
+      current.setHours(startHour, startMin, 0, 0);
+      
+      const limit = new Date(selectedDate);
+      limit.setHours(endHour, endMin, 0, 0);
+      
+      while (current.getTime() + duration * 60000 <= limit.getTime()) {
+        const timeStr = current.toTimeString().split(" ")[0].substring(0, 5);
+        
+        const startDateTime = new Date(`${selectedDate}T${timeStr}`);
+        const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
+        
+        // Past time check
+        const isPast = startDateTime < new Date();
+        
+        // Overlap checking against occupiedSlots
+        const isOccupied = occupiedSlots.some(slot => {
+          const slotStart = new Date(slot.startTime);
+          const slotEnd = new Date(slot.endTime);
+          return (startDateTime < slotEnd) && (endDateTime > slotStart);
+        });
+        
+        slots.push({
+          time: timeStr,
+          isPast,
+          isOccupied
+        });
+        
+        // 30 mins intervals for start times
+        current.setTime(current.getTime() + 30 * 60000);
+      }
+    });
+    
+    // Deduplicate and sort
+    const uniqueSlots = Array.from(new Map(slots.map(item => [item.time, item])).values());
+    uniqueSlots.sort((a, b) => a.time.localeCompare(b.time));
+    
+    return uniqueSlots;
+  };
+
+  const handleSlotClick = (slot) => {
+    if (slot.isPast || slot.isOccupied) return;
+    setSelectedTime(slot.time);
+  };
+
+  const getSelectedPrice = () => {
+    if (!selectedLessonRate) return 0;
+    if (selectedLessonType === "online") {
+      return selectedLessonRate.onlinePrice || selectedLessonRate.price || 0;
+    } else {
+      return selectedLessonRate.inPersonPrice || selectedLessonRate.price || 0;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedListing || !selectedDate || !selectedTime) return;
+    if (!selectedListing || !selectedDate || !selectedTime || !selectedLessonRate) return;
 
     if (dateError) {
       setError(dateError);
-      return;
-    }
-
-    if (timeError) {
-      setError(timeError);
-      return;
-    }
-
-    if (isPastDateTime(selectedDate, selectedTime)) {
-      setError("Geçmiş bir tarih/saat seçemezsiniz.");
-      return;
-    }
-
-    if (isTimeOccupied(selectedTime)) {
-      setError("Seçilen saat aralığı doludur. Lütfen başka bir saat seçin.");
       return;
     }
 
@@ -170,15 +251,18 @@ export default function NewBooking() {
     setError(null);
 
     try {
-      // Create ISO strings
       const start = new Date(`${selectedDate}T${selectedTime}`);
-      const end = new Date(start.getTime() + (selectedListing.lessonDuration || 60) * 60000);
+      const duration = selectedLessonRate.duration || 60;
+      const end = new Date(start.getTime() + duration * 60000);
+
+      const typeLabel = selectedLessonType === "online" ? "Online" : "Yüz Yüze";
+      const fullNote = `[Seçilen Ders: ${selectedLessonRate.title} - Ders Tipi: ${typeLabel}] ${studentNote.trim()}`;
 
       await createBooking({
         teacherListingId: selectedListing.id,
         startTime: start.toISOString(),
         endTime: end.toISOString(),
-        studentNote: studentNote.trim(),
+        studentNote: fullNote,
         source: 1 // Site
       });
 
@@ -189,6 +273,8 @@ export default function NewBooking() {
       setSubmitting(false);
     }
   };
+
+  const timeSlots = getTimeSlots();
 
   if (loading) {
     return (
@@ -254,36 +340,98 @@ export default function NewBooking() {
         <div className="lg:col-span-2 space-y-8">
           <Card className="p-8 md:p-10">
             <form onSubmit={handleSubmit} className="space-y-10">
-              {/* Listing Selection */}
+              
+              {/* 1. Ders Seçimi */}
               <section>
-                <SectionTitle><Badge className="bg-green-100 text-green-600 border-none mr-3">1</Badge> Branş Seçin</SectionTitle>
+                <SectionTitle>
+                  <Badge className="bg-green-100 text-green-600 border-none mr-3">1</Badge> 
+                  Ders Seçin
+                </SectionTitle>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                  {tutor.listings?.map(listing => (
+                  {lessonRates.map((rate, idx) => (
                     <SelectionCard 
-                      key={listing.id} 
-                      $active={selectedListing?.id === listing.id}
-                      onClick={() => setSelectedListing(listing)}
+                      key={idx} 
+                      $active={selectedLessonRate?.title === rate.title}
+                      onClick={() => handleLessonRateChange(rate)}
                     >
                       <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
-                          <Badge variant="outline" className="text-[10px] p-0 border-none font-black">{listing.lessonDuration} DK</Badge>
+                        <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
+                          <BookOpen size={20} />
                         </div>
-                        {selectedListing?.id === listing.id && <CheckCircle2 className="w-5 h-5 text-green-600" />}
+                        {selectedLessonRate?.title === rate.title && <CheckCircle2 className="w-5 h-5 text-green-600" />}
                       </div>
-                      <h4 className="font-black text-gray-900">{listing.title}</h4>
-                      <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-widest">{listing.category} / {listing.subCategory}</p>
-                      <p className="text-xl font-black text-green-600 mt-4">₺{listing.price}</p>
+                      <h4 className="font-black text-gray-900 text-base">{rate.title}</h4>
+                      <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-widest">{tutor.category || "Ders"} • {rate.duration} Dakika</p>
+                      
+                      <div className="mt-4 pt-3 border-t border-gray-50 flex gap-2 flex-wrap">
+                        {rate.onlinePrice && (
+                          <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none text-[11px] font-bold">
+                            Online: ₺{rate.onlinePrice}
+                          </Badge>
+                        )}
+                        {rate.inPersonPrice && (
+                          <Badge variant="secondary" className="bg-orange-50 text-orange-600 border-none text-[11px] font-bold">
+                            Yüz Yüze: ₺{rate.inPersonPrice}
+                          </Badge>
+                        )}
+                        {!rate.onlinePrice && !rate.inPersonPrice && rate.price && (
+                          <Badge variant="secondary" className="bg-green-50 text-green-600 border-none text-[11px] font-bold">
+                            Fiyat: ₺{rate.price}
+                          </Badge>
+                        )}
+                      </div>
                     </SelectionCard>
                   ))}
                 </div>
               </section>
 
-              {/* Date & Time Selection */}
+              {/* 2. Ders Tipi Seçimi */}
+              {selectedLessonRate && (selectedLessonRate.onlinePrice && selectedLessonRate.inPersonPrice) && (
+                <section className="animate-in fade-in duration-300">
+                  <SectionTitle>
+                    <Badge className="bg-green-100 text-green-600 border-none mr-3">2</Badge> 
+                    Ders Alma Tipi
+                  </SectionTitle>
+                  <p className="text-gray-400 text-sm font-medium mt-1 mb-4">Dersinizi online mı yoksa yüz yüze mi almak istersiniz?</p>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <TypeSelectorCard 
+                      $active={selectedLessonType === "online"}
+                      onClick={() => setSelectedLessonType("online")}
+                    >
+                      <Monitor size={22} className={selectedLessonType === "online" ? "text-green-600" : "text-gray-400"} />
+                      <div className="text-left">
+                        <p className="font-bold text-sm text-gray-900">Uzaktan / Online</p>
+                        <p className="text-green-600 font-black text-base mt-0.5">₺{selectedLessonRate.onlinePrice}</p>
+                      </div>
+                    </TypeSelectorCard>
+
+                    <TypeSelectorCard 
+                      $active={selectedLessonType === "inperson"}
+                      onClick={() => setSelectedLessonType("inperson")}
+                    >
+                      <HomeIcon size={22} className={selectedLessonType === "inperson" ? "text-green-600" : "text-gray-400"} />
+                      <div className="text-left">
+                        <p className="font-bold text-sm text-gray-900">Yüz Yüze</p>
+                        <p className="text-green-600 font-black text-base mt-0.5">₺{selectedLessonRate.inPersonPrice}</p>
+                      </div>
+                    </TypeSelectorCard>
+                  </div>
+                </section>
+              )}
+
+              {/* 3. Tarih ve Saat Seçimi */}
               <section>
-                <SectionTitle><Badge className="bg-green-100 text-green-600 border-none mr-3">2</Badge> Tarih ve Saat</SectionTitle>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <SectionTitle>
+                  <Badge className="bg-green-100 text-green-600 border-none mr-3">
+                    {selectedLessonRate && (selectedLessonRate.onlinePrice && selectedLessonRate.inPersonPrice) ? "3" : "2"}
+                  </Badge> 
+                  Tarih ve Saat Seçin
+                </SectionTitle>
+                
+                <div className="grid grid-cols-1 gap-6 mt-6">
                   <FormGroup>
-                    <label><CalendarIcon className="w-4 h-4 inline mr-2 text-green-500" /> Tarih Seçin</label>
+                    <label><CalendarIcon className="w-4 h-4 inline mr-2 text-green-500" /> Ders Tarihi</label>
                     <input 
                       type="date" 
                       min={new Date().toISOString().split("T")[0]}
@@ -297,26 +445,52 @@ export default function NewBooking() {
                       </span>
                     )}
                   </FormGroup>
-                  <FormGroup>
-                    <label><Clock className="w-4 h-4 inline mr-2 text-green-500" /> Saat Seçin</label>
-                    <input 
-                      type="time" 
-                      value={selectedTime}
-                      onChange={(e) => handleTimeChange(e.target.value)}
-                      required
-                    />
-                    {timeError && (
-                      <span className="text-xs text-red-500 font-bold mt-1">
-                        {timeError}
-                      </span>
-                    )}
-                  </FormGroup>
+
+                  {selectedDate && !dateError && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 block">
+                        <Clock className="w-4 h-4 inline mr-2 text-green-500" /> Boş Saatler (Haftalık Takvim)
+                      </label>
+                      
+                      {timeSlots.length > 0 ? (
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2.5">
+                          {timeSlots.map((slot, index) => {
+                            const isSelected = selectedTime === slot.time;
+                            const isUnavailable = slot.isPast || slot.isOccupied;
+                            
+                            return (
+                              <SlotButton
+                                key={index}
+                                type="button"
+                                $selected={isSelected}
+                                $disabled={isUnavailable}
+                                onClick={() => handleSlotClick(slot)}
+                                disabled={isUnavailable}
+                              >
+                                {slot.time}
+                              </SlotButton>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-6 bg-amber-50 border border-amber-100 rounded-2xl text-amber-800 text-sm font-medium flex items-center gap-3">
+                          <AlertCircle size={20} className="text-amber-600 flex-shrink-0" />
+                          Hocanın bu günde herhangi bir müsaitlik takvimi veya boş saati bulunmamaktadır.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </section>
 
-              {/* Student Note */}
+              {/* 4. Not Ekleme */}
               <section>
-                <SectionTitle><Badge className="bg-green-100 text-green-600 border-none mr-3">3</Badge> Hocaya Not (Opsiyonel)</SectionTitle>
+                <SectionTitle>
+                  <Badge className="bg-green-100 text-green-600 border-none mr-3">
+                    {selectedLessonRate && (selectedLessonRate.onlinePrice && selectedLessonRate.inPersonPrice) ? "4" : "3"}
+                  </Badge> 
+                  Hocaya Not (Opsiyonel)
+                </SectionTitle>
                 <FormGroup className="mt-6">
                   <textarea 
                     rows="4" 
@@ -327,7 +501,7 @@ export default function NewBooking() {
                     className="resize-none"
                   ></textarea>
                   <div className="flex justify-between items-center text-xs text-gray-400 font-bold mt-1">
-                    <span>{timeError ? <span className="text-red-500">{timeError}</span> : ""}</span>
+                    <span></span>
                     <span>{studentNote.length}/500 Karakter</span>
                   </div>
                 </FormGroup>
@@ -342,7 +516,7 @@ export default function NewBooking() {
               <Button 
                 type="submit" 
                 className="w-full h-16 rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 font-black text-lg"
-                disabled={submitting || !selectedListing || !selectedDate || !selectedTime || !!timeError}
+                disabled={submitting || !selectedListing || !selectedDate || !selectedTime || !selectedLessonRate}
               >
                 {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Rezervasyonu Onaya Gönder"}
               </Button>
@@ -372,11 +546,17 @@ export default function NewBooking() {
               <hr className="border-gray-50" />
 
               <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">SEÇİLEN DERS</p>
-                {selectedListing ? (
+                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">SEÇİLEN DERS & TİP</p>
+                {selectedLessonRate ? (
                   <div className="bg-green-50/50 p-4 rounded-2xl border border-green-50">
-                    <p className="font-black text-gray-900 text-sm">{selectedListing.title}</p>
-                    <p className="text-xs text-green-600 font-bold mt-1">{selectedListing.lessonDuration} Dakika</p>
+                    <p className="font-black text-gray-900 text-sm">{selectedLessonRate.title}</p>
+                    <p className="text-xs text-green-600 font-bold mt-1 flex items-center gap-1.5">
+                      {selectedLessonType === "online" ? (
+                        <><Monitor size={12} /> Online ({selectedLessonRate.duration || 60} Dk)</>
+                      ) : (
+                        <><HomeIcon size={12} /> Yüz Yüze ({selectedLessonRate.duration || 60} Dk)</>
+                      )}
+                    </p>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-400 italic">Henüz bir branş seçilmedi.</p>
@@ -400,7 +580,7 @@ export default function NewBooking() {
               <div className="pt-6 border-t border-gray-50">
                 <div className="flex justify-between items-end">
                    <span className="text-sm font-black text-gray-900">Toplam Ücret</span>
-                   <span className="text-2xl font-black text-green-600">₺{selectedListing?.price || "0"}</span>
+                   <span className="text-2xl font-black text-green-600">₺{getSelectedPrice()}</span>
                 </div>
               </div>
             </div>
@@ -448,6 +628,55 @@ const SelectionCard = styled.div`
     border-color: #16a34a;
     transform: translateY(-2px);
   }
+`;
+
+const TypeSelectorCard = styled.button`
+  padding: 20px;
+  border-radius: 20px;
+  border: 2px solid ${props => props.$active ? '#16a34a' : '#f1f5f9'};
+  background: ${props => props.$active ? '#f0fdf4' : 'white'};
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    border-color: #16a34a;
+  }
+`;
+
+const SlotButton = styled.button`
+  padding: 12px 6px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  transition: all 0.2s;
+  
+  ${props => props.$selected && `
+    background: #16a34a;
+    color: white;
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);
+  `}
+  
+  ${props => !props.$selected && !props.$disabled && `
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #dcfce7;
+    &:hover {
+      background: #16a34a;
+      color: white;
+      border-color: #16a34a;
+    }
+  `}
+  
+  ${props => props.$disabled && `
+    background: #f8fafc;
+    color: #cbd5e1;
+    border: 1px solid #f1f5f9;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  `}
 `;
 
 const FormGroup = styled.div`
