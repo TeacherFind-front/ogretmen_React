@@ -270,10 +270,24 @@ export default function Home() {
     LOCATION_OPTIONS.find((o) => o.value === selectedLocation)?.label ||
     "Ders türü seçin...";
 
-  const subjectOptions =
-    allCategories.length > 0
-      ? allCategories.map((c) => c.category)
-      : ["Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca"];
+  const subjectOptions = [];
+  if (allCategories.length > 0) {
+    allCategories.forEach((c) => {
+      if (c.category && !subjectOptions.includes(c.category)) {
+        subjectOptions.push(c.category);
+      }
+      if (c.subjects) {
+        c.subjects.forEach((s) => {
+          if (s.name && !subjectOptions.includes(s.name)) {
+            subjectOptions.push(s.name);
+          }
+        });
+      }
+    });
+  } else {
+    subjectOptions.push("Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca");
+  }
+
   const filteredSubjects = subjectOptions.filter((s) =>
     s
       .toLocaleLowerCase("tr-TR")
@@ -348,7 +362,20 @@ export default function Home() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (selectedSubject) params.append("category", selectedSubject);
+    if (selectedSubject) {
+      const foundCategory = allCategories.find((c) => c.category === selectedSubject);
+      if (foundCategory) {
+        params.append("category", selectedSubject);
+      } else {
+        const parentCategory = allCategories.find((c) =>
+          c.subjects?.some((s) => s.name === selectedSubject)
+        );
+        if (parentCategory) {
+          params.append("category", parentCategory.category);
+        }
+        params.append("subjectName", selectedSubject);
+      }
+    }
     let serviceType = "";
     if (selectedLocation === "online") serviceType = "1";
     else if (selectedLocation === "yuz-yuze") serviceType = "2";
