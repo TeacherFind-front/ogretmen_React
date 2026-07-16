@@ -216,7 +216,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
-  const waveColor = isDark ? "#213d2b" : "#f0fdf4";
+  const waveColor = isDark ? "#213d2b" : "#f5f3ec";
 
   const [featuredTutors, setFeaturedTutors] = useState([]);
   const [allTutors, setAllTutors] = useState([]);
@@ -270,24 +270,10 @@ export default function Home() {
     LOCATION_OPTIONS.find((o) => o.value === selectedLocation)?.label ||
     "Ders türü seçin...";
 
-  const subjectOptions = [];
-  if (allCategories.length > 0) {
-    allCategories.forEach((c) => {
-      if (c.category && !subjectOptions.includes(c.category)) {
-        subjectOptions.push(c.category);
-      }
-      if (c.subjects) {
-        c.subjects.forEach((s) => {
-          if (s.name && !subjectOptions.includes(s.name)) {
-            subjectOptions.push(s.name);
-          }
-        });
-      }
-    });
-  } else {
-    subjectOptions.push("Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca");
-  }
-
+  const subjectOptions =
+    allCategories.length > 0
+      ? allCategories.map((c) => c.category)
+      : ["Türkçe ve Edebiyat", "Matematik", "İngilizce", "Fizik", "Almanca"];
   const filteredSubjects = subjectOptions.filter((s) =>
     s
       .toLocaleLowerCase("tr-TR")
@@ -362,20 +348,7 @@ export default function Home() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (selectedSubject) {
-      const foundCategory = allCategories.find((c) => c.category === selectedSubject);
-      if (foundCategory) {
-        params.append("category", selectedSubject);
-      } else {
-        const parentCategory = allCategories.find((c) =>
-          c.subjects?.some((s) => s.name === selectedSubject)
-        );
-        if (parentCategory) {
-          params.append("category", parentCategory.category);
-        }
-        params.append("subjectName", selectedSubject);
-      }
-    }
+    if (selectedSubject) params.append("category", selectedSubject);
     let serviceType = "";
     if (selectedLocation === "online") serviceType = "1";
     else if (selectedLocation === "yuz-yuze") serviceType = "2";
@@ -466,12 +439,12 @@ export default function Home() {
     >
       {/* ══════════ HERO SECTION ══════════ */}
       <section
-        className="relative overflow-hidden px-6"
+        className="relative px-6"
         style={{
           background:
             "linear-gradient(145deg, #052e16 0%, #0d4a28 30%, #15803d 70%, #16a34a 100%)",
-          paddingTop: "100px" /* fixed navbar (68px) + extra boşluk */,
-          paddingBottom: "120px",
+          paddingTop: "100px",
+          paddingBottom: "140px",
         }}
       >
         {/* Dekoratif mesh nokta deseni */}
@@ -494,11 +467,11 @@ export default function Home() {
         />
         {/* Sol alt glow */}
         <div
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none"
+          className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full pointer-events-none"
           style={{
             background:
               "radial-gradient(circle, rgba(22,163,74,0.2), transparent 65%)",
-            transform: "translate(-180px, 180px)",
+            transform: "translate(-180px, 60px)",
           }}
         />
         {/* Alt wave geçişi */}
@@ -693,7 +666,7 @@ export default function Home() {
           </div>
 
           {/* ARAMA ÇUBUĞU */}
-          <div className="mt-12 relative z-20">
+          <div className="mt-12 relative z-30">
             <div
               className="rounded-[2rem] p-2 flex flex-col md:flex-row items-center w-full max-w-4xl mx-auto gap-2"
               style={{
@@ -865,7 +838,7 @@ export default function Home() {
       {/* ══════════ KATEORİ GRID ══════════ */}
       <section
         className="py-10 px-6 transition-colors duration-300"
-        style={{ background: "var(--section-alt)" }}
+        style={{ background: "var(--page-bg)" }}
       >
         <div className="container mx-auto max-w-7xl">
           <div className="flex items-center justify-between mb-6 px-1">

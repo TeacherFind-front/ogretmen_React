@@ -388,11 +388,14 @@ export default function PublicLayout() {
             </div>
 
             <div>
-              <FooterTitle>Kurumsal</FooterTitle>
+              <FooterTitle>Kurumsal & Hukuki</FooterTitle>
               <FooterLink to="/hakkimizda">Hakkımızda</FooterLink>
               <FooterLink to="/iletisim">İletişim</FooterLink>
-              <FooterLink to="/privacy">Gizlilik Politikası</FooterLink>
-              <FooterLink to="/terms">Kullanım Koşulları</FooterLink>
+              <FooterLink to="/kullanim-sartlari">Kullanım Şartları</FooterLink>
+              <FooterLink to="/gizlilik-politikasi">Gizlilik Politikası</FooterLink>
+              <FooterLink to="/mesafeli-satis-sozlesmesi">Mesafeli Satış Sözleşmesi</FooterLink>
+              <FooterLink to="/iade-sartlari">İade Şartları</FooterLink>
+              <FooterLink to="/online-akademi-sozlesmesi">Online Akademi Sözleşmesi</FooterLink>
             </div>
 
             <div>

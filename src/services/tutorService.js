@@ -457,3 +457,21 @@ export async function deleteCertificate(id) {
   return true;
 }
 
+/**
+ * İlanın ana fotoğrafını belirle
+ * @param {string} listingId
+ * @param {string} photoId
+ */
+export async function setMainListingPhoto(listingId, photoId) {
+  const res = await apiFetch(`/api/tutors/my-listings/${listingId}/photos/${photoId}/main`, {
+    method: "PUT",
+  });
+
+  if (!res || !res.ok) {
+    const err = await res?.json().catch(() => ({}));
+    throw new Error(err.message || "Ana fotoğraf belirlenemedi.");
+  }
+
+  return true;
+}
+

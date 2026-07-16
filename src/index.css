@@ -31,9 +31,9 @@
     --radius: 0.5rem;
 
     /* Özel token'lar - light */
-    --page-bg:      #ffffff;
-    --section-alt:  #f0fdf4;
-    --card-bg:      #ffffff;
+    --page-bg:      #f5f3ec;
+    --section-alt:  #f5f3ec;
+    --card-bg:      #f5f3ec;
     --card-border:  #dcfce7;
     --text-primary: #052e16;
     --text-muted:   #4b7c5f;

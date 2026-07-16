@@ -40,6 +40,7 @@ export default function TutorLayout() {
     { to: "/", label: "Ana Sayfa", icon: <Home size={16} /> },
     { to: "/tutor/dashboard", label: "Panel", icon: "📊" },
     { to: "/tutor/bookings", label: "Ders Talepleri", icon: "📅" },
+    { to: "/tutor/listings", label: "İlanlarım", icon: "📋" },
     { to: "/tutor/create-listing", label: "İlan Ver", icon: "➕" },
     { to: "/tutor/availability", label: "Müsaitlik Ayarları", icon: "⏰" },
     { to: "/tutor/lessons", label: "Derslerim", icon: "📚" },

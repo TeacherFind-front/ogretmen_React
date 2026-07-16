@@ -19,6 +19,9 @@ import ForgotPassword from "./pages/public/ForgotPassword";
 import FAQ from "./pages/public/FAQ";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
+import TermsOfUse from "./pages/public/legal/TermsOfUse";
+import PrivacyPolicy from "./pages/public/legal/PrivacyPolicy";
+import DistanceSelling from "./pages/public/legal/DistanceSelling";
 
 // Öğrenci (Student) Sayfaları
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -40,6 +43,8 @@ import TutorMessages from "./pages/tutor/TutorMessages";
 import TutorChangePassword from "./pages/tutor/TutorChangePassword";
 import CreateListing from "./pages/tutor/CreateListing";
 import TutorBookings from "./pages/tutor/TutorBookings";
+import TutorListings from "./pages/tutor/TutorListings";
+import EditListing from "./pages/tutor/EditListing";
 
 // Yönetici (Admin) Sayfaları
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -76,6 +81,9 @@ const router = createBrowserRouter([
       { path: "sss", element: <FAQ /> }, // Sıkça sorulan sorular
       { path: "hakkimizda", element: <About /> }, // Hakkımızda
       { path: "iletisim", element: <Contact /> }, // İletişim
+      { path: "kullanim-sartlari", element: <TermsOfUse /> }, // Kullanım Şartları
+      { path: "gizlilik-politikasi", element: <PrivacyPolicy /> }, // Gizlilik Politikası
+      { path: "mesafeli-satis-sozlesmesi", element: <DistanceSelling /> }, // Mesafeli Satış Sözleşmesi
       { path: "bookings/new", element: <NewBooking /> }, // Yeni ders rezervasyonu oluşturma (Öğrenci menüsü dışında)
     ],
   },
@@ -119,6 +127,8 @@ const router = createBrowserRouter([
       { path: "bookings", element: <TutorBookings /> }, // Eğitmene gelen ders talepleri
       { path: "messages", element: <TutorMessages /> }, // Canlı sohbet paneli
       { path: "create-listing", element: <CreateListing /> }, // Yeni ders ilanı oluşturma
+      { path: "listings", element: <TutorListings /> }, // İlanlarım listesi
+      { path: "listings/:id/edit", element: <EditListing /> }, // İlan düzenleme
       { path: "change-password", element: <TutorChangePassword /> }, // Şifre değiştirme
       { path: "support", element: <SupportMessages /> }, // Destek mesajları
     ],
