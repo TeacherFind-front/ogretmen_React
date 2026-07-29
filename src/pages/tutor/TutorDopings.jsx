@@ -4,18 +4,16 @@ import {
   Zap,
   Star,
   Sparkles,
-  CheckCircle,
-  CreditCard,
+  CheckCircle2,
   ChevronRight,
   X,
-  AlertCircle,
   Clock,
   Check,
-  Building,
   Lock,
-  ListFilter,
   Flame,
-  Award,
+  ShoppingBag,
+  Trash2,
+  ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getTutors } from "@/services/tutorService";
@@ -102,18 +100,10 @@ export default function TutorDopings() {
   const [activeDopings, setActiveDopings] = useState([]);
   const [userListings, setUserListings] = useState([]);
   const [selectedDurationMap, setSelectedDurationMap] = useState({});
-  const [selectedDoping, setSelectedDoping] = useState(null);
+  const [selectedPackageIds, setSelectedPackageIds] = useState([]);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [targetListingId, setTargetListingId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Ödeme Formu State
-  const [cardForm, setCardForm] = useState({
-    cardHolder: "",
-    cardNumber: "",
-    expireDate: "",
-    cvv: "",
-  });
 
   useEffect(() => {
     loadData();
@@ -154,56 +144,90 @@ export default function TutorDopings() {
     setSelectedDurationMap((prev) => ({ ...prev, [dopingId]: idx }));
   };
 
-  const openCheckout = (dopingPackage) => {
-    setSelectedDoping(dopingPackage);
+  const togglePackageSelection = (pkgId) => {
+    setSelectedPackageIds((prev) =>
+      prev.includes(pkgId)
+        ? prev.filter((id) => id !== pkgId)
+        : [...prev, pkgId]
+    );
+  };
+
+  const selectAllPackages = () => {
+    if (selectedPackageIds.length === DOPING_PACKAGES.length) {
+      setSelectedPackageIds([]);
+    } else {
+      setSelectedPackageIds(DOPING_PACKAGES.map((p) => p.id));
+    }
+  };
+
+  // Seçilen paket nesneleri
+  const selectedPackagesList = DOPING_PACKAGES.filter((p) =>
+    selectedPackageIds.includes(p.id)
+  );
+
+  // Toplam Tutar Hesaplama
+  const totalPrice = selectedPackagesList.reduce((acc, pkg) => {
+    const durIdx = selectedDurationMap[pkg.id] || 0;
+    return acc + (pkg.durations[durIdx]?.price || pkg.durations[0].price);
+  }, 0);
+
+  const openCheckout = () => {
+    if (selectedPackageIds.length === 0) {
+      toast.error("Lütfen en az bir doping paketi seçin.");
+      return;
+    }
     setCheckoutModalOpen(true);
   };
 
-  const handlePaymentSubmit = async (e) => {
+  const handleBulkActivation = async (e) => {
     e.preventDefault();
-
-    const durationIdx = selectedDurationMap[selectedDoping.id] || 0;
-    const durationObj = selectedDoping.durations[durationIdx];
-
-    const purchasePayload = {
-      dopingId: selectedDoping.id,
-      dopingTitle: selectedDoping.title,
-      listingId: targetListingId,
-      durationLabel: durationObj.label,
-      price: 0,
-      isDemo: true,
-      purchaseDate: new Date().toISOString(),
-    };
-
     setIsProcessing(true);
+
+    const activatedItems = [];
+
     try {
-      // Backend servis çağrısı (varsa)
-      await dopingService.purchaseDoping(purchasePayload);
-    } catch (err) {
-      // Backend henüz devrede değilse de çalışmaya devam et
-    } finally {
-      toast.success(`🎉 ${selectedDoping.title} paketiniz ücretsiz olarak aktifleştirildi!`);
+      for (const pkg of selectedPackagesList) {
+        const durIdx = selectedDurationMap[pkg.id] || 0;
+        const durObj = pkg.durations[durIdx];
 
-      // LocalStorage kaydı ile aktifleştirme
-      const newDoping = {
-        id: "act_" + Date.now(),
-        title: selectedDoping.title,
-        icon: selectedDoping.icon,
-        iconColor: selectedDoping.iconColor,
-        durationLabel: durationObj.label,
-        priceText: "Ücretsiz (Demo)",
-        startDate: new Date().toLocaleDateString("tr-TR"),
-        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString("tr-TR"),
-        status: "Aktif",
-      };
+        const purchasePayload = {
+          dopingId: pkg.id,
+          dopingTitle: pkg.title,
+          listingId: targetListingId,
+          durationLabel: durObj.label,
+          price: 0,
+          isDemo: true,
+          purchaseDate: new Date().toISOString(),
+        };
 
-      const updated = [newDoping, ...activeDopings];
+        try {
+          await dopingService.purchaseDoping(purchasePayload);
+        } catch (err) {
+          // Servis olmasa da simülasyona devam et
+        }
+
+        activatedItems.push({
+          id: "act_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          title: pkg.title,
+          icon: pkg.icon,
+          iconColor: pkg.iconColor,
+          durationLabel: durObj.label,
+          priceText: "Ücretsiz (Demo)",
+          startDate: new Date().toLocaleDateString("tr-TR"),
+          expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString("tr-TR"),
+          status: "Aktif",
+        });
+      }
+
+      toast.success(`🎉 ${activatedItems.length} paketiniz başarıyla aktifleştirildi!`);
+      const updated = [...activatedItems, ...activeDopings];
       setActiveDopings(updated);
       localStorage.setItem("tutor_active_dopings", JSON.stringify(updated));
 
-      setIsProcessing(false);
+      setSelectedPackageIds([]);
       setCheckoutModalOpen(false);
-      setSelectedDoping(null);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -216,7 +240,7 @@ export default function TutorDopings() {
         </HeaderBadge>
         <Title>Doping Paketleri & Öne Çıkarma</Title>
         <Subtitle>
-          İlanlarınızı aramalarda ve ana sayfada üst sıralara taşıyın. Öğrencilerinizi ve ders taleplerinizi <strong>73 kata kadar</strong> artırın.
+          Dilediğiniz doping paketlerini <strong>birden fazla seçerek tek tıkla</strong> aktifleştirin. İlanlarınızı üst sıralara taşıyın.
         </Subtitle>
       </HeaderBanner>
 
@@ -225,7 +249,7 @@ export default function TutorDopings() {
         <ActiveSection>
           <SectionTitle>
             <Zap size={20} color="#16a34a" />
-            Aktif Dopingleriniz
+            Aktif Dopingleriniz ({activeDopings.length})
           </SectionTitle>
           <ActiveGrid>
             {activeDopings.map((item) => (
@@ -249,19 +273,38 @@ export default function TutorDopings() {
 
       {/* ── Doping Paketleri Listesi ── */}
       <DopingSection>
-        <SectionTitle>
-          <Flame size={22} color="#f59e0b" />
-          Kullanılabilir Doping Paketleri
-        </SectionTitle>
+        <SectionHeaderRow>
+          <SectionTitle style={{ marginBottom: 0 }}>
+            <Flame size={22} color="#f59e0b" />
+            Kullanılabilir Doping Paketleri
+          </SectionTitle>
+          <SelectAllBtn onClick={selectAllPackages}>
+            {selectedPackageIds.length === DOPING_PACKAGES.length
+              ? "Seçimleri Kaldır"
+              : "Tümünü Seç"}
+          </SelectAllBtn>
+        </SectionHeaderRow>
+
         <DopingGrid>
           {DOPING_PACKAGES.map((pkg) => {
+            const isSelected = selectedPackageIds.includes(pkg.id);
             const selectedIdx = selectedDurationMap[pkg.id] || 0;
             const currentDuration = pkg.durations[selectedIdx];
             return (
-              <DopingCard key={pkg.id}>
-                {pkg.badge && (
-                  <BadgeTag $color={pkg.badgeColor}>{pkg.badge}</BadgeTag>
-                )}
+              <DopingCard
+                key={pkg.id}
+                $isSelected={isSelected}
+                onClick={() => togglePackageSelection(pkg.id)}
+              >
+                <CardTopRow>
+                  {pkg.badge && (
+                    <BadgeTag $color={pkg.badgeColor}>{pkg.badge}</BadgeTag>
+                  )}
+                  <CheckboxWrap $isSelected={isSelected}>
+                    {isSelected ? <Check size={14} strokeWidth={3} /> : null}
+                  </CheckboxWrap>
+                </CardTopRow>
+
                 <CardTop>
                   <IconCircle $color={pkg.iconColor}>{pkg.icon}</IconCircle>
                   <div>
@@ -270,7 +313,7 @@ export default function TutorDopings() {
                   </div>
                 </CardTop>
 
-                <CardFooter>
+                <CardFooter onClick={(e) => e.stopPropagation()}>
                   {pkg.durations.length > 1 ? (
                     <SelectBox
                       value={selectedIdx}
@@ -293,21 +336,61 @@ export default function TutorDopings() {
                   </PriceDisplay>
                 </CardFooter>
 
-                <BuyButton
-                  $color={pkg.iconColor}
-                  onClick={() => openCheckout(pkg)}
+                <SelectCardBtn
+                  $isSelected={isSelected}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePackageSelection(pkg.id);
+                  }}
                 >
-                  <Zap size={16} />
-                  Satın Al & Aktifleştir
-                </BuyButton>
+                  {isSelected ? (
+                    <>
+                      <CheckCircle2 size={16} /> Paket Seçildi
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={16} /> Paketi Seç
+                    </>
+                  )}
+                </SelectCardBtn>
               </DopingCard>
             );
           })}
         </DopingGrid>
       </DopingSection>
 
-      {/* ── Ödeme Modal (Checkout) ── */}
-      {checkoutModalOpen && selectedDoping && (
+      {/* ── Toplu Satın Alma / Aktifleştirme Çubuğu (Sticky Bar) ── */}
+      {selectedPackageIds.length > 0 && (
+        <CartStickyBar>
+          <CartInner>
+            <CartInfo>
+              <ShoppingBag size={22} className="text-green-400" />
+              <div>
+                <CartTitle>
+                  <strong>{selectedPackageIds.length} Doping Paketi</strong> Seçildi
+                </CartTitle>
+                <CartSubtitle>
+                  Normal Tutar: <span className="line-through">₺{totalPrice}</span> →{" "}
+                  <strong className="text-green-400 font-extrabold">ÜCRETSİZ (Demo)</strong>
+                </CartSubtitle>
+              </div>
+            </CartInfo>
+
+            <CartActions>
+              <ClearBtn onClick={() => setSelectedPackageIds([])}>
+                <Trash2 size={16} /> Temizle
+              </ClearBtn>
+              <BulkCheckoutBtn onClick={openCheckout}>
+                Seçilen Paketleri Aktifleştir ({selectedPackageIds.length})
+                <ArrowRight size={18} />
+              </BulkCheckoutBtn>
+            </CartActions>
+          </CartInner>
+        </CartStickyBar>
+      )}
+
+      {/* ── Ödeme / Toplu Aktifleştirme Modal ── */}
+      {checkoutModalOpen && selectedPackagesList.length > 0 && (
         <ModalOverlay onClick={() => setCheckoutModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalCloseBtn onClick={() => setCheckoutModalOpen(false)}>
@@ -316,50 +399,49 @@ export default function TutorDopings() {
 
             <ModalTitle>
               <Zap size={22} color="#16a34a" />
-              Doping Paketini Aktifleştir
+              Toplu Doping Aktifleştirme ({selectedPackagesList.length} Paket)
             </ModalTitle>
 
             {/* Demo Uyarı Kutusu */}
             <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl p-3.5 mb-4 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
               <Sparkles size={16} className="shrink-0 text-amber-500" />
               <span>
-                <strong>Demo Modu:</strong> Şu an sistem test aşamasındadır. Herhangi bir ödeme alınmadan paketiniz anında ücretsiz aktifleştirilecektir!
+                <strong>Demo Modu:</strong> Seçtiğiniz tüm paketler herhangi bir ödeme alınmadan anında hesabınıza tanımlanacaktır.
               </span>
             </div>
 
-            {/* Paket Özeti */}
-            <OrderSummaryBox>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{selectedDoping.icon}</span>
-                <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white text-base">
-                    {selectedDoping.title}
-                  </h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Seçilen Süre:{" "}
-                    {
-                      selectedDoping.durations[
-                        selectedDurationMap[selectedDoping.id] || 0
-                      ].label
-                    }
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-gray-400 line-through block">
-                  {
-                    selectedDoping.durations[
-                      selectedDurationMap[selectedDoping.id] || 0
-                    ].text
-                  }
-                </span>
-                <span className="text-sm font-black text-green-600">
-                  ÜCRETSİZ
-                </span>
-              </div>
-            </OrderSummaryBox>
+            {/* Seçilen Paketler Listesi */}
+            <div className="mb-4 space-y-2 max-h-48 overflow-y-auto pr-1">
+              {selectedPackagesList.map((pkg) => {
+                const durIdx = selectedDurationMap[pkg.id] || 0;
+                const durObj = pkg.durations[durIdx];
+                return (
+                  <OrderSummaryBox key={pkg.id}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{pkg.icon}</span>
+                      <div>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-xs">
+                          {pkg.title}
+                        </h4>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                          Süre: {durObj.label}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-gray-400 line-through block">
+                        {durObj.text}
+                      </span>
+                      <span className="text-xs font-black text-green-600">
+                        ÜCRETSİZ
+                      </span>
+                    </div>
+                  </OrderSummaryBox>
+                );
+              })}
+            </div>
 
-            <FormContainer onSubmit={handlePaymentSubmit}>
+            <FormContainer onSubmit={handleBulkActivation}>
               {/* İlan Seçimi */}
               {userListings.length > 0 && (
                 <FormGroup>
@@ -378,7 +460,9 @@ export default function TutorDopings() {
               )}
 
               <SubmitPayBtn type="submit" disabled={isProcessing}>
-                {isProcessing ? "Aktifleştiriliyor..." : "🚀 Dopingi Ücretsiz Aktifleştir"}
+                {isProcessing
+                  ? "Aktifleştiriliyor..."
+                  : `🚀 Seçilen ${selectedPackagesList.length} Dopingi Ücretsiz Aktifleştir`}
               </SubmitPayBtn>
             </FormContainer>
           </ModalContent>
@@ -391,9 +475,10 @@ export default function TutorDopings() {
 // ─── STYLED COMPONENTS ───────────────────────────────────────────────────────
 
 const PageWrapper = styled.div`
-  padding: 32px 24px 80px;
+  padding: 32px 24px 120px;
   max-width: 1100px;
   margin: 0 auto;
+  position: relative;
 `;
 
 const HeaderBanner = styled.div`
@@ -431,14 +516,41 @@ const Subtitle = styled.p`
   line-height: 1.6;
 `;
 
+const SectionHeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
 const SectionTitle = styled.h2`
   font-size: 20px;
   font-weight: 800;
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
   color: var(--text-primary);
+`;
+
+const SelectAllBtn = styled.button`
+  font-size: 13px;
+  font-weight: 700;
+  color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+
+  &:hover {
+    background: #dcfce7;
+  }
+
+  .dark & {
+    background: rgba(22, 163, 74, 0.15);
+    border-color: rgba(74, 222, 128, 0.3);
+    color: #4ade80;
+  }
 `;
 
 const ActiveSection = styled.div`
@@ -449,6 +561,7 @@ const ActiveGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+  margin-top: 16px;
 `;
 
 const ActiveCard = styled.div`
@@ -507,37 +620,62 @@ const DopingGrid = styled.div`
 
 const DopingCard = styled.div`
   position: relative;
-  background: white;
-  border: 1.5px solid #e2e8f0;
+  background: ${({ $isSelected }) =>
+    $isSelected ? "#f0fdf4" : "white"};
+  border: ${({ $isSelected }) =>
+    $isSelected ? "2px solid #16a34a" : "1.5px solid #e2e8f0"};
   border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.2s;
+  transition: all 0.25s;
+  cursor: pointer;
+  box-shadow: ${({ $isSelected }) =>
+    $isSelected ? "0 8px 24px rgba(22, 163, 74, 0.18)" : "none"};
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
-    border-color: #bbf7d0;
+    border-color: #16a34a;
   }
 
   .dark & {
-    background: var(--card-bg);
-    border-color: var(--card-border);
+    background: ${({ $isSelected }) =>
+      $isSelected ? "rgba(22, 163, 74, 0.15)" : "var(--card-bg)"};
+    border-color: ${({ $isSelected }) =>
+      $isSelected ? "#4ade80" : "var(--card-border)"};
   }
 `;
 
+const CardTopRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  min-height: 24px;
+`;
+
 const BadgeTag = styled.span`
-  position: absolute;
-  top: -10px;
-  left: 20px;
   background: ${({ $color }) => $color || "#16a34a"};
   color: white;
   font-size: 10px;
   font-weight: 800;
   padding: 3px 12px;
   border-radius: 999px;
+`;
+
+const CheckboxWrap = styled.div`
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid ${({ $isSelected }) => ($isSelected ? "#16a34a" : "#cbd5e1")};
+  background: ${({ $isSelected }) => ($isSelected ? "#16a34a" : "white")};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  transition: all 0.2s;
 `;
 
 const CardTop = styled.div`
@@ -620,22 +758,121 @@ const PriceDisplay = styled.span`
   color: ${({ $color }) => $color || "#16a34a"};
 `;
 
-const BuyButton = styled.button`
+const SelectCardBtn = styled.button`
   width: 100%;
   padding: 12px;
   border-radius: 12px;
-  background: ${({ $color }) => $color || "#16a34a"};
-  color: white;
+  background: ${({ $isSelected }) =>
+    $isSelected ? "#16a34a" : "#f1f5f9"};
+  color: ${({ $isSelected }) => ($isSelected ? "white" : "#334155")};
   font-weight: 700;
   font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 
   &:hover {
-    opacity: 0.9;
+    background: ${({ $isSelected }) =>
+      $isSelected ? "#15803d" : "#e2e8f0"};
+  }
+
+  .dark & {
+    background: ${({ $isSelected }) =>
+      $isSelected ? "#16a34a" : "var(--page-bg)"};
+    color: ${({ $isSelected }) => ($isSelected ? "white" : "var(--text-primary)")};
+  }
+`;
+
+// Sticky Cart Bar
+const CartStickyBar = styled.div`
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 900px;
+  background: #052e16;
+  border: 1.5px solid #16a34a;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  border-radius: 20px;
+  padding: 16px 24px;
+  z-index: 900;
+  animation: fadeInUp 0.3s ease-out;
+`;
+
+const CartInner = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const CartInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+`;
+
+const CartTitle = styled.div`
+  font-size: 14px;
+  color: white;
+
+  strong {
+    color: #4ade80;
+  }
+`;
+
+const CartSubtitle = styled.div`
+  font-size: 12px;
+  color: #94a3b8;
+`;
+
+const CartActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const ClearBtn = styled.button`
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+  }
+`;
+
+const BulkCheckoutBtn = styled.button`
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.03);
   }
 `;
 
@@ -643,7 +880,7 @@ const BuyButton = styled.button`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   z-index: 999;
   display: flex;
@@ -657,7 +894,7 @@ const ModalContent = styled.div`
   background: white;
   border-radius: 24px;
   width: 100%;
-  max-width: 480px;
+  max-width: 520px;
   padding: 32px;
 
   .dark & {
@@ -687,19 +924,18 @@ const ModalTitle = styled.h3`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   color: var(--text-primary);
 `;
 
 const OrderSummaryBox = styled.div`
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
 
   .dark & {
     background: var(--page-bg);
@@ -711,6 +947,7 @@ const FormContainer = styled.form`
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-top: 16px;
 `;
 
 const FormGroup = styled.div`
@@ -724,7 +961,6 @@ const FormGroup = styled.div`
     color: var(--text-primary);
   }
 
-  input,
   select {
     padding: 10px 14px;
     border-radius: 10px;
@@ -740,16 +976,6 @@ const FormGroup = styled.div`
   }
 `;
 
-const SecurityNote = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 4px;
-`;
-
 const SubmitPayBtn = styled.button`
   width: 100%;
   padding: 14px;
@@ -758,7 +984,7 @@ const SubmitPayBtn = styled.button`
   color: white;
   font-size: 14px;
   font-weight: 800;
-  margin-top: 10px;
+  margin-top: 6px;
   transition: background 0.2s;
 
   &:hover {
