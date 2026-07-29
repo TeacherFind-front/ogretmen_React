@@ -19,6 +19,7 @@ import ForgotPassword from "./pages/public/ForgotPassword";
 import FAQ from "./pages/public/FAQ";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
+import Pricing from "./pages/public/Pricing";
 import TermsOfUse from "./pages/public/legal/TermsOfUse";
 import PrivacyPolicy from "./pages/public/legal/PrivacyPolicy";
 import DistanceSelling from "./pages/public/legal/DistanceSelling";
@@ -81,6 +82,7 @@ const router = createBrowserRouter([
       { path: "sss", element: <FAQ /> }, // Sıkça sorulan sorular
       { path: "hakkimizda", element: <About /> }, // Hakkımızda
       { path: "iletisim", element: <Contact /> }, // İletişim
+      { path: "pricing", element: <Pricing /> }, // Ücretlendirme
       { path: "kullanim-sartlari", element: <TermsOfUse /> }, // Kullanım Şartları
       { path: "gizlilik-politikasi", element: <PrivacyPolicy /> }, // Gizlilik Politikası
       { path: "mesafeli-satis-sozlesmesi", element: <DistanceSelling /> }, // Mesafeli Satış Sözleşmesi
