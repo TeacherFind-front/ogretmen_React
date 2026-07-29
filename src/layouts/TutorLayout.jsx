@@ -45,6 +45,7 @@ export default function TutorLayout() {
     { to: "/tutor/availability", label: "Müsaitlik Ayarları", icon: "⏰" },
     { to: "/tutor/lessons", label: "Derslerim", icon: "📚" },
     { to: "/tutor/profile", label: "Profilim", icon: "👤" },
+    { to: "/tutor/dopings", label: "Doping Paketleri", icon: "🚀" },
     { to: "/tutor/social-media", label: "Sosyal Medya", icon: "🔗" },
     { to: "/tutor/messages", label: "Mesajlar", icon: "💬" },
     { to: "/tutor/change-password", label: "Şifreyi Değiştir", icon: "🛡️" },

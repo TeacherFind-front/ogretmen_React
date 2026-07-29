@@ -46,6 +46,7 @@ import CreateListing from "./pages/tutor/CreateListing";
 import TutorBookings from "./pages/tutor/TutorBookings";
 import TutorListings from "./pages/tutor/TutorListings";
 import EditListing from "./pages/tutor/EditListing";
+import TutorDopings from "./pages/tutor/TutorDopings";
 
 // Yönetici (Admin) Sayfaları
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -131,6 +132,7 @@ const router = createBrowserRouter([
       { path: "create-listing", element: <CreateListing /> }, // Yeni ders ilanı oluşturma
       { path: "listings", element: <TutorListings /> }, // İlanlarım listesi
       { path: "listings/:id/edit", element: <EditListing /> }, // İlan düzenleme
+      { path: "dopings", element: <TutorDopings /> }, // Doping paketleri ve öne çıkarma
       { path: "change-password", element: <TutorChangePassword /> }, // Şifre değiştirme
       { path: "support", element: <SupportMessages /> }, // Destek mesajları
     ],
