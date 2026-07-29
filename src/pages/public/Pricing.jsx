@@ -185,27 +185,7 @@ const DOPINGS_SECONDARY = [
   },
 ];
 
-const DOPINGS_EXTRA = [
-  {
-    id: "acil",
-    icon: "🚨",
-    iconColor: "#ef4444",
-    title: "Acil Acil",
-    desc: '"Hemen satmam lazım" diyorsanız Acil Acil dopingini alın, ilanınız ana sayfa sol menüde yer alsın.',
-    durations: [{ label: "1 Hafta", price: "₺79" }],
-  },
-  {
-    id: "galeri",
-    icon: "🖼️",
-    iconColor: "#06b6d4",
-    title: "Galeri Vitrini",
-    desc: "Profilinizin fotoğraf galerisini ön plana çıkarın. Öğrenciler sizi daha kolay keşfetsin.",
-    durations: [
-      { label: "1 Hafta", price: "₺49" },
-      { label: "1 Ay", price: "₺149" },
-    ],
-  },
-];
+
 
 // ─── FAQ Data ─────────────────────────────────────────────────────────────────
 const FAQS = [
@@ -431,46 +411,7 @@ export default function Pricing() {
                     </DopingFooter>
                   </DopingCard>
                 ))}
-              </DopingGrid>
-
-              <DopingGrid $cols={2} style={{ marginTop: "16px" }}>
-                {DOPINGS_EXTRA.map((doping) => (
-                  <DopingCard key={doping.id}>
-                    <DopingCardInner>
-                      <DopingEmoji $small>{doping.icon}</DopingEmoji>
-                      <DopingInfo>
-                        <DopingTitle $small>{doping.title}</DopingTitle>
-                        <DopingDesc $small>{doping.desc}</DopingDesc>
-                      </DopingInfo>
-                    </DopingCardInner>
-                    <DopingFooter>
-                      {doping.durations.length > 1 ? (
-                        <DurationSelect
-                          value={selectedDurations[doping.id] ?? 0}
-                          onChange={(e) =>
-                            handleDurationChange(
-                              doping.id,
-                              Number(e.target.value)
-                            )
-                          }
-                        >
-                          {doping.durations.map((d, i) => (
-                            <option key={i} value={i}>
-                              {d.label}
-                            </option>
-                          ))}
-                        </DurationSelect>
-                      ) : (
-                        <DurationLabel>{getDurationLabel(doping)}</DurationLabel>
-                      )}
-                      <DopingPrice $color={doping.iconColor}>
-                        {getPrice(doping)}
-                      </DopingPrice>
-                    </DopingFooter>
-                  </DopingCard>
-                ))}
-              </DopingGrid>
-            </>
+              </DopingGrid>            </>
           )}
         </Container>
       </DopingSection>
