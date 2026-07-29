@@ -6,56 +6,60 @@ import { apiFetch } from "./api";
 export const dopingService = {
   /**
    * Sistemdeki tüm kullanılabilir doping paketlerini getirir
+   * Response: { demoMode: boolean, packages: DopingPackageDto[] }
    */
   async getPackages() {
-    try {
-      const response = await apiFetch("/api/dopings/packages");
-      if (response.ok) {
-        return await response.json();
-      }
-      return null;
-    } catch (err) {
-      console.warn("Backend doping servisi henüz tanımlanmamış olabilir:", err);
-      return null;
+    const response = await apiFetch("/api/dopings/packages");
+    if (!response || !response.ok) {
+      const errData = await response?.json().catch(() => ({}));
+      throw new Error(errData.message || "Doping paketleri yüklenemedi.");
     }
+    const data = await response.json();
+    return {
+      demoMode: !!data.demoMode,
+      packages: data.packages || [],
+    };
   },
 
   /**
    * Giriş yapmış eğitmenin aktif ve geçmiş dopinglerini getirir
+   * Response: ActiveDopingDto[]
    */
   async getMyActiveDopings() {
-    try {
-      const response = await apiFetch("/api/tutor/dopings/my-active");
-      if (response.ok) {
-        return await response.json();
-      }
-      return [];
-    } catch (err) {
-      console.warn("Aktif dopingler çekilemedi:", err);
-      return [];
+    const response = await apiFetch("/api/tutor/dopings/my-active");
+    if (!response || !response.ok) {
+      const errData = await response?.json().catch(() => ({}));
+      throw new Error(errData.message || "Aktif dopingler yüklenemedi.");
     }
+    return (await response.json()) || [];
   },
 
   /**
-   * Eğitmen için doping satın alma işlemi başlatır / tamamlar
-   * @param {Object} purchaseData - { listingId, dopingId, durationOption, paymentInfo }
+   * Eğitmen için toplu doping satın alma / aktifleştirme işlemi başlatır
+   * @param {Object} payload - { teacherListingId: string|null, items: [{ dopingType: number, optionCode: string }] }
    */
-  async purchaseDoping(purchaseData) {
-    try {
-      const response = await apiFetch("/api/tutor/dopings/purchase", {
-        method: "POST",
-        body: JSON.stringify(purchaseData),
-      });
+  async purchaseDopings(payload) {
+    const requestBody = {
+      teacherListingId: payload.teacherListingId || null,
+      items: (payload.items || []).map((item) => ({
+        dopingType: Number(item.dopingType),
+        optionCode: String(item.optionCode),
+      })),
+    };
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Doping satın alma işlemi başarısız oldu.");
-      }
+    const response = await apiFetch("/api/tutor/dopings/purchase", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
-      return await response.json();
-    } catch (err) {
-      throw err;
+    if (!response || !response.ok) {
+      const errorData = await response?.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || "Doping aktifleştirme işlemi başarısız oldu."
+      );
     }
+
+    return await response.json();
   },
 };
 

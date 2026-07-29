@@ -20,7 +20,6 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 
-
 /**
  * TutorLayout - Eğitmen (Tutor) paneli sayfaları için kullanılan ana şablon/layout bileşeni.
  * Sol tarafta geniş ekranlar için masaüstü sidebar, mobil ekranlar için ise açılır kapanır hamburger menü
@@ -63,7 +62,11 @@ export default function TutorLayout() {
         <div className="flex h-14 items-center px-6">
           <div className="flex items-center">
             <Link to="/">
-              <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+              <img
+                src="/logo.png"
+                alt="Özel Ders VIP"
+                className="h-14 w-auto object-contain"
+              />
             </Link>
           </div>
         </div>
@@ -99,7 +102,11 @@ export default function TutorLayout() {
         <div className="flex h-14 items-center px-6 border-b justify-between">
           <div className="flex items-center">
             <Link to="/">
-              <img src="/logo.png" alt="Özel Ders VIP" className="h-14 w-auto object-contain" />
+              <img
+                src="/logo.png"
+                alt="Özel Ders VIP"
+                className="h-14 w-auto object-contain"
+              />
             </Link>
           </div>
           {/* Kapatma Butonu */}
@@ -139,7 +146,11 @@ export default function TutorLayout() {
             <div className="md:hidden">
               <div className="flex items-center">
                 <Link to="/">
-                  <img src="/logo.png" alt="Özel Ders VIP" className="h-10 w-auto object-contain" />
+                  <img
+                    src="/logo.png"
+                    alt="Özel Ders VIP"
+                    className="h-10 w-auto object-contain"
+                  />
                 </Link>
               </div>
             </div>
@@ -151,7 +162,7 @@ export default function TutorLayout() {
             <ThemeSwitch />
             {/* Bildirimler Açılır Kutusu */}
             <NotificationDropdown />
-            
+
             {/* Eğitmen karşılama metni (Küçük ekranlarda gizlenir) */}
             <div className="hidden sm:flex flex-col items-end mr-1">
               <span className="text-[11px] font-bold text-gray-900 dark:text-slate-100">
@@ -303,7 +314,7 @@ const MobileSidebar = styled.div`
   background: white;
   z-index: 1001;
   box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
-  
+
   .dark & {
     background: var(--card-bg);
     border-right: 1px solid #334155;

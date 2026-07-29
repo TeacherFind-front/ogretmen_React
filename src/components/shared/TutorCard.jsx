@@ -84,11 +84,30 @@ export function TutorCard({ tutor }) {
     Both: "Her İkisi",
   }[tutor.serviceType] || tutor.serviceType || "";
 
+  // Doping Alanları
+  const isFeatured = tutor.isFeaturedHomePage || tutor.isFeaturedCategory || tutor.isFeaturedSearch;
+  const hasBoldTitle = tutor.hasBoldTitle;
+  const validFrameColor = tutor.highlightFrameColor && /^#([0-9A-F]{3}){1,2}$/i.test(tutor.highlightFrameColor)
+    ? tutor.highlightFrameColor
+    : tutor.highlightFrameColor ? "#16a34a" : null;
+
   return (
     <Card 
-      className="flex flex-col md:flex-row overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group rounded-[2rem]"
-      style={{ background: "var(--card-bg)", borderColor: "var(--card-border)", boxShadow: "0 4px 20px rgba(22,163,74,0.05)" }}
+      className="flex flex-col md:flex-row overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group rounded-[2rem] relative"
+      style={{ 
+        background: "var(--card-bg)", 
+        borderColor: validFrameColor || "var(--card-border)", 
+        borderWidth: validFrameColor ? "2px" : "1px",
+        boxShadow: validFrameColor ? `0 4px 24px ${validFrameColor}33` : "0 4px 20px rgba(22,163,74,0.05)" 
+      }}
     >
+      {/* Öne Çıkan Rozeti */}
+      {isFeatured && (
+        <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full shadow-md tracking-wider">
+          ⭐ Öne Çıkan
+        </div>
+      )}
+
       {/* Sol Panel - Avatar & Fiyat */}
       <div 
         className="md:w-56 group-hover:bg-[rgba(22,163,74,0.04)] transition-colors p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r"
@@ -110,7 +129,7 @@ export function TutorCard({ tutor }) {
             style={{ borderColor: "var(--card-bg)" }}
           />
         </div>
-        <h3 className="font-black text-xl text-center mb-1" style={{ color: "var(--text-primary)" }}>{name}</h3>
+        <h3 className={`text-xl text-center mb-1 ${hasBoldTitle ? "font-black tracking-tight" : "font-extrabold"}`} style={{ color: "var(--text-primary)" }}>{name}</h3>
         <p className="text-sm font-bold flex items-center gap-1 mb-2 text-yellow-500">
           <Star className="w-4 h-4 fill-yellow-500" />
           {rating.toFixed ? rating.toFixed(1) : rating}
@@ -125,7 +144,7 @@ export function TutorCard({ tutor }) {
       {/* Sağ Panel - Detaylar */}
       <div className="p-6 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-2">
-          <h4 className="font-semibold text-lg line-clamp-1">{headline}</h4>
+          <h4 className={`text-lg line-clamp-1 ${hasBoldTitle ? "font-black" : "font-semibold"}`}>{headline}</h4>
           <button
             onClick={handleFavorite}
             disabled={favLoading}

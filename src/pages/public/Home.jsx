@@ -105,16 +105,29 @@ const STATS = [
 // ─── Teacher Card ─────────────────────────────────────────────────────────────
 function TeacherCard({ teacher }) {
   const navigate = useNavigate();
+  const isFeatured = teacher.isFeaturedHomePage || teacher.isFeaturedCategory || teacher.isFeaturedSearch;
+  const hasBoldTitle = teacher.hasBoldTitle;
+  const validFrameColor = teacher.highlightFrameColor && /^#([0-9A-F]{3}){1,2}$/i.test(teacher.highlightFrameColor)
+    ? teacher.highlightFrameColor
+    : teacher.highlightFrameColor ? "#16a34a" : null;
+
   return (
     <div
       onClick={() => navigate(`/tutors/${teacher.id}`)}
-      className="cursor-pointer rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-2xl hover:-translate-y-2"
+      className="cursor-pointer rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative"
       style={{
         background: "var(--card-bg)",
-        border: "1px solid var(--card-border)",
-        boxShadow: "0 4px 24px rgba(22,163,74,0.06)",
+        border: validFrameColor ? `2px solid ${validFrameColor}` : "1px solid var(--card-border)",
+        boxShadow: validFrameColor ? `0 4px 24px ${validFrameColor}44` : "0 4px 24px rgba(22,163,74,0.06)",
       }}
     >
+      {/* Öne Çıkan Badge */}
+      {isFeatured && (
+        <div className="absolute top-3 left-3 z-10 bg-amber-500 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full shadow-md">
+          ⭐ Öne Çıkan
+        </div>
+      )}
+
       {/* Fotoğraf */}
       <div className="relative h-56 w-full overflow-hidden">
         <img
@@ -148,7 +161,7 @@ function TeacherCard({ teacher }) {
       <div className="p-5 flex flex-col gap-2">
         <div>
           <h4
-            className="font-bold text-sm leading-tight transition-colors duration-300"
+            className={`text-sm leading-tight transition-colors duration-300 ${hasBoldTitle ? "font-black" : "font-bold"}`}
             style={{ color: "var(--text-primary)" }}
           >
             {teacher.teacherName}
