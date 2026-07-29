@@ -180,11 +180,6 @@ export default function TutorDopings() {
       return;
     }
 
-    if (requiresListing && userListings.length === 0) {
-      toast.error("Seçtiğiniz paketler için ilan seçimi zorunludur. Lütfen önce bir ilan oluşturun.");
-      return;
-    }
-
     setCheckoutModalOpen(true);
   };
 
