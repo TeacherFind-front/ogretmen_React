@@ -109,11 +109,11 @@ const PLANS = [
 // ─── Doping Packages Data ─────────────────────────────────────────────────────
 const DOPINGS_MAIN = [
   {
-    id: "anasayfa",
-    icon: "🏠",
+    id: "anasayfa_one_cikan",
+    icon: "⭐",
     iconColor: "#f59e0b",
-    title: "Anasayfa Vitrini",
-    desc: 'İlanınız her gün "milyonlarca kişi tarafından ziyaret edilen" ana sayfamızda, mobil uygulama ve web sitesinin vitrin alanında yer alsın.',
+    title: "Anasayfa Öne Çıkan Eğitmenler",
+    desc: "İlanınız ana sayfanın 'Öne Çıkan Eğitmenler' slider bölümünde görüntülensin. Ziyaretçilerin ilk gördüğü alan!",
     badge: "En Popüler",
     badgeColor: "#f59e0b",
     durations: [
@@ -123,28 +123,28 @@ const DOPINGS_MAIN = [
     ],
   },
   {
-    id: "ust_siradayim",
-    icon: "📈",
+    id: "anasayfa_ders_ilanlari",
+    icon: "📋",
     iconColor: "#16a34a",
-    title: "Üst Sıradayım",
-    desc: "İlanınız arama sonuç sayfalarında sadece Gelişmiş Sıralama seçeneğinde üst sıra ayrı bir bölümde görüntülensin.",
+    title: "Anasayfa Ders İlanları",
+    desc: "İlanınız ana sayfanın 'Ders İlanları' grid bölümünde en üst sırada öne çıksın. Binlerce potansiyel öğrenciye ulaşın!",
     badge: "Tavsiye Edilen",
     badgeColor: "#16a34a",
     durations: [
-      { label: "1 Hafta", price: "₺89" },
-      { label: "2 Hafta", price: "₺149" },
-      { label: "1 Ay", price: "₺249" },
+      { label: "1 Hafta", price: "₺149" },
+      { label: "2 Hafta", price: "₺249" },
+      { label: "1 Ay", price: "₺399" },
     ],
   },
 ];
 
 const DOPINGS_SECONDARY = [
   {
-    id: "kategori",
-    icon: "🛒",
+    id: "kategori_listesi",
+    icon: "📂",
     iconColor: "#3b82f6",
-    title: "Kategori Vitrini",
-    desc: "İlanınız her gün ait olduğu kategori ve alt kategori sayfalarında web arayüzünde görüntülensin.",
+    title: "Kategori Listesi",
+    desc: "İlanınız branşa ait Kategori Listesi sayfasında en üst sıralarda yer alsın. Doğru öğrenciye doğru anda ulaşın.",
     durations: [
       { label: "1 Hafta", price: "₺59" },
       { label: "2 Hafta", price: "₺99" },
@@ -152,13 +152,15 @@ const DOPINGS_SECONDARY = [
     ],
   },
   {
-    id: "guncelim",
-    icon: "📅",
+    id: "sosyal_medya",
+    icon: "📱",
     iconColor: "#ec4899",
-    title: "Güncelim Dopingi",
-    desc: "İlanınızın tarihi güncellenerek tekrardan üst sıralarda yer alsın.",
-    durations: [{ label: "1 Adet", price: "₺29" }],
-    single: true,
+    title: "Sosyal Medya Dopingi",
+    desc: "Profiliniz ve ilanlarınız platformun sosyal medya hesaplarında paylaşılsın. Organik erişiminizi katlayın!",
+    durations: [
+      { label: "1 Paylaşım", price: "₺49" },
+      { label: "3 Paylaşım", price: "₺119" },
+    ],
   },
   {
     id: "detayli",
