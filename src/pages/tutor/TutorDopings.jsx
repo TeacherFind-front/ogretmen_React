@@ -161,10 +161,6 @@ export default function TutorDopings() {
 
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
-    if (!cardForm.cardHolder.trim() || !cardForm.cardNumber.trim()) {
-      toast.error("Lütfen kart bilgilerini eksiksiz doldurun.");
-      return;
-    }
 
     const durationIdx = selectedDurationMap[selectedDoping.id] || 0;
     const durationObj = selectedDoping.durations[durationIdx];
@@ -174,7 +170,8 @@ export default function TutorDopings() {
       dopingTitle: selectedDoping.title,
       listingId: targetListingId,
       durationLabel: durationObj.label,
-      price: durationObj.price,
+      price: 0,
+      isDemo: true,
       purchaseDate: new Date().toISOString(),
     };
 
@@ -182,19 +179,19 @@ export default function TutorDopings() {
     try {
       // Backend servis çağrısı (varsa)
       await dopingService.purchaseDoping(purchasePayload);
-      toast.success("Doping paketiniz başarıyla aktifleştirildi!");
     } catch (err) {
-      // Backend henüz devrede değilse bile UI üzerinde işlemi tamamla (CANLI HAZIR SIMÜLASYON)
-      toast.success(`${selectedDoping.title} paketiniz başarıyla aktifleştirildi!`);
+      // Backend henüz devrede değilse de çalışmaya devam et
     } finally {
-      // LocalStorage kaydı ile simülasyon
+      toast.success(`🎉 ${selectedDoping.title} paketiniz ücretsiz olarak aktifleştirildi!`);
+
+      // LocalStorage kaydı ile aktifleştirme
       const newDoping = {
         id: "act_" + Date.now(),
         title: selectedDoping.title,
         icon: selectedDoping.icon,
         iconColor: selectedDoping.iconColor,
         durationLabel: durationObj.label,
-        priceText: durationObj.text,
+        priceText: "Ücretsiz (Demo)",
         startDate: new Date().toLocaleDateString("tr-TR"),
         expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString("tr-TR"),
         status: "Aktif",
@@ -207,7 +204,6 @@ export default function TutorDopings() {
       setIsProcessing(false);
       setCheckoutModalOpen(false);
       setSelectedDoping(null);
-      setCardForm({ cardHolder: "", cardNumber: "", expireDate: "", cvv: "" });
     }
   };
 
@@ -319,9 +315,17 @@ export default function TutorDopings() {
             </ModalCloseBtn>
 
             <ModalTitle>
-              <CreditCard size={22} color="#16a34a" />
-              Güvenli Doping Satın Alımı
+              <Zap size={22} color="#16a34a" />
+              Doping Paketini Aktifleştir
             </ModalTitle>
+
+            {/* Demo Uyarı Kutusu */}
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl p-3.5 mb-4 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <Sparkles size={16} className="shrink-0 text-amber-500" />
+              <span>
+                <strong>Demo Modu:</strong> Şu an sistem test aşamasındadır. Herhangi bir ödeme alınmadan paketiniz anında ücretsiz aktifleştirilecektir!
+              </span>
+            </div>
 
             {/* Paket Özeti */}
             <OrderSummaryBox>
@@ -342,12 +346,15 @@ export default function TutorDopings() {
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-xl font-black text-green-600">
+                <span className="text-xs text-gray-400 line-through block">
                   {
                     selectedDoping.durations[
                       selectedDurationMap[selectedDoping.id] || 0
                     ].text
                   }
+                </span>
+                <span className="text-sm font-black text-green-600">
+                  ÜCRETSİZ
                 </span>
               </div>
             </OrderSummaryBox>
@@ -370,69 +377,8 @@ export default function TutorDopings() {
                 </FormGroup>
               )}
 
-              {/* Kart Bilgileri */}
-              <FormGroup>
-                <label>Kart Üzerindeki İsim</label>
-                <input
-                  type="text"
-                  placeholder="Ahmet Yılmaz"
-                  value={cardForm.cardHolder}
-                  onChange={(e) =>
-                    setCardForm({ ...cardForm, cardHolder: e.target.value })
-                  }
-                  required
-                />
-              </FormGroup>
-
-              <FormGroup>
-                <label>Kart Numarası</label>
-                <input
-                  type="text"
-                  placeholder="4543 **** **** 1234"
-                  maxLength={19}
-                  value={cardForm.cardNumber}
-                  onChange={(e) =>
-                    setCardForm({ ...cardForm, cardNumber: e.target.value })
-                  }
-                  required
-                />
-              </FormGroup>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormGroup>
-                  <label>Son Kullanma (AY/YIL)</label>
-                  <input
-                    type="text"
-                    placeholder="12/28"
-                    maxLength={5}
-                    value={cardForm.expireDate}
-                    onChange={(e) =>
-                      setCardForm({ ...cardForm, expireDate: e.target.value })
-                    }
-                    required
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <label>CVV Güvenlik Kodu</label>
-                  <input
-                    type="text"
-                    placeholder="321"
-                    maxLength={4}
-                    value={cardForm.cvv}
-                    onChange={(e) =>
-                      setCardForm({ ...cardForm, cvv: e.target.value })
-                    }
-                    required
-                  />
-                </FormGroup>
-              </div>
-
-              <SecurityNote>
-                <Lock size={14} /> 256-Bit SSL Şifreli Güvenli Ödeme
-              </SecurityNote>
-
               <SubmitPayBtn type="submit" disabled={isProcessing}>
-                {isProcessing ? "İşleniyor..." : "Ödemeyi Tamamla ve Dopingi Başlat"}
+                {isProcessing ? "Aktifleştiriliyor..." : "🚀 Dopingi Ücretsiz Aktifleştir"}
               </SubmitPayBtn>
             </FormContainer>
           </ModalContent>
