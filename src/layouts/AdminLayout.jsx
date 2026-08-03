@@ -14,12 +14,21 @@ import {
   ChevronRight,
   Shield,
   Home,
-  MessageSquare
+  MessageSquare,
+  Zap,
 } from "lucide-react";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/store/AuthContext";
 import ScrollToTop from "@/components/shared/ScrollToTop";
+
+function formatRole(role) {
+  if (!role) return "Yönetici";
+  const r = String(role).toLowerCase();
+  if (r === "superadmin" || r === "4") return "Süper Yönetici";
+  if (r === "admin" || r === "3") return "Yönetici";
+  return "Yönetici";
+}
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -27,11 +36,16 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const userName = user?.fullName || user?.name || user?.email?.split("@")[0] || "Yönetici";
+  const userRoleText = formatRole(user?.role);
+  const userInitial = userName.charAt(0).toUpperCase();
+
   const navLinks = [
     { to: "/", label: "Ana Sayfa", icon: <Home size={20} /> },
     { to: "/admin/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
     { to: "/admin/users", label: "Kullanıcı Yönetimi", icon: <Users size={20} /> },
     { to: "/admin/tutors", label: "İlan Yönetimi", icon: <UserCheck size={20} /> },
+    { to: "/admin/dopings", label: "Doping Paketleri", icon: <Zap size={20} /> },
     { to: "/admin/messages", label: "İletişim Mesajları", icon: <MessageSquare size={20} /> },
     { to: "/admin/settings", label: "Sistem Ayarları", icon: <Settings size={20} /> },
   ];
@@ -67,10 +81,10 @@ export default function AdminLayout() {
         <div className="p-6 mt-auto">
            <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 font-bold text-xs">A</div>
+                 <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 font-bold text-xs">{userInitial}</div>
                  <div>
-                    <p className="text-xs font-bold text-white">Sistem Yöneticisi</p>
-                    <p className="text-[10px] text-slate-500">Çevrimiçi</p>
+                    <p className="text-xs font-bold text-white">{userName}</p>
+                    <p className="text-[10px] text-slate-500">{userRoleText}</p>
                  </div>
               </div>
               <button 
@@ -133,10 +147,10 @@ export default function AdminLayout() {
               <div className="h-8 w-[1px] bg-slate-100 dark:bg-[var(--card-bg)]"></div>
               <div className="flex items-center gap-3">
                  <div className="text-right">
-                    <p className="text-sm font-black text-slate-900 dark:text-slate-100 leading-none">Admin User</p>
-                    <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest mt-1">Süper Yetkili</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-slate-100 leading-none">{userName}</p>
+                    <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest mt-1">{userRoleText}</p>
                  </div>
-                 <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-green-600 flex items-center justify-center text-white font-bold shadow-lg shadow-slate-200 dark:shadow-none transition-all">A</div>
+                 <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-green-600 flex items-center justify-center text-white font-bold shadow-lg shadow-slate-200 dark:shadow-none transition-all">{userInitial}</div>
               </div>
            </div>
         </header>

@@ -54,6 +54,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminTutors from "./pages/admin/AdminTutors";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminMessages from "./pages/admin/AdminMessages";
+import AdminDopingPackages from "./pages/admin/AdminDopingPackages";
 
 // Paylaşılan ve Korumalı Rotalar için Yardımcılar
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -151,6 +152,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <AdminDashboard /> }, // Yönetici kontrol paneli
       { path: "users", element: <AdminUsers /> }, // Kullanıcı yönetimi
       { path: "tutors", element: <AdminTutors /> }, // Eğitmen başvuruları/yönetimi
+      { path: "dopings", element: <AdminDopingPackages /> }, // Admin Doping Paket Yönetimi
       { path: "messages", element: <AdminMessages /> }, // Sistem mesajları yönetimi
       { path: "settings", element: <AdminSettings /> }, // Sistem genel ayarları
     ],

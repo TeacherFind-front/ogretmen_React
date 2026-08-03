@@ -81,19 +81,23 @@ export default function TutorDopings() {
     setPackagesLoading(true);
     setPackagesError(null);
     try {
-      const data = await dopingService.getPackages();
+      const data = await dopingService.getDopingCatalog();
       if (data) {
-        setDemoMode(data.demoMode);
-        setPackages(data.packages || []);
+        if (Array.isArray(data)) {
+          setPackages(data);
+        } else {
+          setDemoMode(!!data.demoMode);
+          setPackages(data.packages || []);
 
-        // Varsayılan option'ları ayarla
-        const defaultOptions = {};
-        (data.packages || []).forEach((pkg) => {
-          if (pkg.options && pkg.options.length > 0) {
-            defaultOptions[pkg.dopingType] = pkg.options[0].optionCode;
-          }
-        });
-        setSelectedOptionMap(defaultOptions);
+          // Varsayılan option'ları ayarla
+          const defaultOptions = {};
+          (data.packages || []).forEach((pkg) => {
+            if (pkg.options && pkg.options.length > 0) {
+              defaultOptions[pkg.dopingType || pkg.code] = pkg.options[0].optionCode;
+            }
+          });
+          setSelectedOptionMap(defaultOptions);
+        }
       }
     } catch (err) {
       console.error("Paket yükleme hatası:", err);
@@ -203,7 +207,25 @@ export default function TutorDopings() {
     };
 
     try {
-      await dopingService.purchaseDopings(payload);
+      const catalogPkgs = selectedPackagesList.filter((p) => p.packageId || (p.id && !p.dopingType));
+      if (catalogPkgs.length > 0) {
+        for (const pkg of catalogPkgs) {
+          await dopingService.purchaseDopingPackage({
+            packageId: pkg.packageId || pkg.id,
+            teacherListingId: requiresListing ? targetListingId : null,
+          });
+        }
+      } else {
+        const payload = {
+          teacherListingId: requiresListing ? targetListingId : null,
+          items: selectedPackagesList.map((pkg) => ({
+            dopingType: pkg.dopingType,
+            optionCode: selectedOptionMap[pkg.dopingType || pkg.code],
+          })),
+        };
+        await dopingService.purchaseDopings(payload);
+      }
+
       toast.success("🎉 Doping paketleriniz başarıyla aktifleştirildi!");
 
       // Modal kapat ve seçimleri sıfırla
