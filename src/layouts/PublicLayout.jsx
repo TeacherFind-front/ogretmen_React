@@ -62,7 +62,7 @@ export default function PublicLayout() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col transition-colors duration-300">
+    <div className="flex min-h-screen flex-col transition-colors duration-300 overflow-x-hidden w-full max-w-full">
       <ScrollToTop />
       {/* Premium Navbar */}
       <nav

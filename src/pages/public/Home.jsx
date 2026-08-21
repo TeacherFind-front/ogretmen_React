@@ -452,7 +452,7 @@ export default function Home() {
     >
       {/* ══════════ HERO SECTION ══════════ */}
       <section
-        className="relative px-6"
+        className="relative px-6 overflow-hidden"
         style={{
           background:
             "linear-gradient(145deg, #052e16 0%, #0d4a28 30%, #15803d 70%, #16a34a 100%)",
