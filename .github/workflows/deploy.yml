@@ -13,7 +13,7 @@ jobs:
 
     # main -> production folder, Develop -> staging folder (test.ozeldersvip.com)
     env:
-      SITE_PATH: ${{ github.ref == 'refs/heads/main' && 'C:\Sites\OzelDersVip\frontend' || 'C:\Sites\OzelDersVip\staging-frontend' }}
+      SITE_PATH: ${{ github.ref == 'refs/heads/main' && 'C:\inetpub\wwwroot\OzelDersVipFrontend' || 'C:\inetpub\wwwroot\OzelDersVipStagingFrontend' }}
 
     steps:
       - name: Checkout code
